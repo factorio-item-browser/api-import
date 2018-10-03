@@ -3,15 +3,16 @@
 namespace FactorioItemBrowser\Api\Import\Importer;
 
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMException;
+use FactorioItemBrowser\Api\Database\Constant\EntityType;
 use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Registry\EntityRegistry;
 use FactorioItemBrowser\ExportData\Utils\EntityUtils;
-use FactorioItemBrowserTest\Api\Import\Exception\ImportException;
 
 /**
  * The importer of the items.
@@ -19,14 +20,8 @@ use FactorioItemBrowserTest\Api\Import\Exception\ImportException;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ItemImporter implements ImporterInterface
+class ItemImporter extends AbstractImporter
 {
-    /**
-     * The entity Manager.
-     * @var EntityManager
-     */
-    protected $entityManager;
-
     /**
      * The registry of the items.
      * @var EntityRegistry
@@ -50,7 +45,7 @@ class ItemImporter implements ImporterInterface
         EntityRegistry $itemRegistry,
         ItemRepository $itemRepository
     ) {
-        $this->entityManager = $entityManager;
+        parent::__construct($entityManager);
         $this->itemRegistry = $itemRegistry;
         $this->itemRepository = $itemRepository;
     }
@@ -63,25 +58,25 @@ class ItemImporter implements ImporterInterface
      */
     public function import(ExportCombination $exportCombination, DatabaseCombination $databaseCombination): void
     {
-        $newItems = $this->getItemsFromCombination($exportCombination);
+        $newItems = $this->getItemsFromExportCombination($exportCombination);
         $existingItems = $this->getExistingItems($newItems);
-        $persistedItems = $this->persistItems($newItems, $existingItems);
-        $this->assignItemsToCombination($persistedItems, $databaseCombination);
+        $persistedItems = $this->persistEntities($newItems, $existingItems);
+        $this->assignEntitiesToCollection($persistedItems, $databaseCombination->getItems());
     }
 
     /**
      * Returns the items from the specified combination.
-     * @param ExportCombination $combination
+     * @param ExportCombination $exportCombination
      * @return array|DatabaseItem[]
      * @throws ImportException
      */
-    protected function getItemsFromCombination(ExportCombination $combination): array
+    protected function getItemsFromExportCombination(ExportCombination $exportCombination): array
     {
         $result = [];
-        foreach ($combination->getItemHashes() as $itemHash) {
+        foreach ($exportCombination->getItemHashes() as $itemHash) {
             $exportItem = $this->itemRegistry->get($itemHash);
-            if (!$exportItem instanceof ExportItem)  {
-                throw new ImportException('Unable to find item with hash ' . $itemHash);
+            if (!$exportItem instanceof ExportItem) {
+                throw new UnknownHashException(EntityType::ITEM, $itemHash);
             }
 
             $databaseItem = $this->mapItem($exportItem);
@@ -117,45 +112,6 @@ class ItemImporter implements ImporterInterface
             $result[$this->getIdentifier($item)] = $item;
         }
         return $result;
-    }
-
-    /**
-     * Persists the specified items into the database.
-     * @param array|DatabaseItem[] $newItems
-     * @param array|DatabaseItem[] $existingItems
-     * @return array|DatabaseItem[]
-     * @throws ImportException
-     */
-    protected function persistItems(array $newItems, array $existingItems): array
-    {
-        $result = [];
-        try {
-            foreach ($newItems as $key => $newItem) {
-                if (isset($existingItems[$key])) {
-                    $result[$key] = $existingItems[$key];
-                } else {
-                    $this->entityManager->persist($newItem);
-                    $result[$key] = $newItem;
-                }
-            }
-            $this->entityManager->flush();
-        } catch (ORMException $e) {
-            throw new ImportException('Failed to persist items.', 0, $e);
-        }
-        return $result;
-    }
-
-    /**
-     * Assigns the items to the database combination.
-     * @param array|DatabaseItem[] $items
-     * @param DatabaseCombination $databaseCombination
-     */
-    protected function assignItemsToCombination(array $items, DatabaseCombination $databaseCombination): void
-    {
-        $databaseCombination->getItems()->clear();
-        foreach ($items as $item) {
-            $databaseCombination->getItems()->add($item);
-        }
     }
 
     /**

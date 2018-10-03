@@ -3,8 +3,8 @@
 namespace FactorioItemBrowser\Api\Import\Importer;
 
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
-use FactorioItemBrowserTest\Api\Import\Exception\ImportException;
 
 /**
  * The interface of the importers.

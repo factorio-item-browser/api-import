@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowserTest\Api\Import\Exception;
+namespace FactorioItemBrowser\Api\Import\Exception;
 
 use Exception;
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "499feed0e3fdda931cfb7607410c9cb4",
+    "content-hash": "460e83673ca931804593593cba5502f1",
     "packages": [
         {
             "name": "bluepsyduck/common",
@@ -1039,6 +1039,54 @@
                 "database"
             ],
             "time": "2018-08-04T20:08:42+00:00"
+        },
+        {
+            "name": "factorio-item-browser/common",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/factorio-item-browser/common.git",
+                "reference": "4e650f21791f4ff3145c7848603d2b25fd95579c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/factorio-item-browser/common/zipball/4e650f21791f4ff3145c7848603d2b25fd95579c",
+                "reference": "4e650f21791f4ff3145c7848603d2b25fd95579c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^0.10",
+                "phpstan/phpstan-strict-rules": "^0.10",
+                "squizlabs/php_codesniffer": "^3.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "FactorioItemBrowser\\Common\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "BluePsyduck",
+                    "email": "bluepsyduck@gmx.com"
+                }
+            ],
+            "description": "Common classes and interfaces used throughout the Factorio Item Browser project.",
+            "homepage": "https://github.com/factorio-item-browser/common",
+            "keywords": [
+                "BluePsyduck",
+                "FIB",
+                "Factorio Item Browser",
+                "common"
+            ],
+            "time": "2018-09-18T19:15:41+00:00"
         },
         {
             "name": "factorio-item-browser/export-data",
