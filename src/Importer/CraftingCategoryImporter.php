@@ -3,12 +3,12 @@
 namespace FactorioItemBrowser\Api\Import\Importer;
 
 use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Constant\EntityType;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
+use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
