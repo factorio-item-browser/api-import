@@ -43,4 +43,7 @@ return [
             ]
         ],
     ],
+    'export-data' => [
+        'directory' => __DIR__ . '/../../data/export',
+    ]
 ];
