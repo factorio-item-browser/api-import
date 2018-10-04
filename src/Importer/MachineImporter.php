@@ -11,10 +11,9 @@ use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
-use FactorioItemBrowser\Common\Constant\EntityType;
+use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
-use FactorioItemBrowser\ExportData\Registry\EntityRegistry;
 use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 
 /**
@@ -28,34 +27,34 @@ class MachineImporter extends AbstractImporter
     use CraftingCategoryAwareTrait;
 
     /**
-     * The registry of the machines.
-     * @var EntityRegistry
-     */
-    protected $machineRegistry;
-
-    /**
      * The repository of the machines.
      * @var MachineRepository
      */
     protected $machineRepository;
+    
+    /**
+     * The registry service.
+     * @var RegistryService
+     */
+    protected $registryService;
 
     /**
      * Initializes the importer.
      * @param CraftingCategoryRepository $craftingCategoryRepository
      * @param EntityManager $entityManager
-     * @param EntityRegistry $machineRegistry
      * @param MachineRepository $machineRepository
+     * @param RegistryService $registryService
      */
     public function __construct(
         CraftingCategoryRepository $craftingCategoryRepository,
         EntityManager $entityManager,
-        EntityRegistry $machineRegistry,
-        MachineRepository $machineRepository
+        MachineRepository $machineRepository,
+        RegistryService $registryService
     ) {
         parent::__construct($entityManager);
         $this->craftingCategoryRepository = $craftingCategoryRepository;
-        $this->machineRegistry = $machineRegistry;
         $this->machineRepository = $machineRepository;
+        $this->registryService = $registryService;
     }
 
     /**
@@ -83,11 +82,7 @@ class MachineImporter extends AbstractImporter
     {
         $result = [];
         foreach ($exportCombination->getMachineHashes() as $machineHash) {
-            $exportMachine = $this->machineRegistry->get($machineHash);
-            if (!$exportMachine instanceof ExportMachine) {
-                throw new UnknownHashException(EntityType::MACHINE, $machineHash);
-            }
-
+            $exportMachine = $this->registryService->getMachine($machineHash);
             $databaseMachine = $this->mapMachine($exportMachine);
             $result[$this->getIdentifier($databaseMachine)] = $databaseMachine;
         }

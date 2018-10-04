@@ -9,6 +9,8 @@ use FactorioItemBrowser\ExportData\Service\ExportDataService;
 return [
     'dependencies' => [
         'factories'  => [
+            ExportData\RegistryService::class => ExportData\RegistryServiceFactory::class,
+
             Importer\CraftingCategoryImporter::class => Importer\CraftingCategoryImporterFactory::class,
             Importer\ItemImporter::class => Importer\ItemImporterFactory::class,
             Importer\MachineImporter::class => Importer\MachineImporterFactory::class,

@@ -13,13 +13,11 @@ use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
-use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
-use FactorioItemBrowser\Common\Constant\EntityType;
+use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Product;
-use FactorioItemBrowser\ExportData\Registry\EntityRegistry;
 use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 
 /**
@@ -34,37 +32,37 @@ class RecipeImporter extends AbstractImporter
     use CraftingCategoryAwareTrait;
     
     /**
-     * The registry of the recipes.
-     * @var EntityRegistry
-     */
-    protected $recipeRegistry;
-    
-    /**
      * The repository of the recipes.
      * @var RecipeRepository
      */
     protected $recipeRepository;
 
     /**
+     * The registry service.
+     * @var RegistryService
+     */
+    protected $registryService;
+
+    /**
      * RecipeImporter constructor.
      * @param CraftingCategoryRepository $craftingCategoryRepository
      * @param EntityManager $entityManager
      * @param ItemRepository $itemRepository
-     * @param EntityRegistry $recipeRegistry
      * @param RecipeRepository $recipeRepository
+     * @param RegistryService $registryService
      */
     public function __construct(
         CraftingCategoryRepository $craftingCategoryRepository,
         EntityManager $entityManager,
         ItemRepository $itemRepository,
-        EntityRegistry $recipeRegistry,
-        RecipeRepository $recipeRepository
+        RecipeRepository $recipeRepository,
+        RegistryService $registryService
     ) {
         parent::__construct($entityManager);
         $this->craftingCategoryRepository = $craftingCategoryRepository;
         $this->itemRepository = $itemRepository;
-        $this->recipeRegistry = $recipeRegistry;
         $this->recipeRepository = $recipeRepository;
+        $this->registryService = $registryService;
     }
 
     /**
@@ -91,11 +89,7 @@ class RecipeImporter extends AbstractImporter
     {
         $result = [];
         foreach ($exportCombination->getRecipeHashes() as $recipeHash) {
-            $exportRecipe = $this->recipeRegistry->get($recipeHash);
-            if (!$exportRecipe instanceof ExportRecipe) {
-                throw new UnknownHashException(EntityType::RECIPE, $recipeHash);
-            }
-
+            $exportRecipe = $this->registryService->getRecipe($recipeHash);
             $databaseRecipe = $this->mapRecipe($exportRecipe);
             $result[$this->getIdentifier($databaseRecipe)] = $databaseRecipe;
         }

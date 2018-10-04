@@ -7,12 +7,8 @@ use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
-use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
-use FactorioItemBrowser\Common\Constant\EntityType;
-use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
+use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
-use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
-use FactorioItemBrowser\ExportData\Registry\EntityRegistry;
 
 /**
  * The importer of the crafting categories.
@@ -29,34 +25,25 @@ class CraftingCategoryImporter extends AbstractImporter
     protected $craftingCategoryRepository;
 
     /**
-     * The registry of the machines.
-     * @var EntityRegistry
+     * The registry service.
+     * @var RegistryService
      */
-    protected $machineRegistry;
-
-    /**
-     * The registry of the recipes.
-     * @var EntityRegistry
-     */
-    protected $recipeRegistry;
+    protected $registryService;
 
     /**
      * CraftingCategoryImporter constructor.
      * @param CraftingCategoryRepository $craftingCategoryRepository
      * @param EntityManager $entityManager
-     * @param EntityRegistry $machineRegistry
-     * @param EntityRegistry $recipeRegistry
+     * @param RegistryService $registryService
      */
     public function __construct(
         CraftingCategoryRepository $craftingCategoryRepository,
         EntityManager $entityManager,
-        EntityRegistry $machineRegistry,
-        EntityRegistry $recipeRegistry
+        RegistryService $registryService
     ) {
         parent::__construct($entityManager);
         $this->craftingCategoryRepository = $craftingCategoryRepository;
-        $this->machineRegistry = $machineRegistry;
-        $this->recipeRegistry = $recipeRegistry;
+        $this->registryService = $registryService;
     }
 
     /**
@@ -85,11 +72,7 @@ class CraftingCategoryImporter extends AbstractImporter
     {
         $result = [];
         foreach ($machineHashes as $machineHash) {
-            $machine = $this->machineRegistry->get($machineHash);
-            if (!$machine instanceof ExportMachine) {
-                throw new UnknownHashException(EntityType::MACHINE, $machineHash);
-            }
-
+            $machine = $this->registryService->getMachine($machineHash);
             foreach ($machine->getCraftingCategories() as $craftingCategoryName) {
                 $craftingCategory = $this->createCraftingCategory($craftingCategoryName);
                 $result[$this->getIdentifier($craftingCategory)] = $craftingCategory;
@@ -108,11 +91,7 @@ class CraftingCategoryImporter extends AbstractImporter
     {
         $result = [];
         foreach ($recipeHashes as $recipeHash) {
-            $recipe = $this->recipeRegistry->get($recipeHash);
-            if (!$recipe instanceof ExportRecipe) {
-                throw new UnknownHashException(EntityType::RECIPE, $recipeHash);
-            }
-
+            $recipe = $this->registryService->getRecipe($recipeHash);
             $craftingCategory = $this->createCraftingCategory($recipe->getCraftingCategory());
             $result[$this->getIdentifier($craftingCategory)] = $craftingCategory;
         }
@@ -121,12 +100,12 @@ class CraftingCategoryImporter extends AbstractImporter
 
     /**
      * Creates an entity for the specified crafting category.
-     * @param string $craftingCategory
+     * @param string $name
      * @return CraftingCategory
      */
-    protected function createCraftingCategory(string $craftingCategory): CraftingCategory
+    protected function createCraftingCategory(string $name): CraftingCategory
     {
-        return new CraftingCategory($craftingCategory);
+        return new CraftingCategory($name);
     }
 
     /**

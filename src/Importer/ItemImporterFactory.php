@@ -5,7 +5,7 @@ namespace FactorioItemBrowser\Api\Import\Importer;
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\Item;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
-use FactorioItemBrowser\ExportData\Service\ExportDataService;
+use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
@@ -28,11 +28,11 @@ class ItemImporterFactory implements FactoryInterface
     {
         /* @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /* @var ExportDataService $exportDataService */
-        $exportDataService = $container->get(ExportDataService::class);
         /* @var ItemRepository $itemRepository */
         $itemRepository = $entityManager->getRepository(Item::class);
+        /* @var RegistryService $registryService */
+        $registryService = $container->get(RegistryService::class);
 
-        return new ItemImporter($entityManager, $exportDataService->getItemRegistry(), $itemRepository);
+        return new ItemImporter($entityManager, $itemRepository, $registryService);
     }
 }

@@ -7,11 +7,9 @@ use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
-use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
-use FactorioItemBrowser\Common\Constant\EntityType;
+use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
-use FactorioItemBrowser\ExportData\Registry\EntityRegistry;
 use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 
 /**
@@ -23,31 +21,31 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 class ItemImporter extends AbstractImporter
 {
     /**
-     * The registry of the items.
-     * @var EntityRegistry
-     */
-    protected $itemRegistry;
-
-    /**
      * The repository of the items.
      * @var ItemRepository
      */
     protected $itemRepository;
 
     /**
+     * The registry service.
+     * @var RegistryService
+     */
+    protected $registryService;
+
+    /**
      * Initializes the importer.
      * @param EntityManager $entityManager
-     * @param EntityRegistry $itemRegistry
      * @param ItemRepository $itemRepository
+     * @param RegistryService $registryService
      */
     public function __construct(
         EntityManager $entityManager,
-        EntityRegistry $itemRegistry,
-        ItemRepository $itemRepository
+        ItemRepository $itemRepository,
+        RegistryService $registryService
     ) {
         parent::__construct($entityManager);
-        $this->itemRegistry = $itemRegistry;
         $this->itemRepository = $itemRepository;
+        $this->registryService = $registryService;
     }
 
     /**
@@ -74,11 +72,7 @@ class ItemImporter extends AbstractImporter
     {
         $result = [];
         foreach ($exportCombination->getItemHashes() as $itemHash) {
-            $exportItem = $this->itemRegistry->get($itemHash);
-            if (!$exportItem instanceof ExportItem) {
-                throw new UnknownHashException(EntityType::ITEM, $itemHash);
-            }
-
+            $exportItem = $this->registryService->getItem($itemHash);
             $databaseItem = $this->mapItem($exportItem);
             $result[$this->getIdentifier($databaseItem)] = $databaseItem;
         }

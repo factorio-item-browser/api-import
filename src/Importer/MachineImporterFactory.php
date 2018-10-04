@@ -7,7 +7,7 @@ use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Machine;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
-use FactorioItemBrowser\ExportData\Service\ExportDataService;
+use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
@@ -30,19 +30,20 @@ class MachineImporterFactory implements FactoryInterface
     {
         /* @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /* @var ExportDataService $exportDataService */
-        $exportDataService = $container->get(ExportDataService::class);
+        /* @var RegistryService $registryService */
+        $registryService = $container->get(RegistryService::class);
 
         /* @var CraftingCategoryRepository $craftingCategoryRepository */
         $craftingCategoryRepository = $entityManager->getRepository(CraftingCategory::class);
         /* @var MachineRepository $machineRepository */
         $machineRepository = $entityManager->getRepository(Machine::class);
 
+
         return new MachineImporter(
             $craftingCategoryRepository,
             $entityManager,
-            $exportDataService->getMachineRegistry(),
-            $machineRepository
+            $machineRepository,
+            $registryService
         );
     }
 }
