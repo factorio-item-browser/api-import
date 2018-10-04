@@ -31,7 +31,7 @@ abstract class AbstractImporter implements ImporterInterface
     }
 
     /**
-     * Persists the specified items into the database.
+     * Persists the specified entities into the database.
      * @param array|object[] $newEntities
      * @param array|object[] $existingEntities
      * @return array|object[]
@@ -45,7 +45,7 @@ abstract class AbstractImporter implements ImporterInterface
                 if (isset($existingEntities[$key])) {
                     $result[$key] = $existingEntities[$key];
                 } else {
-                    $this->entityManager->persist($newEntity);
+                    $this->persistEntity($newEntity);
                     $result[$key] = $newEntity;
                 }
             }
@@ -54,6 +54,16 @@ abstract class AbstractImporter implements ImporterInterface
             throw new ImportException('Failed to persist entities.', 0, $e);
         }
         return $result;
+    }
+
+    /**
+     * Persists the specified entity.
+     * @param object $entity
+     * @throws ORMException
+     */
+    protected function persistEntity($entity): void
+    {
+        $this->entityManager->persist($entity);
     }
 
     /**

@@ -12,6 +12,7 @@ return [
             Importer\CraftingCategoryImporter::class => Importer\CraftingCategoryImporterFactory::class,
             Importer\ItemImporter::class => Importer\ItemImporterFactory::class,
             Importer\MachineImporter::class => Importer\MachineImporterFactory::class,
+            Importer\RecipeImporter::class => Importer\RecipeImporterFactory::class,
 
             // 3rd-party services
             ExportDataService::class => ExportData\ExportDataServiceFactory::class,

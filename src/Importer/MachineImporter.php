@@ -4,7 +4,6 @@ namespace FactorioItemBrowser\Api\Import\Importer;
 
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Data\MachineData;
-use FactorioItemBrowser\Api\Database\Entity\CraftingCategory as DatabaseCraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
@@ -26,11 +25,7 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  */
 class MachineImporter extends AbstractImporter
 {
-    /**
-     * The repository of the crafting categories.
-     * @var CraftingCategoryRepository
-     */
-    protected $craftingCategoryRepository;
+    use CraftingCategoryAwareTrait;
 
     /**
      * The registry of the machines.
@@ -43,12 +38,6 @@ class MachineImporter extends AbstractImporter
      * @var MachineRepository
      */
     protected $machineRepository;
-
-    /**
-     * The cached crafting categories.
-     * @var array|CraftingCategory[]
-     */
-    protected $craftingCategoryCache = [];
 
     /**
      * Initializes the importer.
@@ -126,25 +115,6 @@ class MachineImporter extends AbstractImporter
             $result->getCraftingCategories()->add($this->getCraftingCategory($name));
         }
         return $result;
-    }
-
-    /**
-     * Fetches the crafting category with the specified name from the database.
-     * @param string $name
-     * @return DatabaseCraftingCategory
-     * @throws ImportException
-     */
-    protected function getCraftingCategory(string $name): DatabaseCraftingCategory
-    {
-        if (!isset($this->craftingCategoryCache[$name])) {
-            $craftingCategories = $this->craftingCategoryRepository->findByNames([$name]);
-            $craftingCategory = array_shift($craftingCategories);
-            if (!$craftingCategory instanceof DatabaseCraftingCategory) {
-                throw new ImportException('Missing crafting category: ' . $name);
-            }
-            $this->craftingCategoryCache[$name] = $craftingCategory;
-        }
-        return $this->craftingCategoryCache[$name];
     }
 
     /**
