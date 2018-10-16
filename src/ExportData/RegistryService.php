@@ -4,13 +4,14 @@ namespace FactorioItemBrowser\Api\Import\ExportData;
 
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
 use FactorioItemBrowser\Common\Constant\EntityType;
+use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
 
 /**
- * Th4e service of the export data registries.
+ * The service of the export data registries.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
@@ -30,6 +31,21 @@ class RegistryService
     public function __construct(ExportDataService $exportDataService)
     {
         $this->exportDataService = $exportDataService;
+    }
+
+    /**
+     * Returns the icon with the specified hash.
+     * @param string $iconHash
+     * @return Icon
+     * @throws UnknownHashException
+     */
+    public function getIcon(string $iconHash): Icon
+    {
+        $result = $this->exportDataService->getIconRegistry()->get($iconHash);
+        if (!$result instanceof Icon) {
+            throw new UnknownHashException('icon', $iconHash);
+        }
+        return $result;
     }
 
     /**
@@ -73,6 +89,21 @@ class RegistryService
         $result = $this->exportDataService->getRecipeRegistry()->get($recipeHash);
         if (!$result instanceof Recipe) {
             throw new UnknownHashException(EntityType::RECIPE, $recipeHash);
+        }
+        return $result;
+    }
+
+    /**
+     * Returns the rendered icon with the specified hash.
+     * @param string $iconHash
+     * @return string
+     * @throws UnknownHashException
+     */
+    public function getRenderedIcon(string $iconHash): string
+    {
+        $result = $this->exportDataService->getRenderedIconRegistry()->get($iconHash);
+        if ($result === null) {
+            throw new UnknownHashException('rendered icon', $iconHash);
         }
         return $result;
     }

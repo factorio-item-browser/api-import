@@ -5,7 +5,6 @@ namespace FactorioItemBrowser\Api\Import\Importer;
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
-use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\Common\Constant\EntityType;
@@ -30,12 +29,6 @@ class TranslationImporter extends AbstractImporter
     protected $registryService;
 
     /**
-     * The repository of the translations.
-     * @var TranslationRepository
-     */
-    protected $translationRepository;
-
-    /**
      * The database combination.
      * @var DatabaseCombination
      */
@@ -48,19 +41,14 @@ class TranslationImporter extends AbstractImporter
     protected $translations = [];
 
     /**
-     * TranslationImporter constructor.
+     * Initializes the importer.
      * @param EntityManager $entityManager
      * @param RegistryService $registryService
-     * @param TranslationRepository $translationRepository
      */
-    public function __construct(
-        EntityManager $entityManager,
-        RegistryService $registryService,
-        TranslationRepository $translationRepository
-    ) {
+    public function __construct(EntityManager $entityManager, RegistryService $registryService)
+    {
         parent::__construct($entityManager);
         $this->registryService = $registryService;
-        $this->translationRepository = $translationRepository;
     }
 
     /**

@@ -59,11 +59,15 @@ abstract class AbstractImporter implements ImporterInterface
     /**
      * Persists the specified entity.
      * @param object $entity
-     * @throws ORMException
+     * @throws ImportException
      */
     protected function persistEntity($entity): void
     {
-        $this->entityManager->persist($entity);
+        try {
+            $this->entityManager->persist($entity);
+        } catch (ORMException $e) {
+            throw new ImportException('Failed to persist entity.', 0, $e);
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ return [
             ExportData\RegistryService::class => ExportData\RegistryServiceFactory::class,
 
             Importer\CraftingCategoryImporter::class => Importer\CraftingCategoryImporterFactory::class,
+            Importer\IconImporter::class => Importer\IconImporterFactory::class,
             Importer\ItemImporter::class => Importer\ItemImporterFactory::class,
             Importer\MachineImporter::class => Importer\MachineImporterFactory::class,
             Importer\RecipeImporter::class => Importer\RecipeImporterFactory::class,
