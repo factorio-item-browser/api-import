@@ -9,9 +9,9 @@ use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombinatio
 use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
-use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
+use FactorioItemBrowser\Api\Import\Service\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
@@ -29,8 +29,13 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 class RecipeImporter extends AbstractImporter
 {
     use ItemAwareTrait;
-    use CraftingCategoryAwareTrait;
-    
+
+    /**
+     * The service of the crafting categories.
+     * @var CraftingCategoryService
+     */
+    protected $craftingCategoryService;
+
     /**
      * The repository of the recipes.
      * @var RecipeRepository
@@ -45,21 +50,22 @@ class RecipeImporter extends AbstractImporter
 
     /**
      * RecipeImporter constructor.
-     * @param CraftingCategoryRepository $craftingCategoryRepository
+     * @param CraftingCategoryService $craftingCategoryService
      * @param EntityManager $entityManager
      * @param ItemRepository $itemRepository
      * @param RecipeRepository $recipeRepository
      * @param RegistryService $registryService
      */
     public function __construct(
-        CraftingCategoryRepository $craftingCategoryRepository,
+        CraftingCategoryService $craftingCategoryService,
         EntityManager $entityManager,
         ItemRepository $itemRepository,
         RecipeRepository $recipeRepository,
         RegistryService $registryService
     ) {
         parent::__construct($entityManager);
-        $this->craftingCategoryRepository = $craftingCategoryRepository;
+
+        $this->craftingCategoryService = $craftingCategoryService;
         $this->itemRepository = $itemRepository;
         $this->recipeRepository = $recipeRepository;
         $this->registryService = $registryService;
@@ -107,7 +113,7 @@ class RecipeImporter extends AbstractImporter
         $result = new DatabaseRecipe(
             $recipe->getName(),
             $recipe->getMode(),
-            $this->getCraftingCategory($recipe->getCraftingCategory())
+            $this->craftingCategoryService->getByName($recipe->getCraftingCategory())
         );
         $result->setCraftingTime($recipe->getCraftingTime());
 

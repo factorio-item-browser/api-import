@@ -7,8 +7,8 @@ use FactorioItemBrowser\Api\Database\Data\MachineData;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
-use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
+use FactorioItemBrowser\Api\Import\Service\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -24,7 +24,11 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  */
 class MachineImporter extends AbstractImporter
 {
-    use CraftingCategoryAwareTrait;
+    /**
+     * The service of the crafting categories.
+     * @var CraftingCategoryService
+     */
+    protected $craftingCategoryService;
 
     /**
      * The repository of the machines.
@@ -40,19 +44,19 @@ class MachineImporter extends AbstractImporter
 
     /**
      * Initializes the importer.
-     * @param CraftingCategoryRepository $craftingCategoryRepository
+     * @param CraftingCategoryService $craftingCategoryService
      * @param EntityManager $entityManager
      * @param MachineRepository $machineRepository
      * @param RegistryService $registryService
      */
     public function __construct(
-        CraftingCategoryRepository $craftingCategoryRepository,
+        CraftingCategoryService $craftingCategoryService,
         EntityManager $entityManager,
         MachineRepository $machineRepository,
         RegistryService $registryService
     ) {
         parent::__construct($entityManager);
-        $this->craftingCategoryRepository = $craftingCategoryRepository;
+        $this->craftingCategoryService = $craftingCategoryService;
         $this->machineRepository = $machineRepository;
         $this->registryService = $registryService;
     }
@@ -107,7 +111,7 @@ class MachineImporter extends AbstractImporter
                ->setEnergyUsageUnit($machine->getEnergyUsageUnit());
 
         foreach ($machine->getCraftingCategories() as $name) {
-            $result->getCraftingCategories()->add($this->getCraftingCategory($name));
+            $result->getCraftingCategories()->add($this->craftingCategoryService->getByName($name));
         }
         return $result;
     }

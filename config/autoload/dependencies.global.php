@@ -18,6 +18,8 @@ return [
             Importer\RecipeImporter::class => Importer\RecipeImporterFactory::class,
             Importer\TranslationImporter::class => Importer\TranslationImporterFactory::class,
 
+            Service\CraftingCategoryService::class => Service\CraftingCategoryServiceFactory::class,
+
             // 3rd-party services
             ExportDataService::class => ExportData\ExportDataServiceFactory::class,
         ]
