@@ -20,6 +20,6 @@ class UnknownHashException extends ImportException
      */
     public function __construct(string $entityType, string $hash, ?Exception $previous = null)
     {
-        parent::__construct('Unable to find ' . $entityType . ' with hash ' . $hash, 0, $previous);
+        parent::__construct('Unable to find ' . $entityType . ' with hash ' . $hash . '.', 0, $previous);
     }
 }
