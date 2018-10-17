@@ -19,6 +19,7 @@ return [
             Importer\TranslationImporter::class => Importer\TranslationImporterFactory::class,
 
             Service\CraftingCategoryService::class => Service\CraftingCategoryServiceFactory::class,
+            Service\ItemService::class => Service\ItemServiceFactory::class,
 
             // 3rd-party services
             ExportDataService::class => ExportData\ExportDataServiceFactory::class,

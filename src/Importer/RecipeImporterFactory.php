@@ -3,12 +3,11 @@
 namespace FactorioItemBrowser\Api\Import\Importer;
 
 use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Item;
 use FactorioItemBrowser\Api\Database\Entity\Recipe;
-use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
 use FactorioItemBrowser\Api\Import\Service\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
+use FactorioItemBrowser\Api\Import\Service\ItemService;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
@@ -33,18 +32,18 @@ class RecipeImporterFactory implements FactoryInterface
         $craftingCategoryService = $container->get(CraftingCategoryService::class);
         /* @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
+        /* @var ItemService $itemService */
+        $itemService = $container->get(ItemService::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
 
-        /* @var ItemRepository $itemRepository */
-        $itemRepository = $entityManager->getRepository(Item::class);
         /* @var RecipeRepository $recipeRepository */
         $recipeRepository = $entityManager->getRepository(Recipe::class);
 
         return new RecipeImporter(
             $craftingCategoryService,
             $entityManager,
-            $itemRepository,
+            $itemService,
             $recipeRepository,
             $registryService
         );

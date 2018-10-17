@@ -9,11 +9,11 @@ use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombinatio
 use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
-use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
 use FactorioItemBrowser\Api\Import\Service\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
+use FactorioItemBrowser\Api\Import\Service\ItemService;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient;
@@ -28,13 +28,17 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  */
 class RecipeImporter extends AbstractImporter
 {
-    use ItemAwareTrait;
-
     /**
      * The service of the crafting categories.
      * @var CraftingCategoryService
      */
     protected $craftingCategoryService;
+
+    /**
+     * The service of the items.
+     * @var ItemService
+     */
+    protected $itemService;
 
     /**
      * The repository of the recipes.
@@ -52,21 +56,21 @@ class RecipeImporter extends AbstractImporter
      * RecipeImporter constructor.
      * @param CraftingCategoryService $craftingCategoryService
      * @param EntityManager $entityManager
-     * @param ItemRepository $itemRepository
+     * @param ItemService $itemService
      * @param RecipeRepository $recipeRepository
      * @param RegistryService $registryService
      */
     public function __construct(
         CraftingCategoryService $craftingCategoryService,
         EntityManager $entityManager,
-        ItemRepository $itemRepository,
+        ItemService $itemService,
         RecipeRepository $recipeRepository,
         RegistryService $registryService
     ) {
         parent::__construct($entityManager);
 
         $this->craftingCategoryService = $craftingCategoryService;
-        $this->itemRepository = $itemRepository;
+        $this->itemService = $itemService;
         $this->recipeRepository = $recipeRepository;
         $this->registryService = $registryService;
     }
@@ -137,7 +141,7 @@ class RecipeImporter extends AbstractImporter
      */
     protected function mapIngredient(DatabaseRecipe $recipe, Ingredient $ingredient, int $order): RecipeIngredient
     {
-        $item = $this->getItem($ingredient->getType(), $ingredient->getName());
+        $item = $this->itemService->getByTypeAndName($ingredient->getType(), $ingredient->getName());
 
         $result = new RecipeIngredient($recipe, $item);
         $result->setAmount($ingredient->getAmount())
@@ -155,7 +159,7 @@ class RecipeImporter extends AbstractImporter
      */
     protected function mapProduct(DatabaseRecipe $recipe, Product $product, int $order): RecipeProduct
     {
-        $item = $this->getItem($product->getType(), $product->getName());
+        $item = $this->itemService->getByTypeAndName($product->getType(), $product->getName());
 
         $result = new RecipeProduct($recipe, $item);
         $result->setAmountMin($product->getAmountMin())
