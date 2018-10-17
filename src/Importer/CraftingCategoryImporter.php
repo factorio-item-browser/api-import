@@ -56,7 +56,7 @@ class CraftingCategoryImporter extends AbstractImporter
     {
         $newCraftingCategories = array_merge(
             $this->getCraftingCategoriesFromMachineHashes($exportCombination->getMachineHashes()),
-            $this->getCraftingCategoryFromRecipeHashes($exportCombination->getRecipeHashes())
+            $this->getCraftingCategoriesFromRecipeHashes($exportCombination->getRecipeHashes())
         );
         $existingCraftingCategories = $this->getExistingCraftingCategories($newCraftingCategories);
         $this->persistEntities($newCraftingCategories, $existingCraftingCategories);
@@ -87,7 +87,7 @@ class CraftingCategoryImporter extends AbstractImporter
      * @return array|CraftingCategory[]
      * @throws ImportException
      */
-    protected function getCraftingCategoryFromRecipeHashes(array $recipeHashes): array
+    protected function getCraftingCategoriesFromRecipeHashes(array $recipeHashes): array
     {
         $result = [];
         foreach ($recipeHashes as $recipeHash) {

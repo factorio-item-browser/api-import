@@ -40,19 +40,16 @@ abstract class AbstractImporter implements ImporterInterface
     protected function persistEntities(array $newEntities, array $existingEntities): array
     {
         $result = [];
-        try {
-            foreach ($newEntities as $key => $newEntity) {
-                if (isset($existingEntities[$key])) {
-                    $result[$key] = $existingEntities[$key];
-                } else {
-                    $this->persistEntity($newEntity);
-                    $result[$key] = $newEntity;
-                }
+        foreach ($newEntities as $key => $newEntity) {
+            if (isset($existingEntities[$key])) {
+                $result[$key] = $existingEntities[$key];
+            } else {
+                $this->persistEntity($newEntity);
+                $result[$key] = $newEntity;
             }
-            $this->entityManager->flush();
-        } catch (ORMException $e) {
-            throw new ImportException('Failed to persist entities.', 0, $e);
         }
+
+        $this->flushEntities();
         return $result;
     }
 
@@ -67,6 +64,19 @@ abstract class AbstractImporter implements ImporterInterface
             $this->entityManager->persist($entity);
         } catch (ORMException $e) {
             throw new ImportException('Failed to persist entity.', 0, $e);
+        }
+    }
+
+    /**
+     * Flushes the entities to the database.
+     * @throws ImportException
+     */
+    protected function flushEntities(): void
+    {
+        try {
+            $this->entityManager->flush();
+        } catch (ORMException $e) {
+            throw new ImportException('Failed to flush entities.', 0, $e);
         }
     }
 
