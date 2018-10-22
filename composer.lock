@@ -3045,16 +3045,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.0.4",
+            "version": "v4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "fa6ee28600d21d49b2b4e1006b48426cec8e579c"
+                "reference": "d0230c5c77a7e3cfa69446febf340978540958c0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/fa6ee28600d21d49b2b4e1006b48426cec8e579c",
-                "reference": "fa6ee28600d21d49b2b4e1006b48426cec8e579c",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/d0230c5c77a7e3cfa69446febf340978540958c0",
+                "reference": "d0230c5c77a7e3cfa69446febf340978540958c0",
                 "shasum": ""
             },
             "require": {
@@ -3070,7 +3070,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "4.0-dev"
+                    "dev-master": "4.1-dev"
                 }
             },
             "autoload": {
@@ -3092,7 +3092,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2018-09-18T07:03:24+00:00"
+            "time": "2018-10-10T09:24:14+00:00"
         },
         {
             "name": "ocramius/package-versions",
@@ -3508,20 +3508,20 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.10.3",
+            "version": "0.10.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "dc62f78c9aa6e9f7c44e8d6518f1123cd1e1b1c0"
+                "reference": "c6a8cd1fe08a23b9d101a55ffa9ff6b91d71ef5d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/dc62f78c9aa6e9f7c44e8d6518f1123cd1e1b1c0",
-                "reference": "dc62f78c9aa6e9f7c44e8d6518f1123cd1e1b1c0",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/c6a8cd1fe08a23b9d101a55ffa9ff6b91d71ef5d",
+                "reference": "c6a8cd1fe08a23b9d101a55ffa9ff6b91d71ef5d",
                 "shasum": ""
             },
             "require": {
-                "composer/xdebug-handler": "^1.0",
+                "composer/xdebug-handler": "^1.3.0",
                 "jean85/pretty-package-versions": "^1.0.3",
                 "nette/bootstrap": "^2.4 || ^3.0",
                 "nette/di": "^2.4.7 || ^3.0",
@@ -3535,21 +3535,21 @@
             },
             "require-dev": {
                 "brianium/paratest": "^2.0",
-                "consistence/coding-standard": "^3.3",
+                "consistence/coding-standard": "^3.5",
                 "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
                 "ext-gd": "*",
                 "ext-intl": "*",
                 "ext-mysqli": "*",
                 "ext-zip": "*",
                 "jakub-onderka/php-parallel-lint": "^1.0",
-                "localheinz/composer-normalize": "~0.8.0",
+                "localheinz/composer-normalize": "~0.9.0",
                 "phing/phing": "^2.16.0",
                 "phpstan/phpstan-deprecation-rules": "^0.10.2",
                 "phpstan/phpstan-php-parser": "^0.10",
                 "phpstan/phpstan-phpunit": "^0.10",
                 "phpstan/phpstan-strict-rules": "^0.10",
                 "phpunit/phpunit": "^7.0",
-                "slevomat/coding-standard": "^4.6.2"
+                "slevomat/coding-standard": "^4.7.2"
             },
             "bin": [
                 "bin/phpstan"
@@ -3573,7 +3573,7 @@
                 "MIT"
             ],
             "description": "PHPStan - PHP Static Analysis Tool",
-            "time": "2018-08-12T15:14:21+00:00"
+            "time": "2018-10-20T17:24:55+00:00"
         },
         {
             "name": "phpstan/phpstan-phpunit",
@@ -3673,16 +3673,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "6.0.7",
+            "version": "6.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "865662550c384bc1db7e51d29aeda1c2c161d69a"
+                "reference": "b097681a19a48e52706f57e47a09594bac4f7cab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/865662550c384bc1db7e51d29aeda1c2c161d69a",
-                "reference": "865662550c384bc1db7e51d29aeda1c2c161d69a",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/b097681a19a48e52706f57e47a09594bac4f7cab",
+                "reference": "b097681a19a48e52706f57e47a09594bac4f7cab",
                 "shasum": ""
             },
             "require": {
@@ -3693,7 +3693,7 @@
                 "phpunit/php-text-template": "^1.2.1",
                 "phpunit/php-token-stream": "^3.0",
                 "sebastian/code-unit-reverse-lookup": "^1.0.1",
-                "sebastian/environment": "^3.1",
+                "sebastian/environment": "^3.1 || ^4.0",
                 "sebastian/version": "^2.0.1",
                 "theseer/tokenizer": "^1.1"
             },
@@ -3706,7 +3706,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "6.0-dev"
+                    "dev-master": "6.1-dev"
                 }
             },
             "autoload": {
@@ -3732,7 +3732,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2018-06-01T07:51:50+00:00"
+            "time": "2018-10-18T09:01:38+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -3925,16 +3925,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "7.3.5",
+            "version": "7.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "7b331efabbb628c518c408fdfcaf571156775de2"
+                "reference": "c5a120ade60992bd671a912188ee9ee9f8083bbd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/7b331efabbb628c518c408fdfcaf571156775de2",
-                "reference": "7b331efabbb628c518c408fdfcaf571156775de2",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/c5a120ade60992bd671a912188ee9ee9f8083bbd",
+                "reference": "c5a120ade60992bd671a912188ee9ee9f8083bbd",
                 "shasum": ""
             },
             "require": {
@@ -3955,11 +3955,11 @@
                 "phpunit/php-timer": "^2.0",
                 "sebastian/comparator": "^3.0",
                 "sebastian/diff": "^3.0",
-                "sebastian/environment": "^3.1",
+                "sebastian/environment": "^3.1 || ^4.0",
                 "sebastian/exporter": "^3.1",
                 "sebastian/global-state": "^2.0",
                 "sebastian/object-enumerator": "^3.0.3",
-                "sebastian/resource-operations": "^1.0",
+                "sebastian/resource-operations": "^2.0",
                 "sebastian/version": "^2.0.1"
             },
             "conflict": {
@@ -3979,7 +3979,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "7.3-dev"
+                    "dev-master": "7.4-dev"
                 }
             },
             "autoload": {
@@ -4005,7 +4005,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2018-09-08T15:14:29+00:00"
+            "time": "2018-10-18T09:02:52+00:00"
         },
         {
             "name": "rregeer/phpunit-coverage-check",
@@ -4529,25 +4529,25 @@
         },
         {
             "name": "sebastian/resource-operations",
-            "version": "1.0.0",
+            "version": "2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/resource-operations.git",
-                "reference": "ce990bb21759f94aeafd30209e8cfcdfa8bc3f52"
+                "reference": "4d7a795d35b889bf80a0cc04e08d77cedfa917a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/resource-operations/zipball/ce990bb21759f94aeafd30209e8cfcdfa8bc3f52",
-                "reference": "ce990bb21759f94aeafd30209e8cfcdfa8bc3f52",
+                "url": "https://api.github.com/repos/sebastianbergmann/resource-operations/zipball/4d7a795d35b889bf80a0cc04e08d77cedfa917a9",
+                "reference": "4d7a795d35b889bf80a0cc04e08d77cedfa917a9",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.6.0"
+                "php": "^7.1"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0.x-dev"
+                    "dev-master": "2.0-dev"
                 }
             },
             "autoload": {
@@ -4567,7 +4567,7 @@
             ],
             "description": "Provides a list of PHP built-in functions that operate on resources",
             "homepage": "https://www.github.com/sebastianbergmann/resource-operations",
-            "time": "2015-07-28T20:34:47+00:00"
+            "time": "2018-10-04T04:07:39+00:00"
         },
         {
             "name": "sebastian/version",
