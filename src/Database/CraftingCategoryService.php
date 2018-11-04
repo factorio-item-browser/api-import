@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Service;
+namespace FactorioItemBrowser\Api\Import\Database;
 
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;

@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Service;
+namespace FactorioItemBrowser\Api\Import\Database;
 
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\Item;

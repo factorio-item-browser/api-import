@@ -5,9 +5,9 @@ namespace FactorioItemBrowser\Api\Import\Importer;
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\Recipe;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
-use FactorioItemBrowser\Api\Import\Service\CraftingCategoryService;
+use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Api\Import\Service\ItemService;
+use FactorioItemBrowser\Api\Import\Database\ItemService;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
 

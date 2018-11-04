@@ -22,8 +22,8 @@ return [
             Importer\RecipeImporter::class => Importer\RecipeImporterFactory::class,
             Importer\TranslationImporter::class => Importer\TranslationImporterFactory::class,
 
-            Service\CraftingCategoryService::class => Service\CraftingCategoryServiceFactory::class,
-            Service\ItemService::class => Service\ItemServiceFactory::class,
+            Database\CraftingCategoryService::class => Database\CraftingCategoryServiceFactory::class,
+            Database\ItemService::class => Database\ItemServiceFactory::class,
 
             // 3rd-party services
             ExportDataService::class => ExportData\ExportDataServiceFactory::class,

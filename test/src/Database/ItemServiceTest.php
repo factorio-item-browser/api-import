@@ -1,12 +1,12 @@
 <?php
 
-namespace FactorioItemBrowserTest\Api\Import\Service;
+namespace FactorioItemBrowserTest\Api\Import\Database;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
 use FactorioItemBrowser\Api\Database\Entity\Item;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Import\Exception\MissingEntityException;
-use FactorioItemBrowser\Api\Import\Service\ItemService;
+use FactorioItemBrowser\Api\Import\Database\ItemService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -16,7 +16,7 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Service\ItemService
+ * @coversDefaultClass \FactorioItemBrowser\Api\Import\Database\ItemService
  */
 class ItemServiceTest extends TestCase
 {

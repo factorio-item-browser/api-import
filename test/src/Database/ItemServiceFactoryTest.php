@@ -1,12 +1,12 @@
 <?php
 
-namespace FactorioItemBrowserTest\Api\Import\Service;
+namespace FactorioItemBrowserTest\Api\Import\Database;
 
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\Item;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
-use FactorioItemBrowser\Api\Import\Service\ItemService;
-use FactorioItemBrowser\Api\Import\Service\ItemServiceFactory;
+use FactorioItemBrowser\Api\Import\Database\ItemService;
+use FactorioItemBrowser\Api\Import\Database\ItemServiceFactory;
 use Interop\Container\ContainerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Service\ItemServiceFactory
+ * @coversDefaultClass \FactorioItemBrowser\Api\Import\Database\ItemServiceFactory
  */
 class ItemServiceFactoryTest extends TestCase
 {

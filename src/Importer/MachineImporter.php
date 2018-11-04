@@ -8,7 +8,7 @@ use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
-use FactorioItemBrowser\Api\Import\Service\CraftingCategoryService;
+use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
