@@ -92,6 +92,7 @@ abstract class AbstractImporter
         foreach ($entities as $entity) {
             $collection->add($entity);
         }
+
         $this->flushEntities();
     }
 }

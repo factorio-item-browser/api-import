@@ -47,7 +47,7 @@ class DependencyImporter extends AbstractImporter implements ModImporterInterfac
     public function import(ExportMod $exportMod, DatabaseMod $databaseMod): void
     {
         $newDependencies = $this->getDependenciesFromMod($exportMod, $databaseMod);
-        $existingDependencies = $this->getExistingDependencies($databaseMod);
+        $existingDependencies = $this->getExistingDependencies($newDependencies, $databaseMod);
         $persistedDependencies = $this->persistEntities($newDependencies, $existingDependencies);
         $this->assignEntitiesToCollection($persistedDependencies, $databaseMod->getDependencies());
     }
@@ -90,16 +90,32 @@ class DependencyImporter extends AbstractImporter implements ModImporterInterfac
 
     /**
      * Returns the already existing entities.
+     * @param array|DatabaseDependency[] $newDependencies
      * @param DatabaseMod $databaseMod
-     * @return array
+     * @return array|DatabaseDependency[]
      */
-    protected function getExistingDependencies(DatabaseMod $databaseMod): array
+    protected function getExistingDependencies(array $newDependencies, DatabaseMod $databaseMod): array
     {
         $result = [];
         foreach ($databaseMod->getDependencies() as $dependency) {
-            $result[$this->getIdentifier($dependency)] = $dependency;
+            $key = $this->getIdentifier($dependency);
+            if (isset($newDependencies[$key])) {
+                $this->applyChanges($newDependencies[$key], $dependency);
+            }
+            $result[$key] = $dependency;
         }
         return $result;
+    }
+
+    /**
+     * Applies the changes from the source to the destination.
+     * @param DatabaseDependency $source
+     * @param DatabaseDependency $destination
+     */
+    protected function applyChanges(DatabaseDependency $source, DatabaseDependency $destination): void
+    {
+        $destination->setType($source->getType())
+                    ->setRequiredVersion($destination->getType());
     }
 
     /**

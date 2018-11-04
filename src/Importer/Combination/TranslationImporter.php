@@ -61,7 +61,7 @@ class TranslationImporter extends AbstractImporter implements CombinationImporte
     public function import(ExportCombination $exportCombination, DatabaseCombination $databaseCombination): void
     {
         $newTranslations = $this->getTranslationsFromCombination($exportCombination, $databaseCombination);
-        $existingTranslations = $this->getExistingTranslations($databaseCombination);
+        $existingTranslations = $this->getExistingTranslations($newTranslations, $databaseCombination);
         $persistedTranslations = $this->persistEntities($newTranslations, $existingTranslations);
         $this->assignEntitiesToCollection($persistedTranslations, $databaseCombination->getTranslations());
     }
@@ -179,16 +179,34 @@ class TranslationImporter extends AbstractImporter implements CombinationImporte
 
     /**
      * Returns the already existing entities.
+     * @param array|Translation[] $newTranslations
      * @param DatabaseCombination $databaseCombination
-     * @return array
+     * @return array|Translation[]
      */
-    protected function getExistingTranslations(DatabaseCombination $databaseCombination): array
+    protected function getExistingTranslations(array $newTranslations, DatabaseCombination $databaseCombination): array
     {
         $result = [];
         foreach ($databaseCombination->getTranslations() as $translation) {
-            $result[$this->getIdentifierOfTranslation($translation)] = $translation;
+            $key = $this->getIdentifierOfTranslation($translation);
+            if (isset($newTranslations[$key])) {
+                $this->applyChanges($newTranslations[$key], $translation);
+            }
+            $result[$key] = $translation;
         }
         return $result;
+    }
+
+    /**
+     * Applies the changes from the source to the destination.
+     * @param Translation $source
+     * @param Translation $destination
+     */
+    protected function applyChanges(Translation $source, Translation $destination): void
+    {
+        $destination->setValue($source->getValue())
+                    ->setDescription($source->getDescription())
+                    ->setIsDuplicatedByMachine($source->getIsDuplicatedByMachine())
+                    ->setIsDuplicatedByRecipe($source->getIsDuplicatedByRecipe());
     }
 
     /**

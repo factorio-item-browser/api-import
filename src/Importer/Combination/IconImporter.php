@@ -71,7 +71,7 @@ class IconImporter extends AbstractImporter implements CombinationImporterInterf
     public function import(ExportCombination $exportCombination, DatabaseCombination $databaseCombination): void
     {
         $newIcons = $this->getIconsFromCombination($exportCombination, $databaseCombination);
-        $existingIcons = $this->getExistingIcons($databaseCombination);
+        $existingIcons = $this->getExistingIcons($newIcons, $databaseCombination);
         $persistedIcons = $this->persistEntities($newIcons, $existingIcons);
         $this->assignEntitiesToCollection($persistedIcons, $databaseCombination->getIcons());
     }
@@ -208,16 +208,31 @@ class IconImporter extends AbstractImporter implements CombinationImporterInterf
 
     /**
      * Returns the already existing entities.
+     * @param array|DatabaseIcon[] $newIcons
      * @param DatabaseCombination $databaseCombination
-     * @return array
+     * @return array|DatabaseIcon[]
      */
-    protected function getExistingIcons(DatabaseCombination $databaseCombination): array
+    protected function getExistingIcons(array $newIcons, DatabaseCombination $databaseCombination): array
     {
         $result = [];
         foreach ($databaseCombination->getIcons() as $icon) {
-            $result[$this->getIdentifier($icon)] = $icon;
+            $key = $this->getIdentifier($icon);
+            if (isset($newIcons[$key])) {
+                $this->applyChanges($newIcons[$key], $icon);
+            }
+            $result[$key] = $icon;
         }
         return $result;
+    }
+
+    /**
+     * Applies the changes from the source to the destination.
+     * @param DatabaseIcon $source
+     * @param DatabaseIcon $destination
+     */
+    protected function applyChanges(DatabaseIcon $source, DatabaseIcon $destination): void
+    {
+        $destination->setFile($source->getFile());
     }
 
     /**

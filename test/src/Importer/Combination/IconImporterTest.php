@@ -6,8 +6,11 @@ use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\Icon as DatabaseIcon;
+use FactorioItemBrowser\Api\Database\Entity\Icon;
 use FactorioItemBrowser\Api\Database\Entity\IconFile;
+use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
+use FactorioItemBrowser\Api\Database\Entity\ModCombination;
 use FactorioItemBrowser\Api\Database\Repository\IconFileRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -104,7 +107,7 @@ class IconImporterTest extends TestCase
                  ->willReturn($newIcons);
         $importer->expects($this->once())
                  ->method('getExistingIcons')
-                 ->with($databaseCombination)
+                 ->with($newIcons, $databaseCombination)
                  ->willReturn($existingIcons);
         $importer->expects($this->once())
                  ->method('persistEntities')
@@ -534,4 +537,102 @@ class IconImporterTest extends TestCase
         $this->assertSame($expectedIconFiles, $this->extractProperty($importer, 'iconFiles'));
     }
 
+    /**
+     * Tests the createIcon method.
+     * @throws ReflectionException
+     * @covers ::createIcon
+     */
+    public function testCreateIcon(): void
+    {
+        /* @var DatabaseCombination $databaseCombination */
+        $databaseCombination = $this->createMock(DatabaseCombination::class);
+        /* @var IconFile $iconFile */
+        $iconFile = $this->createMock(IconFile::class);
+
+        $type = 'abc';
+        $name = 'def';
+
+        $expectedResult = new DatabaseIcon($databaseCombination, $iconFile);
+        $expectedResult->setType('abc')
+                       ->setName('def');
+
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var IconFileRepository $iconFileRepository */
+        $iconFileRepository = $this->createMock(IconFileRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new IconImporter($entityManager, $iconFileRepository, $registryService);
+        $this->injectProperty($importer, 'databaseCombination', $databaseCombination);
+
+        $result = $this->invokeMethod($importer, 'createIcon', $iconFile, $type, $name);
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the applyChanges method.
+     * @throws ReflectionException
+     * @covers ::applyChanges
+     */
+    public function testApplyChanges(): void
+    {
+        /* @var IconFile $iconFile */
+        $iconFile = $this->createMock(IconFile::class);
+
+        /* @var DatabaseIcon|MockObject $source */
+        $source = $this->getMockBuilder(DatabaseIcon::class)
+                       ->setMethods(['getFile'])
+                       ->disableOriginalConstructor()
+                       ->getMock();
+        $source->expects($this->once())
+               ->method('getFile')
+               ->willReturn($iconFile);
+
+        /* @var DatabaseIcon|MockObject $destination */
+        $destination = $this->getMockBuilder(DatabaseIcon::class)
+                            ->setMethods(['setFile'])
+                            ->disableOriginalConstructor()
+                            ->getMock();
+        $destination->expects($this->once())
+                    ->method('setFile')
+                    ->with($iconFile);
+
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var IconFileRepository $iconFileRepository */
+        $iconFileRepository = $this->createMock(IconFileRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new IconImporter($entityManager, $iconFileRepository, $registryService);
+
+        $this->invokeMethod($importer, 'applyChanges', $source, $destination);
+    }
+
+    /**
+     * Tests the getIdentifier method.
+     * @throws ReflectionException
+     * @covers ::getIdentifier
+     */
+    public function testGetIdentifier(): void
+    {
+        /* @var Icon $icon */
+        $icon = new Icon(new ModCombination(new Mod('abc'), 'def'), new IconFile('ab12cd34'));
+        $icon->setType('foo')
+             ->setName('bar');
+        $expectedResult = 'foo|bar';
+
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var IconFileRepository $iconFileRepository */
+        $iconFileRepository = $this->createMock(IconFileRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new IconImporter($entityManager, $iconFileRepository, $registryService);
+
+        $result = $this->invokeMethod($importer, 'getIdentifier', $icon);
+        $this->assertSame($expectedResult, $result);
+    }
 }

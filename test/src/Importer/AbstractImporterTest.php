@@ -213,7 +213,11 @@ class AbstractImporterTest extends TestCase
         /* @var AbstractImporter|MockObject $importer */
         $importer = $this->getMockBuilder(AbstractImporter::class)
                          ->disableOriginalConstructor()
+                         ->setMethods(['flushEntities'])
                          ->getMockForAbstractClass();
+        $importer->expects($this->once())
+                 ->method('flushEntities');
+
         $this->invokeMethod($importer, 'assignEntitiesToCollection', [$entity1, $entity2], $collection);
     }
 }

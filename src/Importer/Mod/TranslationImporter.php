@@ -41,7 +41,7 @@ class TranslationImporter extends AbstractImporter implements ModImporterInterfa
     {
         $baseCombination = $this->findBaseCombination($databaseMod);
         $newTranslations = $this->getTranslationsFromMod($exportMod, $baseCombination);
-        $existingTranslations = $this->getExistingTranslations($baseCombination);
+        $existingTranslations = $this->getExistingTranslations($newTranslations, $baseCombination);
         $persistedTranslations = $this->persistEntities($newTranslations, $existingTranslations);
         $this->assignEntitiesToCollection($persistedTranslations, $baseCombination->getTranslations());
     }
@@ -133,16 +133,34 @@ class TranslationImporter extends AbstractImporter implements ModImporterInterfa
 
     /**
      * Returns the already existing entities.
+     * @param array|Translation[] $newTranslations
      * @param DatabaseCombination $baseCombination
-     * @return array
+     * @return array|Translation[]
      */
-    protected function getExistingTranslations(DatabaseCombination $baseCombination): array
+    protected function getExistingTranslations(array $newTranslations, DatabaseCombination $baseCombination): array
     {
         $result = [];
         foreach ($baseCombination->getTranslations() as $translation) {
-            $result[$this->getIdentifierOfTranslation($translation)] = $translation;
+            $key = $this->getIdentifierOfTranslation($translation);
+            if (isset($newTranslations[$key])) {
+                $this->applyChanges($newTranslations[$key], $translation);
+            }
+            $result[$key] = $translation;
         }
         return $result;
+    }
+
+    /**
+     * Applies the changes from the source to the destination.
+     * @param Translation $source
+     * @param Translation $destination
+     */
+    protected function applyChanges(Translation $source, Translation $destination): void
+    {
+        $destination->setValue($source->getValue())
+                    ->setDescription($source->getDescription())
+                    ->setIsDuplicatedByMachine($source->getIsDuplicatedByMachine())
+                    ->setIsDuplicatedByRecipe($source->getIsDuplicatedByRecipe());
     }
 
     /**
