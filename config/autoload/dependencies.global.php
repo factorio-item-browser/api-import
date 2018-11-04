@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import;
 
+use FactorioItemBrowser\Api\Import\Handler\AbstractCombinationPartHandlerFactory;
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
 
 return [
     'dependencies' => [
+        'abstract_factories' => [
+            AbstractCombinationPartHandlerFactory::class,
+        ],
         'factories'  => [
             ExportData\RegistryService::class => ExportData\RegistryServiceFactory::class,
 

@@ -18,7 +18,7 @@ class MissingEntityException extends ImportException
      * @param string $identifier
      * @param Throwable|null $previous
      */
-    public function __construct(string $entityClass, string $identifier, Throwable $previous = null)
+    public function __construct(string $entityClass, string $identifier, ?Throwable $previous = null)
     {
         $entityName = basename(str_replace('\\', '/', $entityClass));
 

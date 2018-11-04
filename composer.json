@@ -15,7 +15,7 @@
   "require": {
     "php": "^7.2",
     "ext-PDO": "*",
-    "factorio-item-browser/api-database": "^1.0",
+    "factorio-item-browser/api-database": "dev-import",
     "factorio-item-browser/common": "^1.0",
     "factorio-item-browser/export-data": "dev-feature/refactor",
     "zendframework/zend-config-aggregator": "^1.0",

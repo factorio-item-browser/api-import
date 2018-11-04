@@ -7,6 +7,7 @@ use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
+use FactorioItemBrowser\ExportData\Entity\Mod\Combination;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
 
@@ -31,6 +32,21 @@ class RegistryService
     public function __construct(ExportDataService $exportDataService)
     {
         $this->exportDataService = $exportDataService;
+    }
+
+    /**
+     * Returns the combination with the specified hash.
+     * @param string $combinationHash
+     * @return Combination
+     * @throws UnknownHashException
+     */
+    public function getCombination(string $combinationHash): Combination
+    {
+        $result = $this->exportDataService->getCombinationRegistry()->get($combinationHash);
+        if (!$result instanceof Combination) {
+            throw new UnknownHashException('combination', $combinationHash);
+        }
+        return $result;
     }
 
     /**

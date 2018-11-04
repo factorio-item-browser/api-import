@@ -8,6 +8,7 @@ use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
+use FactorioItemBrowser\ExportData\Entity\Mod\Combination;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\Registry\ContentRegistry;
 use FactorioItemBrowser\ExportData\Registry\EntityRegistry;
@@ -40,6 +41,65 @@ class RegistryServiceTest extends TestCase
         $service = new RegistryService($exportDataService);
 
         $this->assertSame($exportDataService, $this->extractProperty($service, 'exportDataService'));
+    }
+
+    /**
+     * Provides the data for the getCombination test.
+     * @return array
+     */
+    public function provideGetCombination(): array
+    {
+        $combination = (new Combination())->setName('foo');
+
+        return [
+            [$combination, false, $combination],
+            [null, true, null],
+        ];
+    }
+
+    /**
+     * Tests the getCombination method.
+     * @param Combination|null $combination
+     * @param bool $expectException
+     * @param Combination|null $expectedResult
+     * @throws UnknownHashException
+     * @covers ::getCombination
+     * @dataProvider provideGetCombination
+     */
+    public function testGetCombination(
+        ?Combination $combination,
+        bool $expectException,
+        ?Combination $expectedResult
+    ): void {
+        $combinationHash = 'abc';
+
+        /* @var EntityRegistry|MockObject $combinationRegistry */
+        $combinationRegistry = $this->getMockBuilder(EntityRegistry::class)
+                             ->setMethods(['get'])
+                             ->disableOriginalConstructor()
+                             ->getMock();
+        $combinationRegistry->expects($this->once())
+                     ->method('get')
+                     ->with($combinationHash)
+                     ->willReturn($combination);
+
+        /* @var ExportDataService|MockObject $exportDataService */
+        $exportDataService = $this->getMockBuilder(ExportDataService::class)
+                                  ->setMethods(['getCombinationRegistry'])
+                                  ->disableOriginalConstructor()
+                                  ->getMock();
+        $exportDataService->expects($this->once())
+                          ->method('getCombinationRegistry')
+                          ->willReturn($combinationRegistry);
+
+        if ($expectException) {
+            $this->expectException(UnknownHashException::class);
+        }
+
+        $service = new RegistryService($exportDataService);
+
+        $result = $service->getCombination($combinationHash);
+        $this->assertSame($expectedResult, $result);
     }
 
     /**
