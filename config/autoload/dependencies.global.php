@@ -13,6 +13,10 @@ return [
             Handler\AbstractModPartHandlerFactory::class,
         ],
         'factories'  => [
+            Database\CraftingCategoryService::class => Database\CraftingCategoryServiceFactory::class,
+            Database\ItemService::class => Database\ItemServiceFactory::class,
+            Database\ModService::class => Database\ModServiceFactory::class,
+
             ExportData\RegistryService::class => ExportData\RegistryServiceFactory::class,
 
             Handler\ModHandler::class => Handler\ModHandlerFactory::class,
@@ -23,10 +27,8 @@ return [
             Importer\Combination\MachineImporter::class => Importer\Combination\MachineImporterFactory::class,
             Importer\Combination\RecipeImporter::class => Importer\Combination\RecipeImporterFactory::class,
             Importer\Combination\TranslationImporter::class => Importer\Combination\TranslationImporterFactory::class,
+            Importer\Mod\DependencyImporter::class => Importer\Mod\DependencyImporterFactory::class,
             Importer\Mod\TranslationImporter::class => Importer\Mod\TranslationImporterFactory::class,
-
-            Database\CraftingCategoryService::class => Database\CraftingCategoryServiceFactory::class,
-            Database\ItemService::class => Database\ItemServiceFactory::class,
 
             // 3rd-party services
             ExportDataService::class => ExportData\ExportDataServiceFactory::class,

@@ -17,5 +17,6 @@ interface ServiceName
     public const COMBINATION_RECIPES_HANDLER = 'handler.combination.recipes';
     public const COMBINATION_TRANSLATIONS_HANDLER = 'handler.combination.translations';
 
+    public const MOD_DEPENDENCIES_HANDLER = 'handler.mod.dependencies';
     public const MOD_TRANSLATIONS_HANDLER = 'handler.mod.translations';
 }

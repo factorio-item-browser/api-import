@@ -18,5 +18,6 @@ interface RouteName
     public const COMBINATION_TRANSLATIONS = 'combination.translations';
 
     public const MOD = 'mod';
+    public const MOD_DEPENDENCIES = 'mod.dependencies';
     public const MOD_TRANSLATIONS = 'mod.translations';
 }
