@@ -84,6 +84,7 @@ abstract class AbstractImporter
      * Assigns the items to the database combination.
      * @param array|object[] $entities
      * @param Collection $collection
+     * @throws ImportException
      */
     protected function assignEntitiesToCollection(array $entities, Collection $collection): void
     {
@@ -91,5 +92,6 @@ abstract class AbstractImporter
         foreach ($entities as $entity) {
             $collection->add($entity);
         }
+        $this->flushEntities();
     }
 }
