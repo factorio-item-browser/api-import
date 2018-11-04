@@ -7,6 +7,7 @@ use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
+use FactorioItemBrowser\ExportData\Entity\Mod;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
@@ -90,6 +91,21 @@ class RegistryService
         $result = $this->exportDataService->getMachineRegistry()->get($machineHash);
         if (!$result instanceof Machine) {
             throw new UnknownHashException(EntityType::MACHINE, $machineHash);
+        }
+        return $result;
+    }
+
+    /**
+     * Returns the mod with the specified name.
+     * @param string $modName
+     * @return Mod
+     * @throws UnknownHashException
+     */
+    public function getMod(string $modName): Mod
+    {
+        $result = $this->exportDataService->getModRegistry()->get($modName);
+        if (!$result instanceof Mod) {
+            throw new UnknownHashException('mod', $modName);
         }
         return $result;
     }

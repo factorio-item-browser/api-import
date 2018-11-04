@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
+namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\Icon as DatabaseIcon;
@@ -9,6 +9,7 @@ use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombinatio
 use FactorioItemBrowser\Api\Database\Repository\IconFileRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
+use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Utils\EntityUtils;
@@ -19,7 +20,7 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class IconImporter extends AbstractCombinationPartImporter
+class IconImporter extends AbstractImporter implements CombinationImporterInterface
 {
     /**
      * The repository of the icon files.

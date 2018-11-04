@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
+namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMException;
@@ -14,6 +14,7 @@ use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\Api\Import\Database\ItemService;
+use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient;
@@ -26,7 +27,7 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class RecipeImporter extends AbstractCombinationPartImporter
+class RecipeImporter extends AbstractImporter implements CombinationImporterInterface
 {
     /**
      * The service of the crafting categories.

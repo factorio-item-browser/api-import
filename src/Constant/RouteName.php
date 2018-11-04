@@ -16,5 +16,7 @@ interface RouteName
     public const COMBINATION_MACHINES = 'combination.machines';
     public const COMBINATION_RECIPES = 'combination.recipes';
     public const COMBINATION_TRANSLATIONS = 'combination.translations';
+
     public const MOD = 'mod';
+    public const MOD_TRANSLATIONS = 'mod.translations';
 }

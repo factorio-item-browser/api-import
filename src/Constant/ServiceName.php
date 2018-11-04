@@ -16,4 +16,6 @@ interface ServiceName
     public const COMBINATION_MACHINES_HANDLER = 'handler.combination.machines';
     public const COMBINATION_RECIPES_HANDLER = 'handler.combination.recipes';
     public const COMBINATION_TRANSLATIONS_HANDLER = 'handler.combination.translations';
+
+    public const MOD_TRANSLATIONS_HANDLER = 'handler.mod.translations';
 }

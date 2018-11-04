@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
+namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Data\MachineData;
@@ -12,6 +12,7 @@ use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
+use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Utils\EntityUtils;
@@ -22,7 +23,7 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class MachineImporter extends AbstractCombinationPartImporter
+class MachineImporter extends AbstractImporter implements CombinationImporterInterface
 {
     /**
      * The service of the crafting categories.

@@ -1,13 +1,13 @@
 <?php
 
-namespace FactorioItemBrowserTest\Api\Import\Importer\CombinationPart;
+namespace FactorioItemBrowserTest\Api\Import\Importer;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMException;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\AbstractCombinationPartImporter;
+use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -18,9 +18,9 @@ use stdClass;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\CombinationPart\AbstractCombinationPartImporter
+ * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\AbstractImporter
  */
-class AbstractCombinationPartImporterTest extends TestCase
+class AbstractImporterTest extends TestCase
 {
     use ReflectionTrait;
 
@@ -34,8 +34,8 @@ class AbstractCombinationPartImporterTest extends TestCase
         /* @var EntityManager $entityManager */
         $entityManager = $this->createMock(EntityManager::class);
 
-        /* @var AbstractCombinationPartImporter|MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractCombinationPartImporter::class)
+        /* @var AbstractImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(AbstractImporter::class)
                          ->setConstructorArgs([$entityManager])
                          ->getMockForAbstractClass();
 
@@ -71,8 +71,8 @@ class AbstractCombinationPartImporterTest extends TestCase
             'def' => $entity2,
         ];
 
-        /* @var AbstractCombinationPartImporter|MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractCombinationPartImporter::class)
+        /* @var AbstractImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(AbstractImporter::class)
                          ->setMethods(['persistEntity', 'flushEntities'])
                          ->disableOriginalConstructor()
                          ->getMockForAbstractClass();
@@ -130,8 +130,8 @@ class AbstractCombinationPartImporterTest extends TestCase
             $this->expectException(ImportException::class);
         }
 
-        /* @var AbstractCombinationPartImporter|MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractCombinationPartImporter::class)
+        /* @var AbstractImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(AbstractImporter::class)
                          ->setConstructorArgs([$entityManager])
                          ->getMockForAbstractClass();
 
@@ -178,8 +178,8 @@ class AbstractCombinationPartImporterTest extends TestCase
             $this->expectException(ImportException::class);
         }
 
-        /* @var AbstractCombinationPartImporter|MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractCombinationPartImporter::class)
+        /* @var AbstractImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(AbstractImporter::class)
                          ->setConstructorArgs([$entityManager])
                          ->getMockForAbstractClass();
 
@@ -210,8 +210,8 @@ class AbstractCombinationPartImporterTest extends TestCase
                        [$entity2]
                    );
 
-        /* @var AbstractCombinationPartImporter|MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractCombinationPartImporter::class)
+        /* @var AbstractImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(AbstractImporter::class)
                          ->disableOriginalConstructor()
                          ->getMockForAbstractClass();
         $this->invokeMethod($importer, 'assignEntitiesToCollection', [$entity1, $entity2], $collection);

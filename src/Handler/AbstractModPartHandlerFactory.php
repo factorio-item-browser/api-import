@@ -3,37 +3,27 @@
 namespace FactorioItemBrowser\Api\Import\Handler;
 
 use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\ModCombination;
-use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
+use FactorioItemBrowser\Api\Database\Entity\Mod;
+use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Api\Import\Importer\Combination\CraftingCategoryImporter;
-use FactorioItemBrowser\Api\Import\Importer\Combination\IconImporter;
-use FactorioItemBrowser\Api\Import\Importer\Combination\ItemImporter;
-use FactorioItemBrowser\Api\Import\Importer\Combination\MachineImporter;
-use FactorioItemBrowser\Api\Import\Importer\Combination\RecipeImporter;
-use FactorioItemBrowser\Api\Import\Importer\Combination\TranslationImporter;
+use FactorioItemBrowser\Api\Import\Importer\Mod\TranslationImporter;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\AbstractFactoryInterface;
 
 /**
- * The abstract factory of the combination part handler.
+ * The abstract factory of the mod part handler.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class AbstractCombinationPartHandlerFactory implements AbstractFactoryInterface
+class AbstractModPartHandlerFactory implements AbstractFactoryInterface
 {
     /**
      * The map of the service name to the importer.
      */
     protected const IMPORTER_MAP = [
-        ServiceName::COMBINATION_CRAFTING_CATEGORIES_HANDLER => CraftingCategoryImporter::class,
-        ServiceName::COMBINATION_ICONS_HANDLER => IconImporter::class,
-        ServiceName::COMBINATION_ITEMS_HANDLER => ItemImporter::class,
-        ServiceName::COMBINATION_MACHINES_HANDLER => MachineImporter::class,
-        ServiceName::COMBINATION_RECIPES_HANDLER => RecipeImporter::class,
-        ServiceName::COMBINATION_TRANSLATIONS_HANDLER => TranslationImporter::class,
+        ServiceName::MOD_TRANSLATIONS_HANDLER => TranslationImporter::class,
     ];
 
     /**
@@ -53,7 +43,7 @@ class AbstractCombinationPartHandlerFactory implements AbstractFactoryInterface
      * @param  ContainerInterface $container
      * @param  string $requestedName
      * @param  null|array $options
-     * @return CombinationPartHandler
+     * @return ModPartHandler
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
@@ -62,12 +52,12 @@ class AbstractCombinationPartHandlerFactory implements AbstractFactoryInterface
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
 
-        /* @var ModCombinationRepository $modCombinationRepository */
-        $modCombinationRepository = $entityManager->getRepository(ModCombination::class);
+        /* @var ModRepository $modRepository */
+        $modRepository = $entityManager->getRepository(Mod::class);
 
-        return new CombinationPartHandler(
+        return new ModPartHandler(
             $container->get(self::IMPORTER_MAP[$requestedName]),
-            $modCombinationRepository,
+            $modRepository,
             $registryService
         );
     }

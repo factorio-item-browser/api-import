@@ -984,12 +984,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/api-database.git",
-                "reference": "4d0dd8c8ac6e2ead1a3165f75c161df361789c9c"
+                "reference": "32ce1b0bfbe7b81cbfcdd36735291d44e7dd08d1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/api-database/zipball/4d0dd8c8ac6e2ead1a3165f75c161df361789c9c",
-                "reference": "4d0dd8c8ac6e2ead1a3165f75c161df361789c9c",
+                "url": "https://api.github.com/repos/factorio-item-browser/api-database/zipball/32ce1b0bfbe7b81cbfcdd36735291d44e7dd08d1",
+                "reference": "32ce1b0bfbe7b81cbfcdd36735291d44e7dd08d1",
                 "shasum": ""
             },
             "require": {
@@ -1040,7 +1040,7 @@
                 "api",
                 "database"
             ],
-            "time": "2018-11-03T17:53:33+00:00"
+            "time": "2018-11-04T15:35:59+00:00"
         },
         {
             "name": "factorio-item-browser/common",

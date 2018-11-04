@@ -17,5 +17,6 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/combination/{combinationHash}/machines', ServiceName::COMBINATION_MACHINES_HANDLER, RouteName::COMBINATION_MACHINES);
     $app->get('/combination/{combinationHash}/recipes', ServiceName::COMBINATION_RECIPES_HANDLER, RouteName::COMBINATION_RECIPES);
     $app->get('/combination/{combinationHash}/translations', ServiceName::COMBINATION_TRANSLATIONS_HANDLER, RouteName::COMBINATION_TRANSLATIONS);
-//    $app->get('/mod/{modName}', Handler\ModHandler::class, RouteName::MOD);
+    $app->get('/mod/{modName}', Handler\ModHandler::class, RouteName::MOD);
+    $app->get('/mod/{modName}/translations', ServiceName::MOD_TRANSLATIONS_HANDLER, RouteName::MOD_TRANSLATIONS);
 };

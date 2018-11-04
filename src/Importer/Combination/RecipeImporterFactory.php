@@ -1,29 +1,30 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
+namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
 use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Machine;
-use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
+use FactorioItemBrowser\Api\Database\Entity\Recipe;
+use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
 use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
+use FactorioItemBrowser\Api\Import\Database\ItemService;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
 /**
- * The factory of the machine importer.
+ * The factory of the recipe importer.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class MachineImporterFactory implements FactoryInterface
+class RecipeImporterFactory implements FactoryInterface
 {
     /**
      * Creates the importer.
      * @param  ContainerInterface $container
      * @param  string $requestedName
      * @param  null|array $options
-     * @return MachineImporter
+     * @return RecipeImporter
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
@@ -31,16 +32,19 @@ class MachineImporterFactory implements FactoryInterface
         $craftingCategoryService = $container->get(CraftingCategoryService::class);
         /* @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
+        /* @var ItemService $itemService */
+        $itemService = $container->get(ItemService::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
 
-        /* @var MachineRepository $machineRepository */
-        $machineRepository = $entityManager->getRepository(Machine::class);
+        /* @var RecipeRepository $recipeRepository */
+        $recipeRepository = $entityManager->getRepository(Recipe::class);
 
-        return new MachineImporter(
+        return new RecipeImporter(
             $craftingCategoryService,
             $entityManager,
-            $machineRepository,
+            $itemService,
+            $recipeRepository,
             $registryService
         );
     }

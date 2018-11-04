@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowserTest\Api\Import\Importer\CombinationPart;
+namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\ORM\EntityManager;
@@ -9,7 +9,7 @@ use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombinatio
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\CraftingCategoryImporter;
+use FactorioItemBrowser\Api\Import\Importer\Combination\CraftingCategoryImporter;
 use FactorioItemBrowser\ExportData\Entity\Machine;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
@@ -22,7 +22,7 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\CombinationPart\CraftingCategoryImporter
+ * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\Combination\CraftingCategoryImporter
  */
 class CraftingCategoryImporterTest extends TestCase
 {

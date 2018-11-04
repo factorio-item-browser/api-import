@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowserTest\Api\Import\Importer\CombinationPart;
+namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\Collection;
@@ -11,7 +11,7 @@ use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombinatio
 use FactorioItemBrowser\Api\Database\Repository\IconFileRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\IconImporter;
+use FactorioItemBrowser\Api\Import\Importer\Combination\IconImporter;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
@@ -26,7 +26,7 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\CombinationPart\IconImporter
+ * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\Combination\IconImporter
  */
 class IconImporterTest extends TestCase
 {

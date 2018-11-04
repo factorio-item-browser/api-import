@@ -1,13 +1,14 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
+namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
 use Doctrine\ORM\EntityManager;
+use FactorioItemBrowser\Api\Database\Constant\TranslationType;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Common\Constant\EntityType;
+use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
@@ -20,7 +21,7 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class TranslationImporter extends AbstractCombinationPartImporter
+class TranslationImporter extends AbstractImporter implements CombinationImporterInterface
 {
     /**
      * The registry service.
@@ -99,7 +100,7 @@ class TranslationImporter extends AbstractCombinationPartImporter
     protected function copyMetaTranslations(DatabaseCombination $databaseCombination): void
     {
         foreach ($databaseCombination->getTranslations() as $translation) {
-            if ($translation->getType() === 'mod') {
+            if ($translation->getType() === TranslationType::MOD) {
                 $this->translations[$this->getIdentifierOfTranslation($translation)] = $translation;
             }
         }
@@ -133,12 +134,12 @@ class TranslationImporter extends AbstractCombinationPartImporter
     protected function processMachine(ExportMachine $exportMachine): void
     {
         foreach ($exportMachine->getLabels()->getTranslations() as $locale => $label) {
-            $translation = $this->getTranslation($locale, EntityType::MACHINE, $exportMachine->getName());
+            $translation = $this->getTranslation($locale, TranslationType::MACHINE, $exportMachine->getName());
             $translation->setValue($label);
         }
 
         foreach ($exportMachine->getDescriptions()->getTranslations() as $locale => $description) {
-            $translation = $this->getTranslation($locale, EntityType::MACHINE, $exportMachine->getName());
+            $translation = $this->getTranslation($locale, TranslationType::MACHINE, $exportMachine->getName());
             $translation->setValue($description);
         }
     }
@@ -150,12 +151,12 @@ class TranslationImporter extends AbstractCombinationPartImporter
     protected function processRecipe(ExportRecipe $exportRecipe): void
     {
         foreach ($exportRecipe->getLabels()->getTranslations() as $locale => $label) {
-            $translation = $this->getTranslation($locale, EntityType::RECIPE, $exportRecipe->getName());
+            $translation = $this->getTranslation($locale, TranslationType::RECIPE, $exportRecipe->getName());
             $translation->setValue($label);
         }
 
         foreach ($exportRecipe->getDescriptions()->getTranslations() as $locale => $description) {
-            $translation = $this->getTranslation($locale, EntityType::RECIPE, $exportRecipe->getName());
+            $translation = $this->getTranslation($locale, TranslationType::RECIPE, $exportRecipe->getName());
             $translation->setValue($description);
         }
     }

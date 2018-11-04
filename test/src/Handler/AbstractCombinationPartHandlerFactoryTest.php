@@ -8,13 +8,13 @@ use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\Api\Import\Handler\AbstractCombinationPartHandlerFactory;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\CraftingCategoryImporter;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\IconImporter;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\CombinationPartImporterInterface;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\ItemImporter;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\MachineImporter;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\RecipeImporter;
-use FactorioItemBrowser\Api\Import\Importer\CombinationPart\TranslationImporter;
+use FactorioItemBrowser\Api\Import\Importer\Combination\CraftingCategoryImporter;
+use FactorioItemBrowser\Api\Import\Importer\Combination\IconImporter;
+use FactorioItemBrowser\Api\Import\Importer\Combination\CombinationImporterInterface;
+use FactorioItemBrowser\Api\Import\Importer\Combination\ItemImporter;
+use FactorioItemBrowser\Api\Import\Importer\Combination\MachineImporter;
+use FactorioItemBrowser\Api\Import\Importer\Combination\RecipeImporter;
+use FactorioItemBrowser\Api\Import\Importer\Combination\TranslationImporter;
 use Interop\Container\ContainerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -115,7 +115,7 @@ class AbstractCombinationPartHandlerFactoryTest extends TestCase
                   ->willReturnOnConsecutiveCalls(
                       $entityManager,
                       $this->createMock(RegistryService::class),
-                      $this->createMock(CombinationPartImporterInterface::class)
+                      $this->createMock(CombinationImporterInterface::class)
                   );
 
         $factory = new AbstractCombinationPartHandlerFactory();
