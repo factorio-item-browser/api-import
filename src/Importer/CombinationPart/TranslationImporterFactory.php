@@ -1,28 +1,26 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer;
+namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
 
 use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
-use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
 /**
- * The factory of the crafting category importer.
+ * The factory of the translation importer.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class CraftingCategoryImporterFactory implements FactoryInterface
+class TranslationImporterFactory implements FactoryInterface
 {
     /**
      * Creates the importer.
      * @param  ContainerInterface $container
      * @param  string $requestedName
      * @param  null|array $options
-     * @return CraftingCategoryImporter
+     * @return TranslationImporter
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
@@ -31,11 +29,7 @@ class CraftingCategoryImporterFactory implements FactoryInterface
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
 
-        /* @var CraftingCategoryRepository $craftingCategoryRepository */
-        $craftingCategoryRepository = $entityManager->getRepository(CraftingCategory::class);
-
-        return new CraftingCategoryImporter(
-            $craftingCategoryRepository,
+        return new TranslationImporter(
             $entityManager,
             $registryService
         );

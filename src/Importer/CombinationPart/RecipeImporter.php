@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer;
+namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMException;
@@ -26,7 +26,7 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class RecipeImporter extends AbstractImporter
+class RecipeImporter extends AbstractCombinationPartImporter
 {
     /**
      * The service of the crafting categories.

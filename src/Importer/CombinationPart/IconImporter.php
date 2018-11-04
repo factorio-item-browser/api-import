@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer;
+namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
 
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\Icon as DatabaseIcon;
@@ -19,7 +19,7 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class IconImporter extends AbstractImporter
+class IconImporter extends AbstractCombinationPartImporter
 {
     /**
      * The repository of the icon files.

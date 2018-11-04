@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer;
+namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManager;
@@ -13,7 +13,7 @@ use FactorioItemBrowser\Api\Import\Exception\ImportException;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-abstract class AbstractImporter implements ImporterInterface
+abstract class AbstractCombinationPartImporter implements CombinationPartImporterInterface
 {
     /**
      * The entity manager.

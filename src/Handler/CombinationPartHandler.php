@@ -8,7 +8,7 @@ use FactorioItemBrowser\Api\Import\Exception\ErrorResponseException;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\CombinationPartImporterInterface;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,7 +25,7 @@ class CombinationPartHandler implements RequestHandlerInterface
 {
     /**
      * The importer.
-     * @var ImporterInterface
+     * @var CombinationPartImporterInterface
      */
     protected $importer;
 
@@ -43,12 +43,12 @@ class CombinationPartHandler implements RequestHandlerInterface
 
     /**
      * ItemHandler constructor.
-     * @param ImporterInterface $importer
+     * @param CombinationPartImporterInterface $importer
      * @param ModCombinationRepository $modCombinationRepository
      * @param RegistryService $registryService
      */
     public function __construct(
-        ImporterInterface $importer,
+        CombinationPartImporterInterface $importer,
         ModCombinationRepository $modCombinationRepository,
         RegistryService $registryService
     ) {

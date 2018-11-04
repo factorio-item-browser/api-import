@@ -15,18 +15,18 @@ return [
         'factories'  => [
             ExportData\RegistryService::class => ExportData\RegistryServiceFactory::class,
 
-            Importer\CraftingCategoryImporter::class => Importer\CraftingCategoryImporterFactory::class,
-            Importer\IconImporter::class => Importer\IconImporterFactory::class,
-            Importer\ItemImporter::class => Importer\ItemImporterFactory::class,
-            Importer\MachineImporter::class => Importer\MachineImporterFactory::class,
-            Importer\RecipeImporter::class => Importer\RecipeImporterFactory::class,
-            Importer\TranslationImporter::class => Importer\TranslationImporterFactory::class,
+            Importer\CombinationPart\CraftingCategoryImporter::class => Importer\CombinationPart\CraftingCategoryImporterFactory::class,
+            Importer\CombinationPart\IconImporter::class => Importer\CombinationPart\IconImporterFactory::class,
+            Importer\CombinationPart\ItemImporter::class => Importer\CombinationPart\ItemImporterFactory::class,
+            Importer\CombinationPart\MachineImporter::class => Importer\CombinationPart\MachineImporterFactory::class,
+            Importer\CombinationPart\RecipeImporter::class => Importer\CombinationPart\RecipeImporterFactory::class,
+            Importer\CombinationPart\TranslationImporter::class => Importer\CombinationPart\TranslationImporterFactory::class,
 
             Database\CraftingCategoryService::class => Database\CraftingCategoryServiceFactory::class,
             Database\ItemService::class => Database\ItemServiceFactory::class,
 
             // 3rd-party services
             ExportDataService::class => ExportData\ExportDataServiceFactory::class,
-        ]
+        ],
     ],
 ];

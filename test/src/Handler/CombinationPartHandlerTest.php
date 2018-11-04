@@ -11,7 +11,7 @@ use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\Api\Import\Handler\CombinationPartHandler;
-use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\CombinationPartImporterInterface;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -37,8 +37,8 @@ class CombinationPartHandlerTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var ImporterInterface $importer */
-        $importer = $this->createMock(ImporterInterface::class);
+        /* @var CombinationPartImporterInterface $importer */
+        $importer = $this->createMock(CombinationPartImporterInterface::class);
         /* @var ModCombinationRepository $modCombinationRepository */
         $modCombinationRepository = $this->createMock(ModCombinationRepository::class);
         /* @var RegistryService $registryService */
@@ -71,8 +71,8 @@ class CombinationPartHandlerTest extends TestCase
                 ->with('combinationHash')
                 ->willReturn($combinationHash);
 
-        /* @var ImporterInterface|MockObject $importer */
-        $importer = $this->getMockBuilder(ImporterInterface::class)
+        /* @var CombinationPartImporterInterface|MockObject $importer */
+        $importer = $this->getMockBuilder(CombinationPartImporterInterface::class)
                          ->setMethods(['import'])
                          ->getMockForAbstractClass();
         $importer->expects($this->once())
@@ -149,8 +149,8 @@ class CombinationPartHandlerTest extends TestCase
             $this->expectExceptionCode(404);
         }
 
-        /* @var ImporterInterface $importer */
-        $importer = $this->createMock(ImporterInterface::class);
+        /* @var CombinationPartImporterInterface $importer */
+        $importer = $this->createMock(CombinationPartImporterInterface::class);
         /* @var ModCombinationRepository $modCombinationRepository */
         $modCombinationRepository = $this->createMock(ModCombinationRepository::class);
 
@@ -207,8 +207,8 @@ class CombinationPartHandlerTest extends TestCase
             $this->expectExceptionCode(400);
         }
 
-        /* @var ImporterInterface $importer */
-        $importer = $this->createMock(ImporterInterface::class);
+        /* @var CombinationPartImporterInterface $importer */
+        $importer = $this->createMock(CombinationPartImporterInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 

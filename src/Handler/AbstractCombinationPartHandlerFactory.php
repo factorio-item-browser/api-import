@@ -7,12 +7,12 @@ use FactorioItemBrowser\Api\Database\Entity\ModCombination;
 use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter;
-use FactorioItemBrowser\Api\Import\Importer\IconImporter;
-use FactorioItemBrowser\Api\Import\Importer\ItemImporter;
-use FactorioItemBrowser\Api\Import\Importer\MachineImporter;
-use FactorioItemBrowser\Api\Import\Importer\RecipeImporter;
-use FactorioItemBrowser\Api\Import\Importer\TranslationImporter;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\CraftingCategoryImporter;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\IconImporter;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\ItemImporter;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\MachineImporter;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\RecipeImporter;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\TranslationImporter;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\AbstractFactoryInterface;
 

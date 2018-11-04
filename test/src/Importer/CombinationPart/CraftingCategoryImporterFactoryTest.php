@@ -1,13 +1,13 @@
 <?php
 
-namespace FactorioItemBrowserTest\Api\Import\Importer;
+namespace FactorioItemBrowserTest\Api\Import\Importer\CombinationPart;
 
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter;
-use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporterFactory;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\CraftingCategoryImporter;
+use FactorioItemBrowser\Api\Import\Importer\CombinationPart\CraftingCategoryImporterFactory;
 use Interop\Container\ContainerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporterFactory
+ * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\CombinationPart\CraftingCategoryImporterFactory
  */
 class CraftingCategoryImporterFactoryTest extends TestCase
 {

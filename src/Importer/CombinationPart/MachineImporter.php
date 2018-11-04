@@ -1,6 +1,6 @@
 <?php
 
-namespace FactorioItemBrowser\Api\Import\Importer;
+namespace FactorioItemBrowser\Api\Import\Importer\CombinationPart;
 
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Data\MachineData;
@@ -22,7 +22,7 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class MachineImporter extends AbstractImporter
+class MachineImporter extends AbstractCombinationPartImporter
 {
     /**
      * The service of the crafting categories.
