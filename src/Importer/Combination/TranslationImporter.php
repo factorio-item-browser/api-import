@@ -67,6 +67,7 @@ class TranslationImporter extends AbstractImporter implements CombinationImporte
     }
 
     /**
+     * Returns the translations from the specified combination.
      * @param ExportCombination $exportCombination
      * @param DatabaseCombination $databaseCombination
      * @return array|Translation[]

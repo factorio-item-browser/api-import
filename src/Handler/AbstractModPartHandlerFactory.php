@@ -7,6 +7,7 @@ use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
+use FactorioItemBrowser\Api\Import\Importer\Mod\CombinationImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\DependencyImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\TranslationImporter;
 use Interop\Container\ContainerInterface;
@@ -24,6 +25,7 @@ class AbstractModPartHandlerFactory implements AbstractFactoryInterface
      * The map of the service name to the importer.
      */
     protected const IMPORTER_MAP = [
+        ServiceName::MOD_COMBINATIONS_HANDLER => CombinationImporter::class,
         ServiceName::MOD_DEPENDENCIES_HANDLER => DependencyImporter::class,
         ServiceName::MOD_TRANSLATIONS_HANDLER => TranslationImporter::class,
     ];

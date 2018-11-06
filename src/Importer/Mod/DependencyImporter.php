@@ -14,7 +14,7 @@ use FactorioItemBrowser\ExportData\Entity\Mod as ExportMod;
 use FactorioItemBrowser\ExportData\Entity\Mod\Dependency as ExportDependency;
 
 /**
- *
+ * The importer for the mod dependencies.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3

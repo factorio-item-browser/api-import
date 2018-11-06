@@ -54,7 +54,7 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
     protected $registryService;
 
     /**
-     * RecipeImporter constructor.
+     * Initializes the importer.
      * @param CraftingCategoryService $craftingCategoryService
      * @param EntityManager $entityManager
      * @param ItemService $itemService

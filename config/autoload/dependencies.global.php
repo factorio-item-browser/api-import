@@ -27,6 +27,7 @@ return [
             Importer\Combination\MachineImporter::class => Importer\Combination\MachineImporterFactory::class,
             Importer\Combination\RecipeImporter::class => Importer\Combination\RecipeImporterFactory::class,
             Importer\Combination\TranslationImporter::class => Importer\Combination\TranslationImporterFactory::class,
+            Importer\Mod\CombinationImporter::class => Importer\Mod\CombinationImporterFactory::class,
             Importer\Mod\DependencyImporter::class => Importer\Mod\DependencyImporterFactory::class,
             Importer\Mod\TranslationImporter::class => Importer\Mod\TranslationImporterFactory::class,
 
