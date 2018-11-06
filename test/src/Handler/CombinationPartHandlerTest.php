@@ -217,5 +217,4 @@ class CombinationPartHandlerTest extends TestCase
 
         $this->assertSame($expectedResult, $result);
     }
-
 }
