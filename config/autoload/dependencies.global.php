@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import;
 
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
+use Zend\Expressive\Middleware\ErrorResponseGenerator;
 
 return [
     'dependencies' => [
@@ -32,6 +33,7 @@ return [
             Importer\Mod\TranslationImporter::class => Importer\Mod\TranslationImporterFactory::class,
 
             // 3rd-party services
+            ErrorResponseGenerator::class => Response\ErrorResponseGeneratorFactory::class,
             ExportDataService::class => ExportData\ExportDataServiceFactory::class,
         ],
     ],
