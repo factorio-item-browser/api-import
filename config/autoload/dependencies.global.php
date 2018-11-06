@@ -30,6 +30,8 @@ return [
             Importer\Combination\RecipeImporter::class => Importer\Combination\RecipeImporterFactory::class,
             Importer\Combination\TranslationImporter::class => Importer\Combination\TranslationImporterFactory::class,
             Importer\Generic\CleanupImporter::class => Importer\Generic\CleanupImporterFactory::class,
+            Importer\Generic\CombinationOrderImporter::class => Importer\Generic\CombinationOrderImporterFactory::class,
+            Importer\Generic\ModOrderImporter::class => Importer\Generic\ModOrderImporterFactory::class,
             Importer\Mod\CombinationImporter::class => Importer\Mod\CombinationImporterFactory::class,
             Importer\Mod\DependencyImporter::class => Importer\Mod\DependencyImporterFactory::class,
             Importer\Mod\TranslationImporter::class => Importer\Mod\TranslationImporterFactory::class,

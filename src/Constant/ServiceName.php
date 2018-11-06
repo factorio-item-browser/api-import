@@ -18,6 +18,8 @@ interface ServiceName
     public const COMBINATION_TRANSLATIONS_HANDLER = 'handler.combination.translations';
 
     public const GENERIC_CLEANUP = 'handler.generic.cleanup';
+    public const GENERIC_ORDER_COMBINATIONS = 'handler.generic.orderCombinations';
+    public const GENERIC_ORDER_MODS = 'handler.generic.orderMods';
 
     public const MOD_COMBINATIONS_HANDLER = 'handle.mod.combinations';
     public const MOD_DEPENDENCIES_HANDLER = 'handler.mod.dependencies';
