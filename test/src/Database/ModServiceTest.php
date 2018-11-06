@@ -3,22 +3,22 @@
 namespace FactorioItemBrowserTest\Api\Import\Database;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
-use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
-use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
+use FactorioItemBrowser\Api\Database\Entity\Mod;
+use FactorioItemBrowser\Api\Database\Repository\ModRepository;
+use FactorioItemBrowser\Api\Import\Database\ModService;
 use FactorioItemBrowser\Api\Import\Exception\MissingEntityException;
-use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
 
 /**
- * The PHPUnit test of the CraftingCategoryService class.
+ * The PHPUnit test of the ModService class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Database\CraftingCategoryService
+ * @coversDefaultClass \FactorioItemBrowser\Api\Import\Database\ModService
  */
-class CraftingCategoryServiceTest extends TestCase
+class ModServiceTest extends TestCase
 {
     use ReflectionTrait;
 
@@ -29,37 +29,37 @@ class CraftingCategoryServiceTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var CraftingCategoryRepository $craftingCategoryRepository */
-        $craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
+        /* @var ModRepository $modRepository */
+        $modRepository = $this->createMock(ModRepository::class);
 
-        $service = new CraftingCategoryService($craftingCategoryRepository);
+        $service = new ModService($modRepository);
 
-        $this->assertSame($craftingCategoryRepository, $this->extractProperty($service, 'craftingCategoryRepository'));
+        $this->assertSame($modRepository, $this->extractProperty($service, 'modRepository'));
     }
-
+    
     /**
      * Provides the data for the getByName test.
      * @return array
      */
     public function provideGetByName(): array
     {
-        $category1 = new CraftingCategory('abc');
-        $category2 = new CraftingCategory('def');
+        $mod1 = new Mod('abc');
+        $mod2 = new Mod('def');
 
         return [
             [
-                ['abc' => $category1, 'def' => $category2],
+                ['abc' => $mod1, 'def' => $mod2],
                 'abc',
                 null,
-                $category1,
-                ['abc' => $category1, 'def' => $category2],
+                $mod1,
+                ['abc' => $mod1, 'def' => $mod2],
             ],
             [
-                ['abc' => $category1],
+                ['abc' => $mod1],
                 'def',
-                $category2,
-                $category2,
-                ['abc' => $category1, 'def' => $category2],
+                $mod2,
+                $mod2,
+                ['abc' => $mod1, 'def' => $mod2],
             ]
         ];
     }
@@ -68,8 +68,8 @@ class CraftingCategoryServiceTest extends TestCase
      * Tests the getByName method.
      * @param array $cache
      * @param string $name
-     * @param CraftingCategory|null $resultFetch
-     * @param CraftingCategory $expectedResult
+     * @param Mod|null $resultFetch
+     * @param Mod $expectedResult
      * @param array $expectedCache
      * @throws MissingEntityException
      * @throws ReflectionException
@@ -79,12 +79,12 @@ class CraftingCategoryServiceTest extends TestCase
     public function testGetByName(
         array $cache,
         string $name,
-        ?CraftingCategory $resultFetch,
-        CraftingCategory $expectedResult,
+        ?Mod $resultFetch,
+        Mod $expectedResult,
         array $expectedCache
     ): void {
-        /* @var CraftingCategoryService|MockObject $service */
-        $service = $this->getMockBuilder(CraftingCategoryService::class)
+        /* @var ModService|MockObject $service */
+        $service = $this->getMockBuilder(ModService::class)
                         ->setMethods(['fetchByName'])
                         ->disableOriginalConstructor()
                         ->getMock();
@@ -99,18 +99,19 @@ class CraftingCategoryServiceTest extends TestCase
         $this->assertSame($expectedResult, $result);
         $this->assertEquals($expectedCache, $this->extractProperty($service, 'cache'));
     }
-
+    
+    
     /**
      * Provides the data for the fetchByName test.
      * @return array
      */
     public function provideFetchByName(): array
     {
-        $category1 = new CraftingCategory('abc');
-        $category2 = new CraftingCategory('def');
+        $mod1 = new Mod('abc');
+        $mod2 = new Mod('def');
 
         return [
-            [[$category1, $category2], false, $category1],
+            [[$mod1, $mod2], false, $mod1],
             [[], true, null]
         ];
     }
@@ -119,30 +120,30 @@ class CraftingCategoryServiceTest extends TestCase
      * Tests the fetchByName method.
      * @param array $resultFind
      * @param bool $expectException
-     * @param CraftingCategory|null $expectedResult
+     * @param Mod|null $expectedResult
      * @throws ReflectionException
      * @covers ::fetchByName
      * @dataProvider provideFetchByName
      */
-    public function testFetchByName(array $resultFind, bool $expectException, ?CraftingCategory $expectedResult): void
+    public function testFetchByName(array $resultFind, bool $expectException, ?Mod $expectedResult): void
     {
-        $name =  'foo';
+        $name = 'foo';
 
-        /* @var CraftingCategoryRepository|MockObject $craftingCategoryRepository */
-        $craftingCategoryRepository = $this->getMockBuilder(CraftingCategoryRepository::class)
-                                           ->setMethods(['findByNames'])
-                                           ->disableOriginalConstructor()
-                                           ->getMock();
-        $craftingCategoryRepository->expects($this->once())
-                                   ->method('findByNames')
-                                   ->with([$name])
-                                   ->willReturn($resultFind);
+        /* @var ModRepository|MockObject $modRepository */
+        $modRepository = $this->getMockBuilder(ModRepository::class)
+                               ->setMethods(['findByNamesWithDependencies'])
+                               ->disableOriginalConstructor()
+                               ->getMock();
+        $modRepository->expects($this->once())
+                       ->method('findByNamesWithDependencies')
+                       ->with([$name])
+                       ->willReturn($resultFind);
 
         if ($expectException) {
             $this->expectException(MissingEntityException::class);
         }
 
-        $service = new CraftingCategoryService($craftingCategoryRepository);
+        $service = new ModService($modRepository);
 
         $result = $this->invokeMethod($service, 'fetchByName', $name);
 

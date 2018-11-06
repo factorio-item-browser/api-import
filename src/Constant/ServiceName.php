@@ -21,6 +21,8 @@ interface ServiceName
     public const GENERIC_ORDER_COMBINATIONS = 'handler.generic.orderCombinations';
     public const GENERIC_ORDER_MODS = 'handler.generic.orderMods';
 
+    public const LOGGER = 'logger.factorio-item-browser.api.import';
+
     public const MOD_COMBINATIONS_HANDLER = 'handle.mod.combinations';
     public const MOD_DEPENDENCIES_HANDLER = 'handler.mod.dependencies';
     public const MOD_TRANSLATIONS_HANDLER = 'handler.mod.translations';

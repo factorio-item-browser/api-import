@@ -6,6 +6,7 @@ namespace FactorioItemBrowser\Api\Import\Response;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 use Throwable;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Stream;
@@ -49,16 +50,24 @@ class ErrorResponseGenerator
         $statusCode = $exception->getCode();
         if ($statusCode < 400 || $statusCode >= 600) {
             $statusCode = 500;
-
-            if ($this->logger instanceof LoggerInterface) {
-                $this->logger->crit((string) $exception);
-            }
+        }
+        if ($statusCode >= 500 && $this->logger instanceof LoggerInterface) {
+            $this->logger->crit($exception);
         }
 
-        $stream = new Stream('php://memory', 'w');
-        $stream->write($exception->getMessage());
-        $stream->rewind();
+        return new Response($this->createResponseStream($exception->getMessage()), $statusCode);
+    }
 
-        return new Response($stream, $statusCode);
+    /**
+     * Creates the stream to use in the response.
+     * @param string $content
+     * @return StreamInterface
+     */
+    protected function createResponseStream(string $content): StreamInterface
+    {
+        $result = new Stream('php://memory', 'w');
+        $result->write($content);
+        $result->rewind();
+        return $result;
     }
 }

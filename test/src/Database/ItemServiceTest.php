@@ -115,7 +115,7 @@ class ItemServiceTest extends TestCase
         $item2 = new Item('ghi', 'jkl');
 
         return [
-            [[$item1, $item2], false, $item1,],
+            [[$item1, $item2], false, $item1],
             [[], true, null]
         ];
     }

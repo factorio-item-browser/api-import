@@ -8,10 +8,12 @@ use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
+use FactorioItemBrowser\ExportData\Entity\Mod;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\Registry\ContentRegistry;
 use FactorioItemBrowser\ExportData\Registry\EntityRegistry;
+use FactorioItemBrowser\ExportData\Registry\ModRegistry;
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -99,6 +101,65 @@ class RegistryServiceTest extends TestCase
         $service = new RegistryService($exportDataService);
 
         $result = $service->getCombination($combinationHash);
+        $this->assertSame($expectedResult, $result);
+    }
+
+    /**
+     * Provides the data for the getMod test.
+     * @return array
+     */
+    public function provideGetMod(): array
+    {
+        $mod = (new Mod())->setName('foo');
+
+        return [
+            [$mod, false, $mod],
+            [null, true, null],
+        ];
+    }
+
+    /**
+     * Tests the getMod method.
+     * @param Mod|null $mod
+     * @param bool $expectException
+     * @param Mod|null $expectedResult
+     * @throws UnknownHashException
+     * @covers ::getMod
+     * @dataProvider provideGetMod
+     */
+    public function testGetMod(
+        ?Mod $mod,
+        bool $expectException,
+        ?Mod $expectedResult
+    ): void {
+        $modName = 'abc';
+
+        /* @var ModRegistry|MockObject $modRegistry */
+        $modRegistry = $this->getMockBuilder(ModRegistry::class)
+                             ->setMethods(['get'])
+                             ->disableOriginalConstructor()
+                             ->getMock();
+        $modRegistry->expects($this->once())
+                     ->method('get')
+                     ->with($modName)
+                     ->willReturn($mod);
+
+        /* @var ExportDataService|MockObject $exportDataService */
+        $exportDataService = $this->getMockBuilder(ExportDataService::class)
+                                  ->setMethods(['getModRegistry'])
+                                  ->disableOriginalConstructor()
+                                  ->getMock();
+        $exportDataService->expects($this->once())
+                          ->method('getModRegistry')
+                          ->willReturn($modRegistry);
+
+        if ($expectException) {
+            $this->expectException(UnknownHashException::class);
+        }
+
+        $service = new RegistryService($exportDataService);
+
+        $result = $service->getMod($modName);
         $this->assertSame($expectedResult, $result);
     }
 

@@ -65,7 +65,7 @@ class ModOrderImporter extends AbstractImporter implements GenericImporterInterf
         /* @var DatabaseMod[] $databaseMods */
         $databaseMods = $this->modRepository->findAll();
 
-        usort($databaseMods, function(DatabaseMod $left, DatabaseMod $right): int {
+        usort($databaseMods, function (DatabaseMod $left, DatabaseMod $right): int {
             $leftOrder = $this->registryService->getMod($left->getName())->getOrder();
             $rightOrder = $this->registryService->getMod($right->getName())->getOrder();
             return $leftOrder <=> $rightOrder;

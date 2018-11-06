@@ -8,12 +8,13 @@
 
 namespace FactorioItemBrowser\Api\Server;
 
+use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use Zend\Log\Logger;
 use Zend\Log\Writer\Stream;
 
 return [
     'log' => [
-        'logger.factorio-item-browser' => [
+        ServiceName::LOGGER => [
             'writers' => [
                 [
                     'name' => Stream::class,
