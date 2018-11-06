@@ -17,6 +17,8 @@ interface ServiceName
     public const COMBINATION_RECIPES_HANDLER = 'handler.combination.recipes';
     public const COMBINATION_TRANSLATIONS_HANDLER = 'handler.combination.translations';
 
+    public const GENERIC_CLEANUP = 'handler.generic.cleanup';
+
     public const MOD_COMBINATIONS_HANDLER = 'handle.mod.combinations';
     public const MOD_DEPENDENCIES_HANDLER = 'handler.mod.dependencies';
     public const MOD_TRANSLATIONS_HANDLER = 'handler.mod.translations';
