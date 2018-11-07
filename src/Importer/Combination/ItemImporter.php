@@ -57,7 +57,7 @@ class ItemImporter extends AbstractImporter implements CombinationImporterInterf
      */
     public function import(ExportCombination $exportCombination, DatabaseCombination $databaseCombination): void
     {
-        $newItems = $this->getItemsFromExportCombination($exportCombination);
+        $newItems = $this->getItemsFromCombination($exportCombination);
         $existingItems = $this->getExistingItems($newItems);
         $persistedItems = $this->persistEntities($newItems, $existingItems);
         $this->assignEntitiesToCollection($persistedItems, $databaseCombination->getItems());
@@ -69,7 +69,7 @@ class ItemImporter extends AbstractImporter implements CombinationImporterInterf
      * @return array|DatabaseItem[]
      * @throws ImportException
      */
-    protected function getItemsFromExportCombination(ExportCombination $exportCombination): array
+    protected function getItemsFromCombination(ExportCombination $exportCombination): array
     {
         $result = [];
         foreach ($exportCombination->getItemHashes() as $itemHash) {

@@ -7,8 +7,8 @@ use Doctrine\ORM\ORMException;
 use FactorioItemBrowser\Api\Database\Data\RecipeData;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
-use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
-use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
+use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient as DatabaseIngredient;
+use FactorioItemBrowser\Api\Database\Entity\RecipeProduct as DatabaseProduct;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
 use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
@@ -17,8 +17,8 @@ use FactorioItemBrowser\Api\Import\Database\ItemService;
 use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
-use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient;
-use FactorioItemBrowser\ExportData\Entity\Recipe\Product;
+use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient as ExportIngredient;
+use FactorioItemBrowser\ExportData\Entity\Recipe\Product as ExportProduct;
 use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 
 /**
@@ -84,7 +84,7 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
      */
     public function import(ExportCombination $exportCombination, DatabaseCombination $databaseCombination): void
     {
-        $newRecipes = $this->getRecipesFromExportCombination($exportCombination);
+        $newRecipes = $this->getRecipesFromCombination($exportCombination);
         $existingRecipes = $this->getExistingRecipes($newRecipes);
         $persistedRecipes = $this->persistEntities($newRecipes, $existingRecipes);
         $this->assignEntitiesToCollection($persistedRecipes, $databaseCombination->getRecipes());
@@ -96,7 +96,7 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
      * @return array|DatabaseRecipe[]
      * @throws ImportException
      */
-    protected function getRecipesFromExportCombination(ExportCombination $exportCombination): array
+    protected function getRecipesFromCombination(ExportCombination $exportCombination): array
     {
         $result = [];
         foreach ($exportCombination->getRecipeHashes() as $recipeHash) {
@@ -135,16 +135,19 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
     /**
      * Maps the export ingredient to a database entity.
      * @param DatabaseRecipe $recipe
-     * @param Ingredient $ingredient
+     * @param ExportIngredient $ingredient
      * @param int $order
-     * @return RecipeIngredient
+     * @return DatabaseIngredient
      * @throws ImportException
      */
-    protected function mapIngredient(DatabaseRecipe $recipe, Ingredient $ingredient, int $order): RecipeIngredient
-    {
+    protected function mapIngredient(
+        DatabaseRecipe $recipe,
+        ExportIngredient $ingredient,
+        int $order
+    ): DatabaseIngredient {
         $item = $this->itemService->getByTypeAndName($ingredient->getType(), $ingredient->getName());
 
-        $result = new RecipeIngredient($recipe, $item);
+        $result = new DatabaseIngredient($recipe, $item);
         $result->setAmount($ingredient->getAmount())
                ->setOrder($order);
         return $result;
@@ -153,16 +156,16 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
     /**
      * Maps the export product to a database entity.
      * @param DatabaseRecipe $recipe
-     * @param Product $product
+     * @param ExportProduct $product
      * @param int $order
-     * @return RecipeProduct
+     * @return DatabaseProduct
      * @throws ImportException
      */
-    protected function mapProduct(DatabaseRecipe $recipe, Product $product, int $order): RecipeProduct
+    protected function mapProduct(DatabaseRecipe $recipe, ExportProduct $product, int $order): DatabaseProduct
     {
         $item = $this->itemService->getByTypeAndName($product->getType(), $product->getName());
 
-        $result = new RecipeProduct($recipe, $item);
+        $result = new DatabaseProduct($recipe, $item);
         $result->setAmountMin($product->getAmountMin())
                ->setAmountMax($product->getAmountMax())
                ->setProbability($product->getProbability())
@@ -204,14 +207,14 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
             $recipe->getMode(),
             $recipe->getCraftingTime(),
             $recipe->getCraftingCategory()->getName(),
-            array_map(function (RecipeIngredient $ingredient): array {
+            array_map(function (DatabaseIngredient $ingredient): array {
                 return [
                     $ingredient->getItem()->getType(),
                     $ingredient->getItem()->getName(),
                     $ingredient->getAmount()
                 ];
             }, $recipe->getOrderedIngredients()->toArray()),
-            array_map(function (RecipeProduct $product): array {
+            array_map(function (DatabaseProduct $product): array {
                 return [
                     $product->getItem()->getType(),
                     $product->getItem()->getName(),

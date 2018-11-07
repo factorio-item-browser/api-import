@@ -70,7 +70,7 @@ class MachineImporter extends AbstractImporter implements CombinationImporterInt
      */
     public function import(ExportCombination $exportCombination, DatabaseCombination $databaseCombination): void
     {
-        $newMachines = $this->getMachinesFromExportCombination($exportCombination);
+        $newMachines = $this->getMachinesFromCombination($exportCombination);
         $existingMachines = $this->getExistingMachines($newMachines);
         $persistedMachines = $this->persistEntities($newMachines, $existingMachines);
         $this->assignEntitiesToCollection($persistedMachines, $databaseCombination->getMachines());
@@ -83,7 +83,7 @@ class MachineImporter extends AbstractImporter implements CombinationImporterInt
      * @throws ImportException
      * @throws UnknownHashException
      */
-    protected function getMachinesFromExportCombination(ExportCombination $exportCombination): array
+    protected function getMachinesFromCombination(ExportCombination $exportCombination): array
     {
         $result = [];
         foreach ($exportCombination->getMachineHashes() as $machineHash) {
