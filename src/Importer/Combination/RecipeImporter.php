@@ -4,7 +4,6 @@ namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMException;
-use FactorioItemBrowser\Api\Database\Data\RecipeData;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient as DatabaseIngredient;
@@ -180,13 +179,15 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
      */
     protected function getExistingRecipes(array $recipes): array
     {
-        $recipeNames = array_map(function (DatabaseRecipe $recipe): string {
-            return $recipe->getName();
-        }, $recipes);
-        $recipeData = $this->recipeRepository->findDataByNames($recipeNames);
-        $recipeIds = array_map(function (RecipeData $recipeData): int {
-            return $recipeData->getId();
-        }, $recipeData);
+        $recipeNames = [];
+        foreach ($recipes as $recipe) {
+            $recipeNames[] = $recipe->getName();
+        }
+
+        $recipeIds = [];
+        foreach ($this->recipeRepository->findDataByNames($recipeNames) as $recipeData) {
+            $recipeIds[] = $recipeData->getId();
+        }
 
         $result = [];
         foreach ($this->recipeRepository->findByIds($recipeIds) as $recipe) {
@@ -202,27 +203,33 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
      */
     protected function getIdentifier(DatabaseRecipe $recipe): string
     {
+        $ingredients = [];
+        foreach ($recipe->getOrderedIngredients() as $ingredient) {
+            $ingredients[] = [
+                $ingredient->getItem()->getType(),
+                $ingredient->getItem()->getName(),
+                $ingredient->getAmount(),
+            ];
+        }
+
+        $products = [];
+        foreach ($recipe->getOrderedProducts() as $product) {
+            $products[] = [
+                $product->getItem()->getType(),
+                $product->getItem()->getName(),
+                $product->getAmountMin(),
+                $product->getAmountMax(),
+                $product->getProbability(),
+            ];
+        }
+
         return EntityUtils::calculateHashOfArray([
             $recipe->getName(),
             $recipe->getMode(),
             $recipe->getCraftingTime(),
             $recipe->getCraftingCategory()->getName(),
-            array_map(function (DatabaseIngredient $ingredient): array {
-                return [
-                    $ingredient->getItem()->getType(),
-                    $ingredient->getItem()->getName(),
-                    $ingredient->getAmount()
-                ];
-            }, $recipe->getOrderedIngredients()->toArray()),
-            array_map(function (DatabaseProduct $product): array {
-                return [
-                    $product->getItem()->getType(),
-                    $product->getItem()->getName(),
-                    $product->getAmountMin(),
-                    $product->getAmountMax(),
-                    $product->getProbability(),
-                ];
-            }, $recipe->getOrderedProducts()->toArray())
+            $ingredients,
+            $products
         ]);
     }
 

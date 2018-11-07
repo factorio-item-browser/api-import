@@ -5,6 +5,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManager;
+use FactorioItemBrowser\Api\Database\Data\RecipeData;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Item;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
@@ -21,6 +22,7 @@ use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient as ExportIngredient;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Product as ExportProduct;
+use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -337,10 +339,10 @@ class RecipeImporterTest extends TestCase
         $exportIngredient = new ExportIngredient();
         $exportIngredient->setType('abc')
                          ->setName('def')
-                         ->setAmount(42);
+                         ->setAmount(4.2);
 
         $expectedResult = new DatabaseIngredient($recipe, $item);
-        $expectedResult->setAmount(42)
+        $expectedResult->setAmount(4.2)
                        ->setOrder(1337);
 
         /* @var ItemService|MockObject $itemService */
@@ -391,14 +393,14 @@ class RecipeImporterTest extends TestCase
         $exportProduct = new ExportProduct();
         $exportProduct->setType('abc')
                       ->setName('def')
-                      ->setAmountMin(12)
-                      ->setAmountMax(23)
-                      ->setProbability(4.2);
+                      ->setAmountMin(1.2)
+                      ->setAmountMax(2.3)
+                      ->setProbability(3.4);
 
         $expectedResult = new DatabaseProduct($recipe, $item);
-        $expectedResult->setAmountMin(12)
-                       ->setAmountMax(23)
-                       ->setProbability(4.2)
+        $expectedResult->setAmountMin(1.2)
+                       ->setAmountMax(2.3)
+                       ->setProbability(3.4)
                        ->setOrder(1337);
 
         /* @var ItemService|MockObject $itemService */
@@ -430,5 +432,196 @@ class RecipeImporterTest extends TestCase
         $result = $this->invokeMethod($importer, 'mapProduct', $recipe, $exportProduct, $order);
 
         $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the getExistingRecipes method.
+     * @throws ReflectionException
+     * @covers ::getExistingRecipes
+     */
+    public function testGetExistingRecipes(): void
+    {
+        $recipe1 = new DatabaseRecipe('abc', 'foo', new CraftingCategory('bar'));
+        $recipe2 = new DatabaseRecipe('def', 'foo', new CraftingCategory('bar'));
+        $expectedNames = ['abc', 'def'];
+
+        $recipeData1 = (new RecipeData())->setId(42);
+        $recipeData2 = (new RecipeData())->setId(21);
+        $expectedRecipeIds = [42, 21];
+
+        $existingRecipe1 = new DatabaseRecipe('ghi', 'foo', new CraftingCategory('bar'));
+        $existingRecipe2 = new DatabaseRecipe('jkl', 'foo', new CraftingCategory('bar'));
+        $expectedResult = [
+            'mno' => $existingRecipe1,
+            'pqr' => $existingRecipe2,
+        ];
+
+        /* @var RecipeRepository|MockObject $recipeRepository */
+        $recipeRepository = $this->getMockBuilder(RecipeRepository::class)
+                                  ->setMethods(['findDataByNames', 'findByIds'])
+                                  ->disableOriginalConstructor()
+                                  ->getMock();
+        $recipeRepository->expects($this->once())
+                          ->method('findDataByNames')
+                          ->with($expectedNames)
+                          ->willReturn([$recipeData1, $recipeData2]);
+        $recipeRepository->expects($this->once())
+                          ->method('findByIds')
+                          ->with($expectedRecipeIds)
+                          ->willReturn([$existingRecipe1, $existingRecipe2]);
+
+        /* @var CraftingCategoryService $craftingCategoryService */
+        $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var ItemService $itemService */
+        $itemService = $this->createMock(ItemService::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        /* @var RecipeImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(RecipeImporter::class)
+                         ->setMethods(['getIdentifier'])
+                         ->setConstructorArgs([
+                             $craftingCategoryService,
+                             $entityManager,
+                             $itemService,
+                             $recipeRepository,
+                             $registryService
+                         ])
+                         ->getMock();
+        $importer->expects($this->exactly(2))
+                 ->method('getIdentifier')
+                 ->withConsecutive(
+                     [$existingRecipe1],
+                     [$existingRecipe2]
+                 )
+                 ->willReturnOnConsecutiveCalls(
+                     'mno',
+                     'pqr'
+                 );
+
+        $result = $this->invokeMethod($importer, 'getExistingRecipes', [$recipe1, $recipe2]);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the getIdentifier method.
+     * @throws ReflectionException
+     * @covers ::getIdentifier
+     */
+    public function testGetIdentifier(): void
+    {
+        $recipe = new DatabaseRecipe('abc', 'def', new CraftingCategory('ghi'));
+        $recipe->setCraftingTime(13.37);
+
+        $ingredient1 = new DatabaseIngredient($recipe, new Item('jkl', 'mno'));
+        $ingredient1->setAmount(4.2);
+        $ingredient2 = new DatabaseIngredient($recipe, new Item('pqr', 'stu'));
+        $ingredient2->setAmount(2.1);
+        $product1 = new DatabaseProduct($recipe, new Item('vwx', 'yza'));
+        $product1->setAmountMin(1.2)
+                 ->setAmountMax(2.3)
+                 ->setProbability(3.4);
+        $product2 = new DatabaseProduct($recipe, new Item('bcd', 'efg'));
+        $product2->setAmountMin(4.5)
+                 ->setAmountMax(5.6)
+                 ->setProbability(6.7);
+
+        $recipe->getIngredients()->add($ingredient1);
+        $recipe->getIngredients()->add($ingredient2);
+        $recipe->getProducts()->add($product1);
+        $recipe->getProducts()->add($product2);
+
+        $expectedResult = EntityUtils::calculateHashOfArray([
+            'abc',
+            'def',
+            13.37,
+            'ghi',
+            [
+                ['jkl', 'mno', 4.2],
+                ['pqr', 'stu', 2.1],
+            ],
+            [
+                ['vwx', 'yza', 1.2, 2.3, 3.4],
+                ['bcd', 'efg', 4.5, 5.6, 6.7],
+            ]
+        ]);
+
+        /* @var CraftingCategoryService $craftingCategoryService */
+        $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var ItemService $itemService */
+        $itemService = $this->createMock(ItemService::class);
+        /* @var RecipeRepository $recipeRepository */
+        $recipeRepository = $this->createMock(RecipeRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new RecipeImporter(
+            $craftingCategoryService,
+            $entityManager,
+            $itemService,
+            $recipeRepository,
+            $registryService
+        );
+        $result = $this->invokeMethod($importer, 'getIdentifier', $recipe);
+
+        $this->assertSame($expectedResult, $result);
+    }
+
+    /**
+     * Tests the persistEntity method.
+     * @throws ReflectionException
+     * @covers ::persistEntity
+     */
+    public function testPersistEntity(): void
+    {
+        $recipe = new DatabaseRecipe('abc', 'def', new CraftingCategory('ghi'));
+
+        $ingredient1 = new DatabaseIngredient($recipe, new Item('jkl', 'mno'));
+        $ingredient2 = new DatabaseIngredient($recipe, new Item('pqr', 'stu'));
+        $product1 = new DatabaseProduct($recipe, new Item('vwx', 'yza'));
+        $product2 = new DatabaseProduct($recipe, new Item('bcd', 'efg'));
+
+        $recipe->getIngredients()->add($ingredient1);
+        $recipe->getIngredients()->add($ingredient2);
+        $recipe->getProducts()->add($product1);
+        $recipe->getProducts()->add($product2);
+
+        /* @var EntityManager|MockObject $entityManager */
+        $entityManager = $this->getMockBuilder(EntityManager::class)
+                              ->setMethods(['persist'])
+                              ->disableOriginalConstructor()
+                              ->getMock();
+        $entityManager->expects($this->exactly(5))
+                      ->method('persist')
+                      ->withConsecutive(
+                          [$ingredient1],
+                          [$ingredient2],
+                          [$product1],
+                          [$product2],
+                          [$recipe]
+                      );
+
+        /* @var CraftingCategoryService $craftingCategoryService */
+        $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
+        /* @var ItemService $itemService */
+        $itemService = $this->createMock(ItemService::class);
+        /* @var RecipeRepository $recipeRepository */
+        $recipeRepository = $this->createMock(RecipeRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new RecipeImporter(
+            $craftingCategoryService,
+            $entityManager,
+            $itemService,
+            $recipeRepository,
+            $registryService
+        );
+        $this->invokeMethod($importer, 'persistEntity', $recipe);
     }
 }

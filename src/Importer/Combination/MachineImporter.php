@@ -3,8 +3,6 @@
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
 use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Data\MachineData;
-use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
@@ -124,13 +122,15 @@ class MachineImporter extends AbstractImporter implements CombinationImporterInt
      */
     protected function getExistingMachines(array $machines): array
     {
-        $machineNames = array_map(function (DatabaseMachine $machine): string {
-            return $machine->getName();
-        }, $machines);
-        $machineData = $this->machineRepository->findDataByNames($machineNames);
-        $machineIds = array_map(function (MachineData $machineData): int {
-            return $machineData->getId();
-        }, $machineData);
+        $machineNames = [];
+        foreach ($machines as $machine) {
+            $machineNames[] = $machine->getName();
+        }
+
+        $machineIds = [];
+        foreach ($this->machineRepository->findDataByNames($machineNames) as $machineData) {
+            $machineIds[] = $machineData->getId();
+        }
 
         $result = [];
         foreach ($this->machineRepository->findByIds($machineIds) as $machine) {
@@ -146,9 +146,10 @@ class MachineImporter extends AbstractImporter implements CombinationImporterInt
      */
     protected function getIdentifier(DatabaseMachine $machine): string
     {
-        $craftingCategories = array_map(function (CraftingCategory $craftingCategory): string {
-            return $craftingCategory->getName();
-        }, $machine->getCraftingCategories()->toArray());
+        $craftingCategories = [];
+        foreach ($machine->getCraftingCategories() as $craftingCategory) {
+            $craftingCategories[] = $craftingCategory->getName();
+        }
         sort($craftingCategories);
 
         return EntityUtils::calculateHashOfArray([

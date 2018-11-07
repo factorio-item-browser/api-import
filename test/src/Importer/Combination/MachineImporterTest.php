@@ -5,6 +5,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManager;
+use FactorioItemBrowser\Api\Database\Data\MachineData;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
@@ -15,6 +16,7 @@ use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\Api\Import\Importer\Combination\MachineImporter;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
+use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -267,5 +269,122 @@ class MachineImporterTest extends TestCase
         $result = $this->invokeMethod($importer, 'mapMachine', $exportMachine);
 
         $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the getExistingMachines method.
+     * @throws ReflectionException
+     * @covers ::getExistingMachines
+     */
+    public function testGetExistingMachines(): void
+    {
+        $machine1 = new DatabaseMachine('abc');
+        $machine2 = new DatabaseMachine('def');
+        $expectedNames = ['abc', 'def'];
+
+        $machineData1 = (new MachineData())->setId(42);
+        $machineData2 = (new MachineData())->setId(21);
+        $expectedMachineIds = [42, 21];
+
+        $existingMachine1 = new DatabaseMachine('ghi');
+        $existingMachine2 = new DatabaseMachine('jkl');
+        $expectedResult = [
+            'mno' => $existingMachine1,
+            'pqr' => $existingMachine2,
+        ];
+
+        /* @var MachineRepository|MockObject $machineRepository */
+        $machineRepository = $this->getMockBuilder(MachineRepository::class)
+                                  ->setMethods(['findDataByNames', 'findByIds'])
+                                  ->disableOriginalConstructor()
+                                  ->getMock();
+        $machineRepository->expects($this->once())
+                          ->method('findDataByNames')
+                          ->with($expectedNames)
+                          ->willReturn([$machineData1, $machineData2]);
+        $machineRepository->expects($this->once())
+                          ->method('findByIds')
+                          ->with($expectedMachineIds)
+                          ->willReturn([$existingMachine1, $existingMachine2]);
+
+        /* @var CraftingCategoryService $craftingCategoryService */
+        $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        /* @var MachineImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(MachineImporter::class)
+                         ->setMethods(['getIdentifier'])
+                         ->setConstructorArgs([
+                             $craftingCategoryService,
+                             $entityManager,
+                             $machineRepository,
+                             $registryService
+                         ])
+                         ->getMock();
+        $importer->expects($this->exactly(2))
+                 ->method('getIdentifier')
+                 ->withConsecutive(
+                     [$existingMachine1],
+                     [$existingMachine2]
+                 )
+                 ->willReturnOnConsecutiveCalls(
+                     'mno',
+                     'pqr'
+                 );
+
+        $result = $this->invokeMethod($importer, 'getExistingMachines', [$machine1, $machine2]);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the getIdentifier method.
+     * @throws ReflectionException
+     * @covers ::getIdentifier
+     */
+    public function testGetIdentifier(): void
+    {
+        $craftingCategory1 = new CraftingCategory('jkl');
+        $craftingCategory2 = new CraftingCategory('ghi');
+
+        $machine = new DatabaseMachine('abc');
+        $machine->setCraftingSpeed(13.37)
+                ->setNumberOfItemSlots(12)
+                ->setNumberOfFluidInputSlots(23)
+                ->setNumberOfFluidOutputSlots(34)
+                ->setNumberOfModuleSlots(45)
+                ->setEnergyUsage(4.2)
+                ->setEnergyUsageUnit('def');
+        $machine->getCraftingCategories()->add($craftingCategory1);
+        $machine->getCraftingCategories()->add($craftingCategory2);
+
+        $expectedResult = EntityUtils::calculateHashOfArray([
+            'abc',
+            13.37,
+            ['ghi', 'jkl'],
+            12,
+            23,
+            34,
+            45,
+            4.2,
+            'def',
+        ]);
+
+        /* @var CraftingCategoryService $craftingCategoryService */
+        $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var MachineRepository $machineRepository */
+        $machineRepository = $this->createMock(MachineRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new MachineImporter($craftingCategoryService, $entityManager, $machineRepository, $registryService);
+        $result = $this->invokeMethod($importer, 'getIdentifier', $machine);
+
+        $this->assertSame($expectedResult, $result);
     }
 }

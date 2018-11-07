@@ -220,4 +220,87 @@ class ItemImporterTest extends TestCase
         $this->assertEquals($expectedResult, $result);
     }
 
+    /**
+     * Tests the getExistingItems method.
+     * @throws ReflectionException
+     * @covers ::getExistingItems
+     */
+    public function testGetExistingItems(): void
+    {
+        $item1 = new DatabaseItem('abc', 'def');
+        $item2 = new DatabaseItem('abc', 'ghi');
+        $item3 = new DatabaseItem('jkl', 'mno');
+        $expectedTypesAndNames = [
+            'abc' => ['def', 'ghi'],
+            'jkl' => ['mno'],
+        ];
+
+        /* @var DatabaseItem $existingItem1 */
+        $existingItem1 = $this->createMock(DatabaseItem::class);
+        /* @var DatabaseItem $existingItem2 */
+        $existingItem2 = $this->createMock(DatabaseItem::class);
+
+        $expectedResult = [
+            'pqr' => $existingItem1,
+            'stu' => $existingItem2,
+        ];
+
+        /* @var ItemRepository|MockObject $itemRepository */
+        $itemRepository = $this->getMockBuilder(ItemRepository::class)
+                               ->setMethods(['findByTypesAndNames'])
+                               ->disableOriginalConstructor()
+                               ->getMock();
+        $itemRepository->expects($this->once())
+                       ->method('findByTypesAndNames')
+                       ->with($expectedTypesAndNames)
+                       ->willReturn([$existingItem1, $existingItem2]);
+
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        /* @var ItemImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(ItemImporter::class)
+                         ->setMethods(['getIdentifier'])
+                         ->setConstructorArgs([$entityManager, $itemRepository, $registryService])
+                         ->getMock();
+        $importer->expects($this->exactly(2))
+                         ->method('getIdentifier')
+                         ->withConsecutive(
+                             [$existingItem1],
+                             [$existingItem2]
+                         )
+                         ->willReturnOnConsecutiveCalls(
+                             'pqr',
+                             'stu'
+                         );
+
+        $result = $this->invokeMethod($importer, 'getExistingItems', [$item1, $item2, $item3]);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the getIdentifier method.
+     * @throws ReflectionException
+     * @covers ::getIdentifier
+     */
+    public function testGetIdentifier(): void
+    {
+        $item = new DatabaseItem('abc', 'def');
+        $expectedResult = 'abc|def';
+
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var ItemRepository $itemRepository */
+        $itemRepository = $this->createMock(ItemRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new ItemImporter($entityManager, $itemRepository, $registryService);
+        $result = $this->invokeMethod($importer, 'getIdentifier', $item);
+
+        $this->assertSame($expectedResult, $result);
+    }
 }
