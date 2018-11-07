@@ -28,10 +28,11 @@ class ItemImporterFactory implements FactoryInterface
     {
         /* @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /* @var ItemRepository $itemRepository */
-        $itemRepository = $entityManager->getRepository(Item::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
+
+        /* @var ItemRepository $itemRepository */
+        $itemRepository = $entityManager->getRepository(Item::class);
 
         return new ItemImporter($entityManager, $itemRepository, $registryService);
     }
