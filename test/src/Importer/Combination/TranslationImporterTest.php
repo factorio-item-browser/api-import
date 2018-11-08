@@ -108,4 +108,51 @@ class TranslationImporterTest extends TestCase
         $importer->import($exportCombination, $databaseCombination);
     }
 
+    /**
+     * Tests the getIdentifier method.
+     * @throws ReflectionException
+     * @covers ::getIdentifier
+     */
+    public function testGetIdentifier(): void
+    {
+        $locale = 'abc';
+        $type = 'def';
+        $name = 'ghi';
+        $expectedResult = 'abc|def|ghi';
+
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new TranslationImporter($entityManager, $registryService);
+        $result = $this->invokeMethod($importer, 'getIdentifier', $locale, $type, $name);
+
+        $this->assertSame($expectedResult, $result);
+    }
+
+    /**
+     * Tests the getIdentifierOfTranslation method.
+     * @throws ReflectionException
+     * @covers ::getIdentifierOfTranslation
+     */
+    public function testGetIdentifierOfTranslation(): void
+    {
+        $translation = new Translation($this->createMock(DatabaseCombination::class), 'abc', 'def', 'ghi');
+        $identifier = 'jkl';
+
+        /* @var TranslationImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(TranslationImporter::class)
+                         ->setMethods(['getIdentifier'])
+                         ->disableOriginalConstructor()
+                         ->getMock();
+        $importer->expects($this->once())
+                 ->method('getIdentifier')
+                 ->with('abc', 'def', 'ghi')
+                 ->willReturn($identifier);
+
+        $result = $this->invokeMethod($importer, 'getIdentifierOfTranslation', $translation);
+
+        $this->assertSame($identifier, $result);
+    }
 }

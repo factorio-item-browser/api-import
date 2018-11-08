@@ -115,7 +115,7 @@ class DependencyImporter extends AbstractImporter implements ModImporterInterfac
     protected function applyChanges(DatabaseDependency $source, DatabaseDependency $destination): void
     {
         $destination->setType($source->getType())
-                    ->setRequiredVersion($destination->getType());
+                    ->setRequiredVersion($source->getRequiredVersion());
     }
 
     /**

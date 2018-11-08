@@ -3,6 +3,7 @@
 namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManager;
 use FactorioItemBrowser\Api\Database\Entity\Icon as DatabaseIcon;
@@ -538,6 +539,102 @@ class IconImporterTest extends TestCase
     }
 
     /**
+     * Provides the data for the fetchIconFile test.
+     * @return array
+     */
+    public function provideFetchIconFile(): array
+    {
+        return [
+            [true, false],
+            [false, true],
+        ];
+    }
+
+    /**
+     * Tests the fetchIconFile method.
+     * @param bool $resultWithIcon
+     * @param bool $expectCreate
+     * @throws ReflectionException
+     * @covers ::fetchIconFile
+     * @dataProvider provideFetchIconFile
+     */
+    public function testFetchIconFile(bool $resultWithIcon, bool $expectCreate): void
+    {
+        $iconHash = 'ab12cd34';
+        $image = 'abc';
+
+        /* @var IconFile|MockObject $iconFile */
+        $iconFile = $this->getMockBuilder(IconFile::class)
+                         ->setMethods(['setImage'])
+                         ->disableOriginalConstructor()
+                         ->getMock();
+        $iconFile->expects($this->once())
+                 ->method('setImage')
+                 ->with($image);
+
+        /* @var IconFileRepository|MockObject $iconFileRepository */
+        $iconFileRepository = $this->getMockBuilder(IconFileRepository::class)
+                                   ->setMethods(['findByHashes'])
+                                   ->disableOriginalConstructor()
+                                   ->getMock();
+        $iconFileRepository->expects($this->once())
+                           ->method('findByHashes')
+                           ->with([$iconHash])
+                           ->willReturn($resultWithIcon ? [$iconFile] : []);
+
+        /* @var RegistryService|MockObject $registryService */
+        $registryService = $this->getMockBuilder(RegistryService::class)
+                                ->setMethods(['getRenderedIcon'])
+                                ->disableOriginalConstructor()
+                                ->getMock();
+        $registryService->expects($this->once())
+                        ->method('getRenderedIcon')
+                        ->with($iconHash)
+                        ->willReturn($image);
+
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+
+        /* @var IconImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(IconImporter::class)
+                         ->setMethods(['createIconFile'])
+                         ->setConstructorArgs([$entityManager, $iconFileRepository, $registryService])
+                         ->getMock();
+        $importer->expects($expectCreate ? $this->once() : $this->never())
+                 ->method('createIconFile')
+                 ->with($iconHash)
+                 ->willReturn($iconFile);
+
+        $result = $this->invokeMethod($importer, 'fetchIconFile', $iconHash);
+
+        $this->assertSame($iconFile, $result);
+    }
+
+    /**
+     * Tests the createIconFile method.
+     * @throws ReflectionException
+     * @covers ::createIconFile
+     */
+    public function testCreateIconFile(): void
+    {
+        $iconHash = 'ab12cd34';
+        $expectedResult = new IconFile('ab12cd34');
+
+        /* @var IconImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(IconImporter::class)
+                         ->setMethods(['persistEntity'])
+                         ->disableOriginalConstructor()
+                         ->getMock();
+        $importer->expects($this->once())
+                 ->method('persistEntity')
+                 ->with($this->equalTo($expectedResult));
+
+        $result = $this->invokeMethod($importer, 'createIconFile', $iconHash);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
      * Tests the createIcon method.
      * @throws ReflectionException
      * @covers ::createIcon
@@ -567,6 +664,61 @@ class IconImporterTest extends TestCase
         $this->injectProperty($importer, 'databaseCombination', $databaseCombination);
 
         $result = $this->invokeMethod($importer, 'createIcon', $iconFile, $type, $name);
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the getExistingIcons method.
+     * @throws ReflectionException
+     * @covers ::getExistingIcons
+     */
+    public function testGetExistingIcons(): void
+    {
+        /* @var DatabaseIcon $newIcon */
+        $newIcon = $this->createMock(DatabaseIcon::class);
+        $newIcons = [
+            'abc' => $newIcon,
+        ];
+
+        /* @var DatabaseIcon $existingIcon1 */
+        $existingIcon1 = $this->createMock(DatabaseIcon::class);
+        /* @var DatabaseIcon $existingIcon2 */
+        $existingIcon2 = $this->createMock(DatabaseIcon::class);
+        $expectedResult = [
+            'abc' => $existingIcon1,
+            'def' => $existingIcon2,
+        ];
+
+        /* @var DatabaseCombination|MockObject $databaseCombination */
+        $databaseCombination = $this->getMockBuilder(DatabaseCombination::class)
+                                    ->setMethods(['getIcons'])
+                                    ->disableOriginalConstructor()
+                                    ->getMock();
+        $databaseCombination->expects($this->once())
+                            ->method('getIcons')
+                            ->willReturn(new ArrayCollection([$existingIcon1, $existingIcon2]));
+
+        /* @var IconImporter|MockObject $importer */
+        $importer = $this->getMockBuilder(IconImporter::class)
+                         ->setMethods(['getIdentifier', 'applyChanges'])
+                         ->disableOriginalConstructor()
+                         ->getMock();
+        $importer->expects($this->exactly(2))
+                 ->method('getIdentifier')
+                 ->withConsecutive(
+                     [$existingIcon1],
+                     [$existingIcon2]
+                 )
+                 ->willReturnOnConsecutiveCalls(
+                     'abc',
+                     'def'
+                 );
+        $importer->expects($this->once())
+                 ->method('applyChanges')
+                 ->with($newIcon, $existingIcon1);
+
+        $result = $this->invokeMethod($importer, 'getExistingIcons', $newIcons, $databaseCombination);
+
         $this->assertEquals($expectedResult, $result);
     }
 

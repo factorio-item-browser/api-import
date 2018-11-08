@@ -182,12 +182,24 @@ class IconImporter extends AbstractImporter implements CombinationImporterInterf
         $iconFiles = $this->iconFileRepository->findByHashes([$iconHash]);
         $iconFile = array_shift($iconFiles);
         if (!$iconFile instanceof IconFile) {
-            $iconFile = new IconFile($iconHash);
-            $this->persistEntity($iconFile);
+            $iconFile = $this->createIconFile($iconHash);
         }
 
         $iconFile->setImage($this->registryService->getRenderedIcon($iconHash));
         return $iconFile;
+    }
+
+    /**
+     * Creates a new icon file entity.
+     * @param string $iconHash
+     * @return IconFile
+     * @throws ImportException
+     */
+    protected function createIconFile(string $iconHash): IconFile
+    {
+        $result = new IconFile($iconHash);
+        $this->persistEntity($result);
+        return $result;
     }
 
     /**
