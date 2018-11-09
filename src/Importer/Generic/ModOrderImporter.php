@@ -3,7 +3,7 @@
 namespace FactorioItemBrowser\Api\Import\Importer\Generic;
 
 use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
+use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -58,25 +58,42 @@ class ModOrderImporter extends AbstractImporter implements GenericImporterInterf
 
     /**
      * Returns the ordered list of all mods.
-     * @return array|DatabaseMod[]
+     * @return array|Mod[]
      */
     protected function getOrderedMods(): array
     {
-        /* @var DatabaseMod[] $databaseMods */
+        /* @var Mod[] $databaseMods */
         $databaseMods = $this->modRepository->findAll();
-
-        usort($databaseMods, function (DatabaseMod $left, DatabaseMod $right): int {
-            $leftOrder = $this->registryService->getMod($left->getName())->getOrder();
-            $rightOrder = $this->registryService->getMod($right->getName())->getOrder();
-            return $leftOrder <=> $rightOrder;
-        });
-
+        usort($databaseMods, [$this, 'compareMods']);
         return $databaseMods;
     }
 
     /**
+     * Compares the two mods.
+     * @param Mod $left
+     * @param Mod $right
+     * @return int
+     * @throws ImportException
+     */
+    protected function compareMods(Mod $left, Mod $right): int
+    {
+        return $this->getOrderByModName($left->getName()) <=> $this->getOrderByModName($right->getName());
+    }
+
+    /**
+     * Returns the order of the mod with the specified name.
+     * @param string $modName
+     * @return int
+     * @throws ImportException
+     */
+    protected function getOrderByModName(string $modName): int
+    {
+        return $this->registryService->getMod($modName)->getOrder();
+    }
+
+    /**
      * Assigns the order to the specified list of mods.
-     * @param array|DatabaseMod[] $orderedMods
+     * @param array|Mod[] $orderedMods
      */
     protected function assignOrder(array $orderedMods): void
     {

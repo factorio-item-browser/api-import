@@ -88,9 +88,7 @@ class CombinationOrderImporter extends AbstractImporter implements GenericImport
     {
         /* @var array|ModCombination[] $result */
         $result = $this->modCombinationRepository->findAll();
-        usort($result, function (ModCombination $left, ModCombination $right): int {
-            return $this->compareCombinations($left, $right);
-        });
+        usort($result, [$this, 'compareCombinations']);
         return $result;
     }
 
