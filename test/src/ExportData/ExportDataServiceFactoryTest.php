@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FactorioItemBrowserTest\Api\Import\ExportData;
 
 use FactorioItemBrowser\Api\Import\ExportData\ExportDataServiceFactory;
@@ -24,8 +26,10 @@ class ExportDataServiceFactoryTest extends TestCase
     public function testInvoke(): void
     {
         $config = [
-            'export-data' => [
-                'directory' => 'abc',
+            'factorio-item-browser' => [
+                'export-data' => [
+                    'directory' => 'abc',
+                ],
             ],
         ];
 

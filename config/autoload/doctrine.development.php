@@ -1,6 +1,9 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * The configuration file only used during development.
+ * The configuration file for doctrine.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
@@ -10,17 +13,14 @@ namespace FactorioItemBrowser\Api\Import;
 
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use PDO;
-use Zend\ConfigAggregator\ConfigAggregator;
 
 return [
-    ConfigAggregator::ENABLE_CACHE => false,
-    'debug' => true,
     'doctrine' => [
         'configuration' => [
             'orm_default' => [
                 'metadata_cache' => 'filesystem',
                 'query_cache' => 'filesystem',
-            ]
+            ],
         ],
         'connection' => [
             'orm_default' => [
@@ -32,18 +32,15 @@ return [
                     'password' => 'docker',
                     'dbname'   => 'docker',
                     'driverOptions' => [
-                        PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
-                    ]
-                ]
-            ]
+                        PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+                    ],
+                ],
+            ],
         ],
         'driver' => [
             'fib-api-database' => [
                 'cache' => 'filesystem',
-            ]
+            ],
         ],
     ],
-    'export-data' => [
-        'directory' => __DIR__ . '/../../data/export',
-    ]
 ];

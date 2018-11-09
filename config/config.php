@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * The main configuration file.
+ *
+ * @author BluePsyduck <bluepsyduck@gmx.com>
+ * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ */
+
+namespace FactorioItemBrowser\Api\Import;
+
 use Zend\ConfigAggregator\ArrayProvider;
 use Zend\ConfigAggregator\ConfigAggregator;
 use Zend\ConfigAggregator\PhpFileProvider;

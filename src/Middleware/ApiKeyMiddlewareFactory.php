@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FactorioItemBrowser\Api\Import\Middleware;
 
 use Interop\Container\ContainerInterface;

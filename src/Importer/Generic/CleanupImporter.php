@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FactorioItemBrowser\Api\Import\Importer\Generic;
 
 use Doctrine\ORM\EntityManager;

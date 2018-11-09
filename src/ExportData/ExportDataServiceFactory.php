@@ -27,7 +27,7 @@ class ExportDataServiceFactory implements FactoryInterface
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
         $config = $container->get('config');
-        $adapter = new FileSystemAdapter($config['export-data']['directory']);
+        $adapter = new FileSystemAdapter($config['factorio-item-browser']['export-data']['directory']);
 
         return new ExportDataService($adapter);
     }

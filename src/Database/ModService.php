@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FactorioItemBrowser\Api\Import\Database;
 
 use FactorioItemBrowser\Api\Database\Entity\Mod;

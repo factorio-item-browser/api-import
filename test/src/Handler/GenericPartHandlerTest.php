@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FactorioItemBrowserTest\Api\Import\Handler;
 
 use BluePsyduck\Common\Test\ReflectionTrait;

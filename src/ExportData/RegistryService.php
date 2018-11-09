@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FactorioItemBrowser\Api\Import\ExportData;
 
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
