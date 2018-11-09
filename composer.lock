@@ -984,12 +984,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/api-database.git",
-                "reference": "32ce1b0bfbe7b81cbfcdd36735291d44e7dd08d1"
+                "reference": "5d5b6be04604720ef6675fdeadbf0123f4d0f604"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/api-database/zipball/32ce1b0bfbe7b81cbfcdd36735291d44e7dd08d1",
-                "reference": "32ce1b0bfbe7b81cbfcdd36735291d44e7dd08d1",
+                "url": "https://api.github.com/repos/factorio-item-browser/api-database/zipball/5d5b6be04604720ef6675fdeadbf0123f4d0f604",
+                "reference": "5d5b6be04604720ef6675fdeadbf0123f4d0f604",
                 "shasum": ""
             },
             "require": {
@@ -1040,7 +1040,7 @@
                 "api",
                 "database"
             ],
-            "time": "2018-11-04T15:35:59+00:00"
+            "time": "2018-11-06T15:30:26+00:00"
         },
         {
             "name": "factorio-item-browser/common",
@@ -1785,16 +1785,16 @@
         },
         {
             "name": "zendframework/zend-expressive",
-            "version": "3.2.0",
+            "version": "3.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zendframework/zend-expressive.git",
-                "reference": "a57c75703e781e3a8e812b83413443f3ce550a0f"
+                "reference": "c48f901f4d7c559a9ccd0e996186018477120744"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zendframework/zend-expressive/zipball/a57c75703e781e3a8e812b83413443f3ce550a0f",
-                "reference": "a57c75703e781e3a8e812b83413443f3ce550a0f",
+                "url": "https://api.github.com/repos/zendframework/zend-expressive/zipball/c48f901f4d7c559a9ccd0e996186018477120744",
+                "reference": "c48f901f4d7c559a9ccd0e996186018477120744",
                 "shasum": ""
             },
             "require": {
@@ -1873,7 +1873,7 @@
                 "zend-expressive",
                 "zf"
             ],
-            "time": "2018-09-27T21:32:28+00:00"
+            "time": "2018-11-08T15:30:09+00:00"
         },
         {
             "name": "zendframework/zend-expressive-fastroute",
