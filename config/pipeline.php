@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\Api\Server;
+namespace FactorioItemBrowser\Api\Import;
 
 use Psr\Container\ContainerInterface;
 use Zend\Expressive\Application;
@@ -26,5 +26,6 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->pipe(ImplicitOptionsMiddleware::class);
     $app->pipe(BodyParamsMiddleware::class);
 
+    $app->pipe(Middleware\ApiKeyMiddleware::class);
     $app->pipe(DispatchMiddleware::class);
 };

@@ -36,6 +36,8 @@ return [
             Importer\Mod\DependencyImporter::class => Importer\Mod\DependencyImporterFactory::class,
             Importer\Mod\TranslationImporter::class => Importer\Mod\TranslationImporterFactory::class,
 
+            Middleware\ApiKeyMiddleware::class => Middleware\ApiKeyMiddlewareFactory::class,
+
             // 3rd-party services
             ErrorResponseGenerator::class => Response\ErrorResponseGeneratorFactory::class,
             ExportDataService::class => ExportData\ExportDataServiceFactory::class,
