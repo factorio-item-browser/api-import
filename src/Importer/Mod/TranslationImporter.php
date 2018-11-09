@@ -7,9 +7,9 @@ use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
-use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
+use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
+use FactorioItemBrowser\Api\Import\Importer\AbstractTranslationImporter;
 use FactorioItemBrowser\ExportData\Entity\Mod as ExportMod;
-use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 
 /**
  * The importer of the mod translations.
@@ -17,20 +17,8 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class TranslationImporter extends AbstractImporter implements ModImporterInterface
+class TranslationImporter extends AbstractTranslationImporter implements ModImporterInterface
 {
-    /**
-     * The base combination of the mod.
-     * @var DatabaseCombination
-     */
-    protected $baseCombination;
-
-    /**
-     * The translations read from the mod.
-     * @var array|Translation[]
-     */
-    protected $translations = [];
-
     /**
      * Imports the specified export mod into the database one.
      * @param ExportMod $exportMod
@@ -68,7 +56,7 @@ class TranslationImporter extends AbstractImporter implements ModImporterInterfa
     }
 
     /**
-     * Returns the translations of the spewcified mod.
+     * Returns the translations of the specified mod.
      * @param ExportMod $exportMod
      * @param DatabaseCombination $baseCombination
      * @return array|Translation[]
@@ -77,111 +65,46 @@ class TranslationImporter extends AbstractImporter implements ModImporterInterfa
         ExportMod $exportMod,
         DatabaseCombination $baseCombination
     ): array {
-        $this->baseCombination = $baseCombination;
-        $this->translations = [];
+        $translationAggregator = $this->createTranslationAggregator($baseCombination);
 
-        $this->copyNotRelatedTranslations($baseCombination);
-        $this->processMod($exportMod);
+        $this->copyNotRelatedTranslations($translationAggregator, $baseCombination);
+        $this->processMod($translationAggregator, $exportMod);
 
-        return $this->translations;
+        return $translationAggregator->getAggregatedTranslations();
     }
 
     /**
      * Copies the existing translations which are not related to this importer.
+     * @param TranslationAggregator $translationAggregator
      * @param DatabaseCombination $baseCombination
      */
-    protected function copyNotRelatedTranslations(DatabaseCombination $baseCombination): void
-    {
+    protected function copyNotRelatedTranslations(
+        TranslationAggregator $translationAggregator,
+        DatabaseCombination $baseCombination
+    ): void {
         foreach ($baseCombination->getTranslations() as $translation) {
             if ($translation->getType() !== TranslationType::MOD) {
-                $this->translations[$this->getIdentifierOfTranslation($translation)] = $translation;
+                $translationAggregator->addTranslation($translation);
             }
         }
     }
 
     /**
      * Processes the translations of the specified machine.
+     * @param TranslationAggregator $translationAggregator
      * @param ExportMod $exportMod
      */
-    protected function processMod(ExportMod $exportMod): void
+    protected function processMod(TranslationAggregator $translationAggregator, ExportMod $exportMod): void
     {
-        foreach ($exportMod->getTitles()->getTranslations() as $locale => $label) {
-            $translation = $this->getTranslation($locale, $exportMod->getName());
-            $translation->setValue($label);
-        }
-
-        foreach ($exportMod->getDescriptions()->getTranslations() as $locale => $description) {
-            $translation = $this->getTranslation($locale, $exportMod->getName());
-            $translation->setValue($description);
-        }
-    }
-
-    /**
-     * Returns the translation for the specified values.
-     * @param string $locale
-     * @param string $name
-     * @return Translation
-     */
-    protected function getTranslation(string $locale, string $name): Translation
-    {
-        $key = $this->getIdentifier($locale, TranslationType::MOD, $name);
-        if (!isset($this->translations[$key])) {
-            $this->translations[$key] = new Translation($this->baseCombination, $locale, TranslationType::MOD, $name);
-        }
-        return $this->translations[$key];
-    }
-
-    /**
-     * Returns the already existing entities.
-     * @param array|Translation[] $newTranslations
-     * @param DatabaseCombination $baseCombination
-     * @return array|Translation[]
-     */
-    protected function getExistingTranslations(array $newTranslations, DatabaseCombination $baseCombination): array
-    {
-        $result = [];
-        foreach ($baseCombination->getTranslations() as $translation) {
-            $key = $this->getIdentifierOfTranslation($translation);
-            if (isset($newTranslations[$key])) {
-                $this->applyChanges($newTranslations[$key], $translation);
-            }
-            $result[$key] = $translation;
-        }
-        return $result;
-    }
-
-    /**
-     * Applies the changes from the source to the destination.
-     * @param Translation $source
-     * @param Translation $destination
-     */
-    protected function applyChanges(Translation $source, Translation $destination): void
-    {
-        $destination->setValue($source->getValue())
-                    ->setDescription($source->getDescription())
-                    ->setIsDuplicatedByMachine($source->getIsDuplicatedByMachine())
-                    ->setIsDuplicatedByRecipe($source->getIsDuplicatedByRecipe());
-    }
-
-    /**
-     * Returns the identifier for the specified values.
-     * @param string $locale
-     * @param string $type
-     * @param string $name
-     * @return string
-     */
-    protected function getIdentifier(string $locale, string $type, string $name): string
-    {
-        return EntityUtils::buildIdentifier([$locale, $type, $name]);
-    }
-
-    /**
-     * Returns the identifier of the specified translation.
-     * @param Translation $translation
-     * @return string
-     */
-    protected function getIdentifierOfTranslation(Translation $translation): string
-    {
-        return $this->getIdentifier($translation->getLocale(), $translation->getType(), $translation->getName());
+        $translationAggregator->applyLocalisedStringToValue(
+            $exportMod->getTitles(),
+            TranslationType::MOD,
+            $exportMod->getName()
+        );
+        $translationAggregator->applyLocalisedStringToDescription(
+            $exportMod->getDescriptions(),
+            TranslationType::MOD,
+            $exportMod->getName()
+        );
     }
 }

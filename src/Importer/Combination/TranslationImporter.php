@@ -8,12 +8,9 @@ use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombinatio
 use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
-use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
-use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
+use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
+use FactorioItemBrowser\Api\Import\Importer\AbstractTranslationImporter;
 use FactorioItemBrowser\ExportData\Entity\Mod\Combination as ExportCombination;
-use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
-use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
-use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 
 /**
  * The importer of the translations.
@@ -21,25 +18,13 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class TranslationImporter extends AbstractImporter implements CombinationImporterInterface
+class TranslationImporter extends AbstractTranslationImporter implements CombinationImporterInterface
 {
     /**
      * The registry service.
      * @var RegistryService
      */
     protected $registryService;
-
-    /**
-     * The database combination.
-     * @var DatabaseCombination
-     */
-    protected $databaseCombination;
-
-    /**
-     * The translations read from the combination.
-     * @var array|Translation[]
-     */
-    protected $translations = [];
 
     /**
      * Initializes the importer.
@@ -77,158 +62,116 @@ class TranslationImporter extends AbstractImporter implements CombinationImporte
         ExportCombination $exportCombination,
         DatabaseCombination $databaseCombination
     ): array {
-        $this->databaseCombination = $databaseCombination;
-        $this->translations = [];
+        $translationAggregator = $this->createTranslationAggregator($databaseCombination);
 
-        $this->copyMetaTranslations($databaseCombination);
-        foreach ($exportCombination->getItemHashes() as $itemHash) {
-            $this->processItem($this->registryService->getItem($itemHash));
-        }
-        foreach ($exportCombination->getMachineHashes() as $machineHash) {
-            $this->processMachine($this->registryService->getMachine($machineHash));
-        }
-        foreach ($exportCombination->getRecipeHashes() as $recipeHash) {
-            $this->processRecipe($this->registryService->getRecipe($recipeHash));
-        }
+        $this->copyNotRelatedTranslations($translationAggregator, $databaseCombination);
+        $this->processItems($translationAggregator, $exportCombination->getItemHashes());
+        $this->processMachines($translationAggregator, $exportCombination->getMachineHashes());
+        $this->processRecipes($translationAggregator, $exportCombination->getRecipeHashes());
 
-        return $this->translations;
+        return $translationAggregator->getAggregatedTranslations();
     }
 
     /**
-     * Copies the meta translations so they will not get lost while processing the current combination.
+     * Copies any translation not related to the current import step.
+     * @param TranslationAggregator $translationAggregator
      * @param DatabaseCombination $databaseCombination
      */
-    protected function copyMetaTranslations(DatabaseCombination $databaseCombination): void
-    {
+    protected function copyNotRelatedTranslations(
+        TranslationAggregator $translationAggregator,
+        DatabaseCombination $databaseCombination
+    ): void {
         foreach ($databaseCombination->getTranslations() as $translation) {
             if ($translation->getType() === TranslationType::MOD) {
-                $this->translations[$this->getIdentifierOfTranslation($translation)] = $translation;
+                $translationAggregator->addTranslation($translation);
             }
         }
     }
 
     /**
      * Processes the translations of the specified item.
-     * @param ExportItem $exportItem
+     * @param TranslationAggregator $translationAggregator
+     * @param array|string[] $itemHashes
+     * @throws ImportException
      */
-    protected function processItem(ExportItem $exportItem): void
+    protected function processItems(TranslationAggregator $translationAggregator, array $itemHashes): void
     {
-        foreach ($exportItem->getLabels()->getTranslations() as $locale => $label) {
-            $translation = $this->getTranslation($locale, $exportItem->getType(), $exportItem->getName());
-            $translation->setValue($label)
-                        ->setIsDuplicatedByMachine($exportItem->getProvidesMachineLocalisation())
-                        ->setIsDuplicatedByRecipe($exportItem->getProvidesRecipeLocalisation());
-        }
+        foreach ($itemHashes as $itemHash) {
+            $exportItem = $this->registryService->getItem($itemHash);
+            
+            $translationAggregator->applyLocalisedStringToValue(
+                $exportItem->getLabels(),
+                $exportItem->getType(),
+                $exportItem->getName()
+            );
+            $translationAggregator->applyLocalisedStringToDescription(
+                $exportItem->getDescriptions(),
+                $exportItem->getType(),
+                $exportItem->getName()
+            );
 
-        foreach ($exportItem->getDescriptions()->getTranslations() as $locale => $description) {
-            $translation = $this->getTranslation($locale, $exportItem->getType(), $exportItem->getName());
-            $translation->setDescription($description)
-                        ->setIsDuplicatedByMachine($exportItem->getProvidesMachineLocalisation())
-                        ->setIsDuplicatedByRecipe($exportItem->getProvidesRecipeLocalisation());
+            $translationAggregator->applyLocalisedStringToDuplicationFlags(
+                $exportItem->getLabels(),
+                $exportItem->getType(),
+                $exportItem->getName(),
+                $exportItem->getProvidesMachineLocalisation(),
+                $exportItem->getProvidesRecipeLocalisation()
+            );
+            $translationAggregator->applyLocalisedStringToDuplicationFlags(
+                $exportItem->getDescriptions(),
+                $exportItem->getType(),
+                $exportItem->getName(),
+                $exportItem->getProvidesMachineLocalisation(),
+                $exportItem->getProvidesRecipeLocalisation()
+            );
         }
     }
 
     /**
      * Processes the translations of the specified machine.
-     * @param ExportMachine $exportMachine
+     * @param TranslationAggregator $translationAggregator
+     * @param array|string[] $machineHashes
+     * @throws ImportException
      */
-    protected function processMachine(ExportMachine $exportMachine): void
+    protected function processMachines(TranslationAggregator $translationAggregator, array $machineHashes): void
     {
-        foreach ($exportMachine->getLabels()->getTranslations() as $locale => $label) {
-            $translation = $this->getTranslation($locale, TranslationType::MACHINE, $exportMachine->getName());
-            $translation->setValue($label);
-        }
-
-        foreach ($exportMachine->getDescriptions()->getTranslations() as $locale => $description) {
-            $translation = $this->getTranslation($locale, TranslationType::MACHINE, $exportMachine->getName());
-            $translation->setValue($description);
+        foreach ($machineHashes as $machineHash) {
+            $exportMachine = $this->registryService->getMachine($machineHash);
+            
+            $translationAggregator->applyLocalisedStringToValue(
+                $exportMachine->getLabels(),
+                TranslationType::MACHINE,
+                $exportMachine->getName()
+            );
+            $translationAggregator->applyLocalisedStringToDescription(
+                $exportMachine->getDescriptions(),
+                TranslationType::MACHINE,
+                $exportMachine->getName()
+            );
         }
     }
 
     /**
      * Processes the translations of the specified recipe.
-     * @param ExportRecipe $exportRecipe
+     * @param TranslationAggregator $translationAggregator
+     * @param array|string[] $recipeHashes
+     * @throws ImportException
      */
-    protected function processRecipe(ExportRecipe $exportRecipe): void
+    protected function processRecipes(TranslationAggregator $translationAggregator, array $recipeHashes): void
     {
-        foreach ($exportRecipe->getLabels()->getTranslations() as $locale => $label) {
-            $translation = $this->getTranslation($locale, TranslationType::RECIPE, $exportRecipe->getName());
-            $translation->setValue($label);
+        foreach ($recipeHashes as $recipeHash) {
+            $exportRecipe = $this->registryService->getRecipe($recipeHash);
+            
+            $translationAggregator->applyLocalisedStringToValue(
+                $exportRecipe->getLabels(),
+                TranslationType::RECIPE,
+                $exportRecipe->getName()
+            );
+            $translationAggregator->applyLocalisedStringToDescription(
+                $exportRecipe->getDescriptions(),
+                TranslationType::RECIPE,
+                $exportRecipe->getName()
+            );
         }
-
-        foreach ($exportRecipe->getDescriptions()->getTranslations() as $locale => $description) {
-            $translation = $this->getTranslation($locale, TranslationType::RECIPE, $exportRecipe->getName());
-            $translation->setValue($description);
-        }
-    }
-
-    /**
-     * Returns the translation for the specified values.
-     * @param string $locale
-     * @param string $type
-     * @param string $name
-     * @return Translation
-     */
-    protected function getTranslation(string $locale, string $type, string $name): Translation
-    {
-        $key = $this->getIdentifier($locale, $type, $name);
-        if (!isset($this->translations[$key])) {
-            $this->translations[$key] = new Translation($this->databaseCombination, $locale, $type, $name);
-        }
-        return $this->translations[$key];
-    }
-
-    /**
-     * Returns the already existing entities.
-     * @param array|Translation[] $newTranslations
-     * @param DatabaseCombination $databaseCombination
-     * @return array|Translation[]
-     */
-    protected function getExistingTranslations(array $newTranslations, DatabaseCombination $databaseCombination): array
-    {
-        $result = [];
-        foreach ($databaseCombination->getTranslations() as $translation) {
-            $key = $this->getIdentifierOfTranslation($translation);
-            if (isset($newTranslations[$key])) {
-                $this->applyChanges($newTranslations[$key], $translation);
-            }
-            $result[$key] = $translation;
-        }
-        return $result;
-    }
-
-    /**
-     * Applies the changes from the source to the destination.
-     * @param Translation $source
-     * @param Translation $destination
-     */
-    protected function applyChanges(Translation $source, Translation $destination): void
-    {
-        $destination->setValue($source->getValue())
-                    ->setDescription($source->getDescription())
-                    ->setIsDuplicatedByMachine($source->getIsDuplicatedByMachine())
-                    ->setIsDuplicatedByRecipe($source->getIsDuplicatedByRecipe());
-    }
-
-    /**
-     * Returns the identifier for the specified values.
-     * @param string $locale
-     * @param string $type
-     * @param string $name
-     * @return string
-     */
-    protected function getIdentifier(string $locale, string $type, string $name): string
-    {
-        return EntityUtils::buildIdentifier([$locale, $type, $name]);
-    }
-
-    /**
-     * Returns the identifier of the specified translation.
-     * @param Translation $translation
-     * @return string
-     */
-    protected function getIdentifierOfTranslation(Translation $translation): string
-    {
-        return $this->getIdentifier($translation->getLocale(), $translation->getType(), $translation->getName());
     }
 }
