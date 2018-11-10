@@ -46,4 +46,5 @@ once after all other mod and combination routes have been executed to finish up 
 
 * `/cleanup`: Cleans up any data from the database which is no longer used by any mod or combination.
 * `/order/mods`: Re-assigns the order values to all mods.
-* `/order/combinations`: Re-assigns the order values to all combinations. 
+* `/order/combinations`: Re-assigns the order values to all combinations.
+* `/clear-cache`: Clears the caches of the database, i.e. the cache of the search results. 

@@ -6,6 +6,7 @@ namespace FactorioItemBrowser\Api\Import\Handler;
 
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\Importer\Generic\CleanupImporter;
+use FactorioItemBrowser\Api\Import\Importer\Generic\ClearCacheImporter;
 use FactorioItemBrowser\Api\Import\Importer\Generic\CombinationOrderImporter;
 use FactorioItemBrowser\Api\Import\Importer\Generic\ModOrderImporter;
 use Interop\Container\ContainerInterface;
@@ -24,6 +25,7 @@ class AbstractGenericPartHandlerFactory implements AbstractFactoryInterface
      */
     protected const IMPORTER_MAP = [
         ServiceName::GENERIC_CLEANUP => CleanupImporter::class,
+        ServiceName::GENERIC_CLEAR_CACHE => ClearCacheImporter::class,
         ServiceName::GENERIC_ORDER_COMBINATIONS => CombinationOrderImporter::class,
         ServiceName::GENERIC_ORDER_MODS => ModOrderImporter::class,
     ];

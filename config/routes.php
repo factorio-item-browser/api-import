@@ -26,6 +26,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/combination/{combinationHash}/translations', ServiceName::COMBINATION_TRANSLATIONS_HANDLER, RouteName::COMBINATION_TRANSLATIONS);
 
     $app->get('/cleanup', ServiceName::GENERIC_CLEANUP, RouteName::CLEANUP);
+    $app->get('/clear-cache', ServiceName::GENERIC_CLEAR_CACHE, RouteName::CLEAR_CACHE);
 
     $app->get('/mod/{modName}', Handler\ModHandler::class, RouteName::MOD);
     $app->get('/mod/{modName}/combinations', ServiceName::MOD_COMBINATIONS_HANDLER, RouteName::MOD_COMBINATIONS);

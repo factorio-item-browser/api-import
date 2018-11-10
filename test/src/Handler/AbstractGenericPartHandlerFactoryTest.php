@@ -31,6 +31,7 @@ class AbstractGenericPartHandlerFactoryTest extends TestCase
     {
         return [
             [ServiceName::GENERIC_CLEANUP, true],
+            [ServiceName::GENERIC_CLEAR_CACHE, true],
             [ServiceName::GENERIC_ORDER_COMBINATIONS, true],
             [ServiceName::GENERIC_ORDER_MODS, true],
             ['foo', false],

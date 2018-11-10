@@ -20,6 +20,7 @@ interface ServiceName
     public const COMBINATION_TRANSLATIONS_HANDLER = 'handler.combination.translations';
 
     public const GENERIC_CLEANUP = 'handler.generic.cleanup';
+    public const GENERIC_CLEAR_CACHE = 'handler.generic.clearCache';
     public const GENERIC_ORDER_COMBINATIONS = 'handler.generic.orderCombinations';
     public const GENERIC_ORDER_MODS = 'handler.generic.orderMods';
 

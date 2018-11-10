@@ -13,6 +13,7 @@ namespace FactorioItemBrowser\Api\Import\Constant;
 interface RouteName
 {
     public const CLEANUP = 'cleanup';
+    public const CLEAR_CACHE = 'clear-cache';
 
     public const COMBINATION_CRAFTING_CATEGORIES = 'combination.crafting-categories';
     public const COMBINATION_ICONS = 'combination.icons';
