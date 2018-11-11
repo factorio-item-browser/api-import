@@ -88,12 +88,24 @@ class MachineImporter extends AbstractImporter implements CombinationImporterInt
         $result = [];
         foreach ($exportCombination->getMachineHashes() as $machineHash) {
             $exportMachine = $this->registryService->getMachine($machineHash);
-            $databaseMachine = $this->mapMachine($exportMachine);
-            $result[$this->getIdentifier($databaseMachine)] = $databaseMachine;
+            if ($this->hasMachineData($exportMachine)) {
+                $databaseMachine = $this->mapMachine($exportMachine);
+                $result[$this->getIdentifier($databaseMachine)] = $databaseMachine;
+            }
         }
         return $result;
     }
 
+    /**
+     * Returns whether the machine has actual data to be imported.
+     * @param ExportMachine $machine
+     * @return bool
+     */
+    protected function hasMachineData(ExportMachine $machine): bool
+    {
+        return count($machine->getCraftingCategories()) > 0;
+    }
+    
     /**
      * Maps the export machine to a database entity.
      * @param ExportMachine $machine

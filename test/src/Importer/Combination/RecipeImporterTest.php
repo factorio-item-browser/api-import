@@ -147,15 +147,17 @@ class RecipeImporterTest extends TestCase
         $exportRecipe1 = $this->createMock(ExportRecipe::class);
         /* @var ExportRecipe $exportRecipe2 */
         $exportRecipe2 = $this->createMock(ExportRecipe::class);
+        /* @var ExportRecipe $exportRecipe3 */
+        $exportRecipe3 = $this->createMock(ExportRecipe::class);
         /* @var DatabaseRecipe $databaseRecipe1 */
         $databaseRecipe1 = $this->createMock(DatabaseRecipe::class);
         /* @var DatabaseRecipe $databaseRecipe2 */
         $databaseRecipe2 = $this->createMock(DatabaseRecipe::class);
 
-        $recipeHashes = ['abc', 'def'];
+        $recipeHashes = ['abc', 'def', 'ghi'];
         $expectedResult = [
-            'ghi' => $databaseRecipe1,
-            'jkl' => $databaseRecipe2,
+            'jkl' => $databaseRecipe1,
+            'mno' => $databaseRecipe2,
         ];
 
         /* @var ExportCombination|MockObject $exportCombination */
@@ -172,15 +174,17 @@ class RecipeImporterTest extends TestCase
                                 ->setMethods(['getRecipe'])
                                 ->disableOriginalConstructor()
                                 ->getMock();
-        $registryService->expects($this->exactly(2))
+        $registryService->expects($this->exactly(3))
                         ->method('getRecipe')
                         ->withConsecutive(
                             ['abc'],
-                            ['def']
+                            ['def'],
+                            ['ghi']
                         )
                         ->willReturnOnConsecutiveCalls(
                             $exportRecipe1,
-                            $exportRecipe2
+                            $exportRecipe2,
+                            $exportRecipe3
                         );
 
         /* @var CraftingCategoryService $craftingCategoryService */
@@ -194,7 +198,7 @@ class RecipeImporterTest extends TestCase
 
         /* @var RecipeImporter|MockObject $importer */
         $importer = $this->getMockBuilder(RecipeImporter::class)
-                         ->setMethods(['mapRecipe', 'getIdentifier'])
+                         ->setMethods(['hasRecipeData', 'mapRecipe', 'getIdentifier'])
                          ->setConstructorArgs([
                              $craftingCategoryService,
                              $entityManager,
@@ -203,6 +207,18 @@ class RecipeImporterTest extends TestCase
                              $registryService
                          ])
                          ->getMock();
+        $importer->expects($this->exactly(3))
+                 ->method('hasRecipeData')
+                 ->withConsecutive(
+                     [$exportRecipe1],
+                     [$exportRecipe2],
+                     [$exportRecipe3]
+                 )
+                 ->willReturnOnConsecutiveCalls(
+                     true,
+                     false,
+                     true
+                 );
         $importer->expects($this->exactly(2))
                  ->method('mapRecipe')
                  ->withConsecutive(
@@ -220,14 +236,72 @@ class RecipeImporterTest extends TestCase
                      [$databaseRecipe2]
                  )
                  ->willReturnOnConsecutiveCalls(
-                     'ghi',
-                     'jkl'
+                     'jkl',
+                     'mno'
                  );
 
         $result = $this->invokeMethod($importer, 'getRecipesFromCombination', $exportCombination);
         $this->assertEquals($expectedResult, $result);
     }
 
+    /**
+     * Provides the data for the hasRecipeData test.
+     * @return array
+     */
+    public function provideHasRecipeData(): array
+    {
+        $recipe1 = new ExportRecipe();
+        $recipe1->setIngredients([new ExportIngredient(), new ExportIngredient()])
+                ->setProducts([]);
+
+        $recipe2 = new ExportRecipe();
+        $recipe2->setIngredients([])
+                ->setProducts([new ExportProduct(), new ExportProduct()]);
+
+        $recipe3 = new ExportRecipe();
+        $recipe3->setIngredients([])
+                ->setProducts([]);
+
+        return [
+            [$recipe1, true],
+            [$recipe2, true],
+            [$recipe3, false],
+        ];
+    }
+
+    /**
+     * Tests the hasRecipeData method.
+     * @param ExportRecipe $recipe
+     * @param bool $expectedResult
+     * @throws ReflectionException
+     * @covers ::hasRecipeData
+     * @dataProvider provideHasRecipeData
+     */
+    public function testHasRecipeData(ExportRecipe $recipe, bool $expectedResult): void
+    {
+        /* @var CraftingCategoryService $craftingCategoryService */
+        $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var ItemService $itemService */
+        $itemService = $this->createMock(ItemService::class);
+        /* @var RecipeRepository $recipeRepository */
+        $recipeRepository = $this->createMock(RecipeRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new RecipeImporter(
+            $craftingCategoryService,
+            $entityManager,
+            $itemService,
+            $recipeRepository,
+            $registryService
+        );
+        $result = $this->invokeMethod($importer, 'hasRecipeData', $recipe);
+
+        $this->assertSame($expectedResult, $result);
+    }
+    
     /**
      * Tests the mapRecipe method.
      * @throws ReflectionException

@@ -76,8 +76,10 @@ class ItemImporter extends AbstractImporter implements CombinationImporterInterf
         $result = [];
         foreach ($exportCombination->getItemHashes() as $itemHash) {
             $exportItem = $this->registryService->getItem($itemHash);
-            $databaseItem = $this->mapItem($exportItem);
-            $result[$this->getIdentifier($databaseItem)] = $databaseItem;
+            if ($exportItem->getIsNew()) {
+                $databaseItem = $this->mapItem($exportItem);
+                $result[$this->getIdentifier($databaseItem)] = $databaseItem;
+            }
         }
         return $result;
     }

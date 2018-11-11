@@ -121,19 +121,25 @@ class ItemImporterTest extends TestCase
      */
     public function testGetItemsFromCombination(): void
     {
-        /* @var ExportItem $exportItem1 */
-        $exportItem1 = $this->createMock(ExportItem::class);
-        /* @var ExportItem $exportItem2 */
-        $exportItem2 = $this->createMock(ExportItem::class);
+        $exportItem1 = new ExportItem();
+        $exportItem1->setName('abc')
+                    ->setIsNew(true);
+        $exportItem2 = new ExportItem();
+        $exportItem2->setName('def')
+                    ->setIsNew(false);
+        $exportItem3 = new ExportItem();
+        $exportItem3->setName('ghi')
+                    ->setIsNew(true);
+
         /* @var DatabaseItem $databaseItem1 */
         $databaseItem1 = $this->createMock(DatabaseItem::class);
         /* @var DatabaseItem $databaseItem2 */
         $databaseItem2 = $this->createMock(DatabaseItem::class);
 
-        $itemHashes = ['abc', 'def'];
+        $itemHashes = ['abc', 'def', 'ghi'];
         $expectedResult = [
-            'ghi' => $databaseItem1,
-            'jkl' => $databaseItem2,
+            'abc' => $databaseItem1,
+            'ghi' => $databaseItem2,
         ];
 
         /* @var ExportCombination|MockObject $exportCombination */
@@ -150,15 +156,17 @@ class ItemImporterTest extends TestCase
                                 ->setMethods(['getItem'])
                                 ->disableOriginalConstructor()
                                 ->getMock();
-        $registryService->expects($this->exactly(2))
+        $registryService->expects($this->exactly(3))
                         ->method('getItem')
                         ->withConsecutive(
                             ['abc'],
-                            ['def']
+                            ['def'],
+                            ['ghi']
                         )
                         ->willReturnOnConsecutiveCalls(
                             $exportItem1,
-                            $exportItem2
+                            $exportItem2,
+                            $exportItem3
                         );
 
         /* @var EntityManager $entityManager */
@@ -175,7 +183,7 @@ class ItemImporterTest extends TestCase
                  ->method('mapItem')
                  ->withConsecutive(
                      [$exportItem1],
-                     [$exportItem2]
+                     [$exportItem3]
                  )
                  ->willReturnOnConsecutiveCalls(
                      $databaseItem1,
@@ -188,8 +196,8 @@ class ItemImporterTest extends TestCase
                      [$databaseItem2]
                  )
                  ->willReturnOnConsecutiveCalls(
-                     'ghi',
-                     'jkl'
+                     'abc',
+                     'ghi'
                  );
 
         $result = $this->invokeMethod($importer, 'getItemsFromCombination', $exportCombination);

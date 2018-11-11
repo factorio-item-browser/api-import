@@ -102,10 +102,22 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
         $result = [];
         foreach ($exportCombination->getRecipeHashes() as $recipeHash) {
             $exportRecipe = $this->registryService->getRecipe($recipeHash);
-            $databaseRecipe = $this->mapRecipe($exportRecipe);
-            $result[$this->getIdentifier($databaseRecipe)] = $databaseRecipe;
+            if ($this->hasRecipeData($exportRecipe)) {
+                $databaseRecipe = $this->mapRecipe($exportRecipe);
+                $result[$this->getIdentifier($databaseRecipe)] = $databaseRecipe;
+            }
         }
         return $result;
+    }
+
+    /**
+     * Returns whether the recipe has actual data to be imported.
+     * @param ExportRecipe $recipe
+     * @return bool
+     */
+    protected function hasRecipeData(ExportRecipe $recipe): bool
+    {
+        return count($recipe->getIngredients()) > 0 || count($recipe->getProducts()) > 0;
     }
 
     /**

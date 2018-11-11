@@ -132,15 +132,17 @@ class MachineImporterTest extends TestCase
         $exportMachine1 = $this->createMock(ExportMachine::class);
         /* @var ExportMachine $exportMachine2 */
         $exportMachine2 = $this->createMock(ExportMachine::class);
+        /* @var ExportMachine $exportMachine3 */
+        $exportMachine3 = $this->createMock(ExportMachine::class);
         /* @var DatabaseMachine $databaseMachine1 */
         $databaseMachine1 = $this->createMock(DatabaseMachine::class);
         /* @var DatabaseMachine $databaseMachine2 */
         $databaseMachine2 = $this->createMock(DatabaseMachine::class);
 
-        $machineHashes = ['abc', 'def'];
+        $machineHashes = ['abc', 'def', 'ghi'];
         $expectedResult = [
-            'ghi' => $databaseMachine1,
-            'jkl' => $databaseMachine2,
+            'jkl' => $databaseMachine1,
+            'mno' => $databaseMachine2,
         ];
 
         /* @var ExportCombination|MockObject $exportCombination */
@@ -157,15 +159,17 @@ class MachineImporterTest extends TestCase
                                 ->setMethods(['getMachine'])
                                 ->disableOriginalConstructor()
                                 ->getMock();
-        $registryService->expects($this->exactly(2))
+        $registryService->expects($this->exactly(3))
                         ->method('getMachine')
                         ->withConsecutive(
                             ['abc'],
-                            ['def']
+                            ['def'],
+                            ['ghi']
                         )
                         ->willReturnOnConsecutiveCalls(
                             $exportMachine1,
-                            $exportMachine2
+                            $exportMachine2,
+                            $exportMachine3
                         );
 
         /* @var CraftingCategoryService $craftingCategoryService */
@@ -177,7 +181,7 @@ class MachineImporterTest extends TestCase
 
         /* @var MachineImporter|MockObject $importer */
         $importer = $this->getMockBuilder(MachineImporter::class)
-                         ->setMethods(['mapMachine', 'getIdentifier'])
+                         ->setMethods(['hasMachineData', 'mapMachine', 'getIdentifier'])
                          ->setConstructorArgs([
                              $craftingCategoryService,
                              $entityManager,
@@ -185,11 +189,23 @@ class MachineImporterTest extends TestCase
                              $registryService
                          ])
                          ->getMock();
+        $importer->expects($this->exactly(3))
+                 ->method('hasMachineData')
+                 ->withConsecutive(
+                     [$exportMachine1],
+                     [$exportMachine2],
+                     [$exportMachine3]
+                 )
+                 ->willReturnOnConsecutiveCalls(
+                     true,
+                     false,
+                     true
+                 );
         $importer->expects($this->exactly(2))
                  ->method('mapMachine')
                  ->withConsecutive(
                      [$exportMachine1],
-                     [$exportMachine2]
+                     [$exportMachine3]
                  )
                  ->willReturnOnConsecutiveCalls(
                      $databaseMachine1,
@@ -202,14 +218,57 @@ class MachineImporterTest extends TestCase
                      [$databaseMachine2]
                  )
                  ->willReturnOnConsecutiveCalls(
-                     'ghi',
-                     'jkl'
+                     'jkl',
+                     'mno'
                  );
 
         $result = $this->invokeMethod($importer, 'getMachinesFromCombination', $exportCombination);
         $this->assertEquals($expectedResult, $result);
     }
-    
+
+    /**
+     * Provides the data for the hasMachineData test.
+     * @return array
+     */
+    public function provideHasMachineData(): array
+    {
+        $machine1 = new ExportMachine();
+        $machine1->setCraftingCategories(['abc', 'def']);
+
+        $machine2 = new ExportMachine();
+        $machine2->setCraftingCategories([]);
+
+        return [
+            [$machine1, true],
+            [$machine2, false],
+        ];
+    }
+
+    /**
+     * Tests the hasMachineData method.
+     * @param ExportMachine $machine
+     * @param bool $expectedResult
+     * @throws ReflectionException
+     * @covers ::hasMachineData
+     * @dataProvider provideHasMachineData
+     */
+    public function testHasMachineData(ExportMachine $machine, bool $expectedResult): void
+    {
+        /* @var CraftingCategoryService $craftingCategoryService */
+        $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
+        /* @var EntityManager $entityManager */
+        $entityManager = $this->createMock(EntityManager::class);
+        /* @var MachineRepository $machineRepository */
+        $machineRepository = $this->createMock(MachineRepository::class);
+        /* @var RegistryService $registryService */
+        $registryService = $this->createMock(RegistryService::class);
+
+        $importer = new MachineImporter($craftingCategoryService, $entityManager, $machineRepository, $registryService);
+        $result = $this->invokeMethod($importer, 'hasMachineData', $machine);
+
+        $this->assertSame($expectedResult, $result);
+    }
+
     /**
      * Tests the mapMachine method.
      * @throws ReflectionException
