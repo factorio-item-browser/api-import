@@ -1,4 +1,4 @@
-version: "3"
+version: "3.5"
 services:
 
   php:
@@ -7,6 +7,8 @@ services:
     volumes:
     - ".:/project"
     - "$SSH_AUTH_SOCK:/ssh-agent"
+    networks:
+    - network-fib
     ports:
     - 8030:80
     environment:
@@ -16,5 +18,11 @@ services:
   mysql:
     container_name: fib-ai-mysql
     image: bluepsyduck/mysql
+    networks:
+    - network-fib
     ports:
     - 13336:3306
+
+networks:
+  network-fib:
+    name: network-fib
