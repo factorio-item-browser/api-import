@@ -186,7 +186,7 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
     }
 
     /**
-     * Returns the already existing entities of thew specified recipies.
+     * Returns the already existing entities of thew specified recipes.
      * @param array|DatabaseRecipe[] $recipes
      * @return array|DatabaseRecipe[]
      */
