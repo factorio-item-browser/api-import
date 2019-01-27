@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
@@ -26,8 +26,8 @@ class TranslationImporterFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
 

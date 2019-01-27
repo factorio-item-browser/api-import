@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Mod;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Import\Database\ModService;
 use FactorioItemBrowser\Api\Import\Importer\Mod\DependencyImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\DependencyImporterFactory;
@@ -34,11 +34,11 @@ class DependencyImporterFactoryTest extends TestCase
         $container->expects($this->exactly(2))
                   ->method('get')
                   ->withConsecutive(
-                      [EntityManager::class],
+                      [EntityManagerInterface::class],
                       [ModService::class]
                   )
                   ->willReturnOnConsecutiveCalls(
-                      $this->createMock(EntityManager::class),
+                      $this->createMock(EntityManagerInterface::class),
                       $this->createMock(ModService::class)
                   );
 

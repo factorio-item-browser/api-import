@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Mod;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Constant\ModDependencyType;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Entity\ModDependency as DatabaseDependency;
@@ -31,12 +31,13 @@ class DependencyImporter extends AbstractImporter implements ModImporterInterfac
 
     /**
      * Initializes the importer.
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param ModService $modService
      */
-    public function __construct(EntityManager $entityManager, ModService $modService)
+    public function __construct(EntityManagerInterface $entityManager, ModService $modService)
     {
         parent::__construct($entityManager);
+
         $this->modService = $modService;
     }
 

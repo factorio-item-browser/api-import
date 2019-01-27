@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Database;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Item;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Import\Database\ItemService;
 use FactorioItemBrowser\Api\Import\Database\ItemServiceFactory;
@@ -28,27 +26,14 @@ class ItemServiceFactoryTest extends TestCase
      */
     public function testInvoke(): void
     {
-        /* @var ItemRepository $itemRepository */
-        $itemRepository = $this->createMock(ItemRepository::class);
-
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->once())
-                      ->method('getRepository')
-                      ->with(Item::class)
-                      ->willReturn($itemRepository);
-
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
                           ->setMethods(['get'])
                           ->getMockForAbstractClass();
         $container->expects($this->once())
                   ->method('get')
-                  ->with(EntityManager::class)
-                  ->willReturn($entityManager);
+                  ->with(ItemRepository::class)
+                  ->willReturn($this->createMock(ItemRepository::class));
 
         $factory = new ItemServiceFactory();
         $factory($container, ItemService::class);

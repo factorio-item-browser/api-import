@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Machine;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
 use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -31,13 +30,12 @@ class MachineImporterFactory implements FactoryInterface
     {
         /* @var CraftingCategoryService $craftingCategoryService */
         $craftingCategoryService = $container->get(CraftingCategoryService::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        /* @var MachineRepository $machineRepository */
+        $machineRepository = $container->get(MachineRepository::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
-
-        /* @var MachineRepository $machineRepository */
-        $machineRepository = $entityManager->getRepository(Machine::class);
 
         return new MachineImporter(
             $craftingCategoryService,

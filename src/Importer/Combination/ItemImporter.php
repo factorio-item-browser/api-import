@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
@@ -37,16 +37,17 @@ class ItemImporter extends AbstractImporter implements CombinationImporterInterf
 
     /**
      * Initializes the importer.
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param ItemRepository $itemRepository
      * @param RegistryService $registryService
      */
     public function __construct(
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         ItemRepository $itemRepository,
         RegistryService $registryService
     ) {
         parent::__construct($entityManager);
+
         $this->itemRepository = $itemRepository;
         $this->registryService = $registryService;
     }

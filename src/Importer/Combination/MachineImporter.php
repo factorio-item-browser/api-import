@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
@@ -46,17 +46,18 @@ class MachineImporter extends AbstractImporter implements CombinationImporterInt
     /**
      * Initializes the importer.
      * @param CraftingCategoryService $craftingCategoryService
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param MachineRepository $machineRepository
      * @param RegistryService $registryService
      */
     public function __construct(
         CraftingCategoryService $craftingCategoryService,
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         MachineRepository $machineRepository,
         RegistryService $registryService
     ) {
         parent::__construct($entityManager);
+
         $this->craftingCategoryService = $craftingCategoryService;
         $this->machineRepository = $machineRepository;
         $this->registryService = $registryService;

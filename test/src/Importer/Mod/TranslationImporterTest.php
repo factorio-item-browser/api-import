@@ -7,7 +7,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Mod;
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Constant\TranslationType;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
@@ -151,8 +151,8 @@ class TranslationImporterTest extends TestCase
             $this->expectException(ImportException::class);
         }
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $importer = new TranslationImporter($entityManager);
         $result = $this->invokeMethod($importer, 'findBaseCombination', $databaseMod);
@@ -235,8 +235,8 @@ class TranslationImporterTest extends TestCase
                               ->method('addTranslation')
                               ->with($translation2);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $importer = new TranslationImporter($entityManager);
 
@@ -270,8 +270,8 @@ class TranslationImporterTest extends TestCase
                               ->method('applyLocalisedStringToDescription')
                               ->with($mod->getDescriptions(), TranslationType::MOD, 'abc');
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $importer = new TranslationImporter($entityManager);
         $this->invokeMethod($importer, 'processMod', $translationAggregator, $mod);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
@@ -34,17 +34,18 @@ class CraftingCategoryImporter extends AbstractImporter implements CombinationIm
     protected $registryService;
 
     /**
-     * CraftingCategoryImporter constructor.
+     * Initializes the importer.
      * @param CraftingCategoryRepository $craftingCategoryRepository
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param RegistryService $registryService
      */
     public function __construct(
         CraftingCategoryRepository $craftingCategoryRepository,
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         RegistryService $registryService
     ) {
         parent::__construct($entityManager);
+
         $this->craftingCategoryRepository = $craftingCategoryRepository;
         $this->registryService = $registryService;
     }

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Database;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
@@ -27,11 +25,8 @@ class CraftingCategoryServiceFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
-
         /* @var CraftingCategoryRepository $craftingCategoryRepository */
-        $craftingCategoryRepository = $entityManager->getRepository(CraftingCategory::class);
+        $craftingCategoryRepository = $container->get(CraftingCategoryRepository::class);
 
         return new CraftingCategoryService($craftingCategoryRepository);
     }

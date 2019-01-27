@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Handler;
 
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMException;
+use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Exception\ErrorResponseException;
@@ -28,7 +28,7 @@ class ModHandler implements RequestHandlerInterface
 {
     /**
      * The entity manager.
-     * @var EntityManager
+     * @var EntityManagerInterface
      */
     protected $entityManager;
 
@@ -46,12 +46,12 @@ class ModHandler implements RequestHandlerInterface
 
     /**
      * Initializes the handler.
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param ModRepository $modRepository
      * @param RegistryService $registryService
      */
     public function __construct(
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         ModRepository $modRepository,
         RegistryService $registryService
     ) {
@@ -121,7 +121,7 @@ class ModHandler implements RequestHandlerInterface
         $result = new DatabaseMod($exportMod->getName());
         try {
             $this->entityManager->persist($result);
-        } catch (ORMException $e) {
+        } catch (Exception $e) {
             throw new ErrorResponseException('Error while persisting mod entity.', 500, $e);
         }
         return $result;
@@ -146,7 +146,7 @@ class ModHandler implements RequestHandlerInterface
     {
         try {
             $this->entityManager->flush();
-        } catch (ORMException $e) {
+        } catch (Exception $e) {
             throw new ErrorResponseException('Error while flushing entities.', 500, $e);
         }
     }

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
-use FactorioItemBrowser\Api\Database\Entity\IconFile;
-use FactorioItemBrowser\Api\Database\Entity\Item;
-use FactorioItemBrowser\Api\Database\Entity\Machine;
-use FactorioItemBrowser\Api\Database\Entity\Recipe;
+use Doctrine\ORM\EntityManagerInterface;
+use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
+use FactorioItemBrowser\Api\Database\Repository\IconFileRepository;
+use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
+use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
+use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
+use FactorioItemBrowser\Api\Database\Repository\RepositoryWithOrphansInterface;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
@@ -22,6 +23,17 @@ use Zend\ServiceManager\Factory\FactoryInterface;
 class CleanupImporterFactory implements FactoryInterface
 {
     /**
+     * The aliases of the repositories to be cleaned.
+     */
+    protected const REPOSITORIES = [
+        CraftingCategoryRepository::class,
+        IconFileRepository::class,
+        ItemRepository::class,
+        MachineRepository::class,
+        RecipeRepository::class,
+    ];
+
+    /**
      * Creates the importer.
      * @param  ContainerInterface $container
      * @param  string $requestedName
@@ -30,20 +42,26 @@ class CleanupImporterFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
-
-        $repositories = [
-            $entityManager->getRepository(CraftingCategory::class),
-            $entityManager->getRepository(IconFile::class),
-            $entityManager->getRepository(Item::class),
-            $entityManager->getRepository(Machine::class),
-            $entityManager->getRepository(Recipe::class),
-        ];
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
 
         return new CleanupImporter(
             $entityManager,
-            $repositories
+            $this->getRepositories($container)
         );
+    }
+
+    /**
+     * Returns the repository instances to be cleaned.
+     * @param ContainerInterface $container
+     * @return array|RepositoryWithOrphansInterface[]
+     */
+    protected function getRepositories(ContainerInterface $container): array
+    {
+        $result = [];
+        foreach (self::REPOSITORIES as $alias) {
+            $result[] = $container->get($alias);
+        }
+        return $result;
     }
 }

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\CachedSearchResult;
 use FactorioItemBrowser\Api\Database\Repository\CachedSearchResultRepository;
 use FactorioItemBrowser\Api\Import\Importer\Generic\ClearCacheImporter;
 use FactorioItemBrowser\Api\Import\Importer\Generic\ClearCacheImporterFactory;
@@ -28,24 +26,14 @@ class ClearCacheImporterFactoryTest extends TestCase
      */
     public function testInvoke(): void
     {
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->once())
-                      ->method('getRepository')
-                      ->with(CachedSearchResult::class)
-                      ->willReturn($this->createMock(CachedSearchResultRepository::class));
-
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
                           ->setMethods(['get'])
                           ->getMockForAbstractClass();
         $container->expects($this->once())
                   ->method('get')
-                  ->with(EntityManager::class)
-                  ->willReturn($entityManager);
+                  ->with(CachedSearchResultRepository::class)
+                  ->willReturn($this->createMock(CachedSearchResultRepository::class));
 
         $factory = new ClearCacheImporterFactory();
         $factory($container, ClearCacheImporter::class);

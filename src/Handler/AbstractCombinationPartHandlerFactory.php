@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Handler;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\ModCombination;
 use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -58,13 +56,10 @@ class AbstractCombinationPartHandlerFactory implements AbstractFactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
+        /* @var ModCombinationRepository $modCombinationRepository */
+        $modCombinationRepository = $container->get(ModCombinationRepository::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
-
-        /* @var ModCombinationRepository $modCombinationRepository */
-        $modCombinationRepository = $entityManager->getRepository(ModCombination::class);
 
         return new CombinationPartHandler(
             $container->get(self::IMPORTER_MAP[$requestedName]),

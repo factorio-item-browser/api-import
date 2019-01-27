@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import\Importer;
 
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMException;
+use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 
 /**
@@ -19,15 +19,15 @@ abstract class AbstractImporter
 {
     /**
      * The entity manager.
-     * @var EntityManager
+     * @var EntityManagerInterface
      */
     protected $entityManager;
 
     /**
      * Initializes the importer.
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManager $entityManager)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
     }
@@ -64,7 +64,7 @@ abstract class AbstractImporter
     {
         try {
             $this->entityManager->persist($entity);
-        } catch (ORMException $e) {
+        } catch (Exception $e) {
             throw new ImportException('Failed to persist entity.', 0, $e);
         }
     }
@@ -77,7 +77,7 @@ abstract class AbstractImporter
     {
         try {
             $this->entityManager->flush();
-        } catch (ORMException $e) {
+        } catch (Exception $e) {
             throw new ImportException('Failed to flush entities.', 0, $e);
         }
     }

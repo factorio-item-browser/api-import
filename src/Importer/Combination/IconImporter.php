@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Icon as DatabaseIcon;
 use FactorioItemBrowser\Api\Database\Entity\IconFile;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
@@ -50,16 +50,17 @@ class IconImporter extends AbstractImporter implements CombinationImporterInterf
 
     /**
      * Initializes the importer.
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param IconFileRepository $iconFileRepository
      * @param RegistryService $registryService
      */
     public function __construct(
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         IconFileRepository $iconFileRepository,
         RegistryService $registryService
     ) {
         parent::__construct($entityManager);
+
         $this->iconFileRepository = $iconFileRepository;
         $this->registryService = $registryService;
     }

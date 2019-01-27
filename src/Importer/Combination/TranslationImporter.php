@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Constant\TranslationType;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
@@ -30,12 +30,13 @@ class TranslationImporter extends AbstractTranslationImporter implements Combina
 
     /**
      * Initializes the importer.
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param RegistryService $registryService
      */
-    public function __construct(EntityManager $entityManager, RegistryService $registryService)
+    public function __construct(EntityManagerInterface $entityManager, RegistryService $registryService)
     {
         parent::__construct($entityManager);
+
         $this->registryService = $registryService;
     }
 

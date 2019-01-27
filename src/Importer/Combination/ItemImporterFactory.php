@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Item;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use Interop\Container\ContainerInterface;
@@ -28,13 +27,12 @@ class ItemImporterFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        /* @var ItemRepository $itemRepository */
+        $itemRepository = $container->get(ItemRepository::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
-
-        /* @var ItemRepository $itemRepository */
-        $itemRepository = $entityManager->getRepository(Item::class);
 
         return new ItemImporter($entityManager, $itemRepository, $registryService);
     }

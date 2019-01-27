@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
-use FactorioItemBrowser\Api\Database\Entity\IconFile;
-use FactorioItemBrowser\Api\Database\Entity\Item;
-use FactorioItemBrowser\Api\Database\Entity\Machine;
-use FactorioItemBrowser\Api\Database\Entity\Recipe;
+use BluePsyduck\Common\Test\ReflectionTrait;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Database\Repository\IconFileRepository;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
+use FactorioItemBrowser\Api\Database\Repository\RepositoryWithOrphansInterface;
 use FactorioItemBrowser\Api\Import\Importer\Generic\CleanupImporter;
 use FactorioItemBrowser\Api\Import\Importer\Generic\CleanupImporterFactory;
 use Interop\Container\ContainerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 
 /**
  * The PHPUnit test of the CleanupImporterFactory class.
@@ -30,33 +28,18 @@ use PHPUnit\Framework\TestCase;
  */
 class CleanupImporterFactoryTest extends TestCase
 {
+    use ReflectionTrait;
+
     /**
      * Tests the invoking.
      * @covers ::__invoke
      */
     public function testInvoke(): void
     {
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->exactly(5))
-                      ->method('getRepository')
-                      ->withConsecutive(
-                          [CraftingCategory::class],
-                          [IconFile::class],
-                          [Item::class],
-                          [Machine::class],
-                          [Recipe::class]
-                      )
-                      ->willReturnOnConsecutiveCalls(
-                          $this->createMock(CraftingCategoryRepository::class),
-                          $this->createMock(IconFileRepository::class),
-                          $this->createMock(ItemRepository::class),
-                          $this->createMock(MachineRepository::class),
-                          $this->createMock(RecipeRepository::class)
-                      );
+        $repositories = [
+            $this->createMock(RepositoryWithOrphansInterface::class),
+            $this->createMock(RepositoryWithOrphansInterface::class),
+        ];
 
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
@@ -64,10 +47,70 @@ class CleanupImporterFactoryTest extends TestCase
                           ->getMockForAbstractClass();
         $container->expects($this->once())
                   ->method('get')
-                  ->with(EntityManager::class)
-                  ->willReturn($entityManager);
+                  ->with(EntityManagerInterface::class)
+                  ->willReturn($this->createMock(EntityManagerInterface::class));
+
+        /* @var CleanupImporterFactory|MockObject $factory */
+        $factory = $this->getMockBuilder(CleanupImporterFactory::class)
+                        ->setMethods(['getRepositories'])
+                        ->getMock();
+        $factory->expects($this->once())
+                ->method('getRepositories')
+                ->with($container)
+                ->willReturn($repositories);
+
+        $factory($container, CleanupImporter::class);
+    }
+
+    /**
+     * Tests the getRepositories method.
+     * @throws ReflectionException
+     * @covers ::getRepositories
+     */
+    public function testGetRepositories(): void
+    {
+        /* @var CraftingCategoryRepository $craftingCategoryRepository */
+        $craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
+        /* @var IconFileRepository $iconFileRepository */
+        $iconFileRepository = $this->createMock(IconFileRepository::class);
+        /* @var ItemRepository $itemRepository */
+        $itemRepository = $this->createMock(ItemRepository::class);
+        /* @var MachineRepository $machineRepository */
+        $machineRepository = $this->createMock(MachineRepository::class);
+        /* @var RecipeRepository $recipeRepository */
+        $recipeRepository = $this->createMock(RecipeRepository::class);
+
+        $expectedResult = [
+            $craftingCategoryRepository,
+            $iconFileRepository,
+            $itemRepository,
+            $machineRepository,
+            $recipeRepository,
+        ];
+
+        /* @var ContainerInterface|MockObject $container */
+        $container = $this->getMockBuilder(ContainerInterface::class)
+                          ->setMethods(['get'])
+                          ->getMockForAbstractClass();
+        $container->expects($this->exactly(5))
+                  ->method('get')
+                  ->withConsecutive(
+                      [CraftingCategoryRepository::class],
+                      [IconFileRepository::class],
+                      [ItemRepository::class],
+                      [MachineRepository::class],
+                      [RecipeRepository::class]
+                  )
+                  ->willReturnOnConsecutiveCalls(
+                      $craftingCategoryRepository,
+                      $iconFileRepository,
+                      $itemRepository,
+                      $machineRepository,
+                      $recipeRepository
+                  );
 
         $factory = new CleanupImporterFactory();
-        $factory($container, CleanupImporter::class);
+        $result = $this->invokeMethod($factory, 'getRepositories', $container);
+        $this->assertEquals($expectedResult, $result);
     }
 }

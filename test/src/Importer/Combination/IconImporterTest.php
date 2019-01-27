@@ -7,7 +7,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Icon as DatabaseIcon;
 use FactorioItemBrowser\Api\Database\Entity\Icon;
 use FactorioItemBrowser\Api\Database\Entity\IconFile;
@@ -45,8 +45,8 @@ class IconImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var IconFileRepository $iconFileRepository */
         $iconFileRepository = $this->createMock(IconFileRepository::class);
         /* @var RegistryService $registryService */
@@ -244,8 +244,8 @@ class IconImporterTest extends TestCase
                             $item2
                         );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var IconFileRepository $iconFileRepository */
         $iconFileRepository = $this->createMock(IconFileRepository::class);
 
@@ -337,8 +337,8 @@ class IconImporterTest extends TestCase
                             $machine2
                         );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var IconFileRepository $iconFileRepository */
         $iconFileRepository = $this->createMock(IconFileRepository::class);
 
@@ -430,8 +430,8 @@ class IconImporterTest extends TestCase
                             $recipe2
                         );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var IconFileRepository $iconFileRepository */
         $iconFileRepository = $this->createMock(IconFileRepository::class);
 
@@ -594,8 +594,8 @@ class IconImporterTest extends TestCase
                         ->with($iconHash)
                         ->willReturn($image);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         /* @var IconImporter|MockObject $importer */
         $importer = $this->getMockBuilder(IconImporter::class)
@@ -655,8 +655,8 @@ class IconImporterTest extends TestCase
         $expectedResult->setType('abc')
                        ->setName('def');
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var IconFileRepository $iconFileRepository */
         $iconFileRepository = $this->createMock(IconFileRepository::class);
         /* @var RegistryService $registryService */
@@ -752,8 +752,8 @@ class IconImporterTest extends TestCase
                     ->method('setFile')
                     ->with($iconFile);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var IconFileRepository $iconFileRepository */
         $iconFileRepository = $this->createMock(IconFileRepository::class);
         /* @var RegistryService $registryService */
@@ -777,8 +777,8 @@ class IconImporterTest extends TestCase
              ->setName('bar');
         $expectedResult = 'foo|bar';
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var IconFileRepository $iconFileRepository */
         $iconFileRepository = $this->createMock(IconFileRepository::class);
         /* @var RegistryService $registryService */

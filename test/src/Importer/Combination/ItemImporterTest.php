@@ -6,7 +6,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
@@ -37,8 +37,8 @@ class ItemImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemRepository $itemRepository */
         $itemRepository = $this->createMock(ItemRepository::class);
         /* @var RegistryService $registryService */
@@ -169,8 +169,8 @@ class ItemImporterTest extends TestCase
                             $exportItem3
                         );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemRepository $itemRepository */
         $itemRepository = $this->createMock(ItemRepository::class);
 
@@ -217,8 +217,8 @@ class ItemImporterTest extends TestCase
 
         $expectedResult = new DatabaseItem('abc', 'def');
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemRepository $itemRepository */
         $itemRepository = $this->createMock(ItemRepository::class);
         /* @var RegistryService $registryService */
@@ -265,8 +265,8 @@ class ItemImporterTest extends TestCase
                        ->with($expectedTypesAndNames)
                        ->willReturn([$existingItem1, $existingItem2]);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -301,8 +301,8 @@ class ItemImporterTest extends TestCase
         $item = new DatabaseItem('abc', 'def');
         $expectedResult = 'abc|def';
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemRepository $itemRepository */
         $itemRepository = $this->createMock(ItemRepository::class);
         /* @var RegistryService $registryService */

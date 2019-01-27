@@ -15,9 +15,9 @@
   "require": {
     "php": "^7.2",
     "ext-PDO": "*",
-    "factorio-item-browser/api-database": "dev-import",
+    "factorio-item-browser/api-database": "dev-refactor-doctrine",
     "factorio-item-browser/common": "^1.0",
-    "factorio-item-browser/export-data": "dev-feature/refactor",
+    "factorio-item-browser/export-data": "^2.0",
     "zendframework/zend-config-aggregator": "^1.0",
     "zendframework/zend-diactoros": "^1.7",
     "zendframework/zend-expressive": "^3.0",
@@ -56,7 +56,7 @@
       "mkdir -p data/cache data/log && chmod 0777 data/cache data/log"
     ],
     "test": [
-      "@composer validate #--strict",
+      "@composer validate --strict",
       "@phpunit",
       "@coverage-check",
       "@phpcs",

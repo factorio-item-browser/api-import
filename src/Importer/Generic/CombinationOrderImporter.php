@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination;
 use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
@@ -40,16 +40,17 @@ class CombinationOrderImporter extends AbstractImporter implements GenericImport
 
     /**
      * Initializes the importer.
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param ModCombinationRepository $modCombinationRepository
      * @param ModRepository $modRepository
      */
     public function __construct(
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         ModCombinationRepository $modCombinationRepository,
         ModRepository $modRepository
     ) {
         parent::__construct($entityManager);
+
         $this->modCombinationRepository = $modCombinationRepository;
         $this->modRepository = $modRepository;
     }

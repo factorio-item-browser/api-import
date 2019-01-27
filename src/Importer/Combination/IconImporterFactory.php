@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\IconFile;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\IconFileRepository;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use Interop\Container\ContainerInterface;
@@ -28,13 +27,12 @@ class IconImporterFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        /* @var IconFileRepository $iconFileRepository */
+        $iconFileRepository = $container->get(IconFileRepository::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
-
-        /* @var IconFileRepository $iconFileRepository */
-        $iconFileRepository = $entityManager->getRepository(IconFile::class);
 
         return new IconImporter(
             $entityManager,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
@@ -32,17 +32,18 @@ class ModOrderImporter extends AbstractImporter implements GenericImporterInterf
     protected $registryService;
 
     /**
-     * ModOrderImporter constructor.
-     * @param EntityManager $entityManager
+     * Initializes the importer.
+     * @param EntityManagerInterface $entityManager
      * @param ModRepository $modRepository
      * @param RegistryService $registryService
      */
     public function __construct(
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         ModRepository $modRepository,
         RegistryService $registryService
     ) {
         parent::__construct($entityManager);
+
         $this->modRepository = $modRepository;
         $this->registryService = $registryService;
     }

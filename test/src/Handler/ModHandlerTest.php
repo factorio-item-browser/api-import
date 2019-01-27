@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\Api\Import\Handler;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
@@ -39,8 +39,8 @@ class ModHandlerTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModRepository $modRepository */
         $modRepository = $this->createMock(ModRepository::class);
         /* @var RegistryService $registryService */
@@ -144,8 +144,8 @@ class ModHandlerTest extends TestCase
             $this->expectExceptionCode(404);
         }
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModRepository $modRepository */
         $modRepository = $this->createMock(ModRepository::class);
 
@@ -196,8 +196,8 @@ class ModHandlerTest extends TestCase
                       ->with([$modName])
                       ->willReturn($resultFind);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -241,11 +241,10 @@ class ModHandlerTest extends TestCase
         $exportMod = (new ExportMod())->setName($modName);
         $expectedResult = new DatabaseMod($modName);
 
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
+        /* @var EntityManagerInterface|MockObject $entityManager */
+        $entityManager = $this->getMockBuilder(EntityManagerInterface::class)
                               ->setMethods(['persist'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
+                              ->getMockForAbstractClass();
         if ($throwException) {
             $entityManager->expects($this->once())
                           ->method('persist')
@@ -301,8 +300,8 @@ class ModHandlerTest extends TestCase
                     ->with($version)
                     ->willReturnSelf();
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModRepository $modRepository */
         $modRepository = $this->createMock(ModRepository::class);
         /* @var RegistryService $registryService */
@@ -334,11 +333,10 @@ class ModHandlerTest extends TestCase
      */
     public function testFlushEntities(bool $throwException, bool $expectException): void
     {
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
+        /* @var EntityManagerInterface|MockObject $entityManager */
+        $entityManager = $this->getMockBuilder(EntityManagerInterface::class)
                               ->setMethods(['flush'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
+                              ->getMockForAbstractClass();
         if ($throwException) {
             $entityManager->expects($this->once())
                           ->method('flush')

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\Api\Import\Importer\Generic;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination;
 use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
@@ -34,8 +34,8 @@ class CombinationOrderImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModCombinationRepository $modCombinationRepository */
         $modCombinationRepository = $this->createMock(ModCombinationRepository::class);
         /* @var ModRepository $modRepository */
@@ -111,8 +111,8 @@ class CombinationOrderImporterTest extends TestCase
                       ->method('findAll')
                       ->willReturn([$mod1, $mod2]);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModCombinationRepository $modCombinationRepository */
         $modCombinationRepository = $this->createMock(ModCombinationRepository::class);
 
@@ -144,8 +144,8 @@ class CombinationOrderImporterTest extends TestCase
                                  ->method('findAll')
                                  ->willReturn($combinations);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModRepository $modRepository */
         $modRepository = $this->createMock(ModRepository::class);
 
@@ -260,8 +260,8 @@ class CombinationOrderImporterTest extends TestCase
         $modIds = [21, 42];
         $expectedResult = [1, 3];
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModCombinationRepository $modCombinationRepository */
         $modCombinationRepository = $this->createMock(ModCombinationRepository::class);
         /* @var ModRepository $modRepository */
@@ -301,8 +301,8 @@ class CombinationOrderImporterTest extends TestCase
 
         $orderedCombinations = [$combination1, $combination2];
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModCombinationRepository $modCombinationRepository */
         $modCombinationRepository = $this->createMock(ModCombinationRepository::class);
         /* @var ModRepository $modRepository */

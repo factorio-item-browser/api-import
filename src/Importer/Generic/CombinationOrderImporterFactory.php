@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Mod;
-use FactorioItemBrowser\Api\Database\Entity\ModCombination;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use Interop\Container\ContainerInterface;
@@ -29,13 +27,12 @@ class CombinationOrderImporterFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
-
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
         /* @var ModCombinationRepository $modCombinationRepository */
-        $modCombinationRepository = $entityManager->getRepository(ModCombination::class);
+        $modCombinationRepository = $container->get(ModCombinationRepository::class);
         /* @var ModRepository $modRepository */
-        $modRepository = $entityManager->getRepository(Mod::class);
+        $modRepository = $container->get(ModRepository::class);
 
         return new CombinationOrderImporter(
             $entityManager,

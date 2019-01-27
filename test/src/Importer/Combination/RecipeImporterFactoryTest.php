@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Recipe;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
 use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\Database\ItemService;
@@ -31,32 +30,24 @@ class RecipeImporterFactoryTest extends TestCase
      */
     public function testInvoke(): void
     {
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->once())
-                      ->method('getRepository')
-                      ->with(Recipe::class)
-                      ->willReturn($this->createMock(RecipeRepository::class));
-
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
                           ->setMethods(['get'])
                           ->getMockForAbstractClass();
-        $container->expects($this->exactly(4))
+        $container->expects($this->exactly(5))
                   ->method('get')
                   ->withConsecutive(
                       [CraftingCategoryService::class],
-                      [EntityManager::class],
+                      [EntityManagerInterface::class],
                       [ItemService::class],
+                      [RecipeRepository::class],
                       [RegistryService::class]
                   )
                   ->willReturnOnConsecutiveCalls(
                       $this->createMock(CraftingCategoryService::class),
-                      $entityManager,
+                      $this->createMock(EntityManagerInterface::class),
                       $this->createMock(ItemService::class),
+                      $this->createMock(RecipeRepository::class),
                       $this->createMock(RegistryService::class)
                   );
 

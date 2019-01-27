@@ -7,7 +7,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Mod;
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Constant\ModDependencyType;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Entity\ModDependency as DatabaseDependency;
@@ -38,8 +38,8 @@ class DependencyImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModService $modService */
         $modService = $this->createMock(ModService::class);
 
@@ -145,8 +145,8 @@ class DependencyImporterTest extends TestCase
                   ->method('getDependencies')
                   ->willReturn([$exportDependency1, $exportDependency2]);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModService $modService */
         $modService = $this->createMock(ModService::class);
 
@@ -224,8 +224,8 @@ class DependencyImporterTest extends TestCase
                    ->with('ghi')
                    ->willReturn($requiredMod);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $importer = new DependencyImporter($entityManager, $modService);
         $result = $this->invokeMethod($importer, 'mapDependency', $exportDependency, $databaseMod);
@@ -323,8 +323,8 @@ class DependencyImporterTest extends TestCase
                     ->with($requiredVersion)
                     ->willReturnSelf();
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModService $modService */
         $modService = $this->createMock(ModService::class);
 
@@ -342,8 +342,8 @@ class DependencyImporterTest extends TestCase
         $dependency = new DatabaseDependency(new DatabaseMod('foo'), new DatabaseMod('abc'));
         $expectedResult = 'abc';
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModService $modService */
         $modService = $this->createMock(ModService::class);
 
