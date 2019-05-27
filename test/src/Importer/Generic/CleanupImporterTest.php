@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\Api\Import\Importer\Generic;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\RepositoryWithOrphansInterface;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Importer\Generic\CleanupImporter;
@@ -31,8 +31,8 @@ class CleanupImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         $repositories = [
             $this->createMock(RepositoryWithOrphansInterface::class),
             $this->createMock(RepositoryWithOrphansInterface::class),
@@ -65,8 +65,8 @@ class CleanupImporterTest extends TestCase
         $repository2->expects($this->once())
                     ->method('removeOrphans');
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         /* @var CleanupImporter|MockObject $importer */
         $importer = $this->getMockBuilder(CleanupImporter::class)

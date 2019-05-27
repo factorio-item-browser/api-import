@@ -4,6 +4,12 @@ matrix:
   fast_finish: true
   include:
     - php: 7.2
+    - php: 7.3
+    - php: nightly
+      env: SKIP_COVERAGE=true
+  allow_failures:
+    - php: nightly
+      env: SKIP_COVERAGE=true
 
 cache:
   directories:
@@ -13,9 +19,9 @@ install:
   - composer install --prefer-dist --no-interaction
 
 script:
-  - composer validate #--strict
+  - composer validate --strict
   - vendor/bin/phpunit --coverage-clover=coverage.xml
-  - vendor/bin/coverage-check coverage.xml 100
+  - if [ "$SKIP_COVERAGE" != "true" ]; then vendor/bin/coverage-check coverage.xml 100; fi
   - vendor/bin/phpcs -np --colors
   - vendor/bin/phpstan analyse --no-interaction
 

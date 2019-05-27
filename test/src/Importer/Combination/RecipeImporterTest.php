@@ -6,7 +6,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Data\RecipeData;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Item;
@@ -49,8 +49,8 @@ class RecipeImporterTest extends TestCase
     {
         /* @var CraftingCategoryService $craftingCategoryService */
         $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemService $itemService */
         $itemService = $this->createMock(ItemService::class);
         /* @var RecipeRepository $recipeRepository */
@@ -189,8 +189,8 @@ class RecipeImporterTest extends TestCase
 
         /* @var CraftingCategoryService $craftingCategoryService */
         $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemService $itemService */
         $itemService = $this->createMock(ItemService::class);
         /* @var RecipeRepository $recipeRepository */
@@ -281,8 +281,8 @@ class RecipeImporterTest extends TestCase
     {
         /* @var CraftingCategoryService $craftingCategoryService */
         $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemService $itemService */
         $itemService = $this->createMock(ItemService::class);
         /* @var RecipeRepository $recipeRepository */
@@ -353,8 +353,8 @@ class RecipeImporterTest extends TestCase
                                 ->with('ghi')
                                 ->willReturn($craftingCategory);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemService $itemService */
         $itemService = $this->createMock(ItemService::class);
         /* @var RecipeRepository $recipeRepository */
@@ -433,8 +433,8 @@ class RecipeImporterTest extends TestCase
 
         /* @var CraftingCategoryService $craftingCategoryService */
         $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RecipeRepository $recipeRepository */
         $recipeRepository = $this->createMock(RecipeRepository::class);
         /* @var RegistryService $registryService */
@@ -491,8 +491,8 @@ class RecipeImporterTest extends TestCase
 
         /* @var CraftingCategoryService $craftingCategoryService */
         $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RecipeRepository $recipeRepository */
         $recipeRepository = $this->createMock(RecipeRepository::class);
         /* @var RegistryService $registryService */
@@ -548,8 +548,8 @@ class RecipeImporterTest extends TestCase
 
         /* @var CraftingCategoryService $craftingCategoryService */
         $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemService $itemService */
         $itemService = $this->createMock(ItemService::class);
         /* @var RegistryService $registryService */
@@ -627,8 +627,8 @@ class RecipeImporterTest extends TestCase
 
         /* @var CraftingCategoryService $craftingCategoryService */
         $craftingCategoryService = $this->createMock(CraftingCategoryService::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ItemService $itemService */
         $itemService = $this->createMock(ItemService::class);
         /* @var RecipeRepository $recipeRepository */
@@ -667,11 +667,10 @@ class RecipeImporterTest extends TestCase
         $recipe->getProducts()->add($product1);
         $recipe->getProducts()->add($product2);
 
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
+        /* @var EntityManagerInterface|MockObject $entityManager */
+        $entityManager = $this->getMockBuilder(EntityManagerInterface::class)
                               ->setMethods(['persist'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
+                              ->getMockForAbstractClass();
         $entityManager->expects($this->exactly(5))
                       ->method('persist')
                       ->withConsecutive(

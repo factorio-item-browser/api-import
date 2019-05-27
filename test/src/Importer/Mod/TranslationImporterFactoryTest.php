@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Mod;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Import\Importer\Mod\TranslationImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\TranslationImporterFactory;
 use Interop\Container\ContainerInterface;
@@ -32,8 +32,8 @@ class TranslationImporterFactoryTest extends TestCase
                           ->getMockForAbstractClass();
         $container->expects($this->once())
                   ->method('get')
-                  ->with(EntityManager::class)
-                  ->willReturn($this->createMock(EntityManager::class));
+                  ->with(EntityManagerInterface::class)
+                  ->willReturn($this->createMock(EntityManagerInterface::class));
 
         $factory = new TranslationImporterFactory();
         $factory($container, TranslationImporter::class);

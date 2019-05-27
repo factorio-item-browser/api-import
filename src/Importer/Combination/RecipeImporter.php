@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMException;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient as DatabaseIngredient;
@@ -57,14 +56,14 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
     /**
      * Initializes the importer.
      * @param CraftingCategoryService $craftingCategoryService
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param ItemService $itemService
      * @param RecipeRepository $recipeRepository
      * @param RegistryService $registryService
      */
     public function __construct(
         CraftingCategoryService $craftingCategoryService,
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         ItemService $itemService,
         RecipeRepository $recipeRepository,
         RegistryService $registryService
@@ -187,7 +186,7 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
     }
 
     /**
-     * Returns the already existing entities of thew specified recipies.
+     * Returns the already existing entities of thew specified recipes.
      * @param array|DatabaseRecipe[] $recipes
      * @return array|DatabaseRecipe[]
      */
@@ -250,7 +249,6 @@ class RecipeImporter extends AbstractImporter implements CombinationImporterInte
     /**
      * Persists the specified entity.
      * @param DatabaseRecipe $recipe
-     * @throws ORMException
      */
     protected function persistEntity($recipe): void
     {

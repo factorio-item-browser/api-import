@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
@@ -39,8 +39,8 @@ class CraftingCategoryImporterTest extends TestCase
     {
         /* @var CraftingCategoryRepository $craftingCategoryRepository */
         $craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -134,8 +134,8 @@ class CraftingCategoryImporterTest extends TestCase
 
         /* @var CraftingCategoryRepository $craftingCategoryRepository */
         $craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         /* @var CraftingCategoryImporter|MockObject $importer */
         $importer = $this->getMockBuilder(CraftingCategoryImporter::class)
@@ -203,8 +203,8 @@ class CraftingCategoryImporterTest extends TestCase
 
         /* @var CraftingCategoryRepository $craftingCategoryRepository */
         $craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         /* @var CraftingCategoryImporter|MockObject $importer */
         $importer = $this->getMockBuilder(CraftingCategoryImporter::class)
@@ -248,8 +248,8 @@ class CraftingCategoryImporterTest extends TestCase
 
         /* @var CraftingCategoryRepository $craftingCategoryRepository */
         $craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -286,8 +286,8 @@ class CraftingCategoryImporterTest extends TestCase
                                    ->with($names)
                                    ->willReturn([$category3, $category4]);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -323,8 +323,8 @@ class CraftingCategoryImporterTest extends TestCase
 
         /* @var CraftingCategoryRepository $craftingCategoryRepository */
         $craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 

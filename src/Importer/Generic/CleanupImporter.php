@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\RepositoryWithOrphansInterface;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Importer\AbstractImporter;
@@ -25,12 +25,13 @@ class CleanupImporter extends AbstractImporter implements GenericImporterInterfa
 
     /**
      * Initializes the importer.
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param array|RepositoryWithOrphansInterface[] $repositoriesWithOrphans
      */
-    public function __construct(EntityManager $entityManager, array $repositoriesWithOrphans)
+    public function __construct(EntityManagerInterface $entityManager, array $repositoriesWithOrphans)
     {
         parent::__construct($entityManager);
+
         $this->repositoriesWithOrphans = $repositoriesWithOrphans;
     }
 

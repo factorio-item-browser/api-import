@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\CachedSearchResult;
 use FactorioItemBrowser\Api\Database\Repository\CachedSearchResultRepository;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
@@ -27,11 +25,8 @@ class ClearCacheImporterFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
-
         /* @var CachedSearchResultRepository $cachedSearchResultRepository */
-        $cachedSearchResultRepository = $entityManager->getRepository(CachedSearchResult::class);
+        $cachedSearchResultRepository = $container->get(CachedSearchResultRepository::class);
 
         return new ClearCacheImporter($cachedSearchResultRepository);
     }

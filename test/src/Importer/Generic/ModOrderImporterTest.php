@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\Api\Import\Importer\Generic;
 
 use BluePsyduck\Common\Test\ReflectionTrait;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
@@ -34,8 +34,8 @@ class ModOrderImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModRepository $modRepository */
         $modRepository = $this->createMock(ModRepository::class);
         /* @var RegistryService $registryService */
@@ -97,8 +97,8 @@ class ModOrderImporterTest extends TestCase
                       ->method('findAll')
                       ->willReturn($mods);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -188,8 +188,8 @@ class ModOrderImporterTest extends TestCase
                         ->with($modName)
                         ->willReturn($mod);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModRepository $modRepository */
         $modRepository = $this->createMock(ModRepository::class);
 
@@ -226,8 +226,8 @@ class ModOrderImporterTest extends TestCase
 
         $orderedMods = [$mod1, $mod2];
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModRepository $modRepository */
         $modRepository = $this->createMock(ModRepository::class);
         /* @var RegistryService $registryService */

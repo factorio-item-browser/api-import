@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Machine;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
 use FactorioItemBrowser\Api\Import\Database\CraftingCategoryService;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -30,30 +29,22 @@ class MachineImporterFactoryTest extends TestCase
      */
     public function testInvoke(): void
     {
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->once())
-                      ->method('getRepository')
-                      ->with(Machine::class)
-                      ->willReturn($this->createMock(MachineRepository::class));
-
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
                           ->setMethods(['get'])
                           ->getMockForAbstractClass();
-        $container->expects($this->exactly(3))
+        $container->expects($this->exactly(4))
                   ->method('get')
                   ->withConsecutive(
                       [CraftingCategoryService::class],
-                      [EntityManager::class],
+                      [EntityManagerInterface::class],
+                      [MachineRepository::class],
                       [RegistryService::class]
                   )
                   ->willReturnOnConsecutiveCalls(
                       $this->createMock(CraftingCategoryService::class),
-                      $entityManager,
+                      $this->createMock(EntityManagerInterface::class),
+                      $this->createMock(MachineRepository::class),
                       $this->createMock(RegistryService::class)
                   );
 

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\Api\Import\Importer\Combination\CraftingCategoryImporter;
@@ -29,31 +28,20 @@ class CraftingCategoryImporterFactoryTest extends TestCase
      */
     public function testInvoke(): void
     {
-        /* @var CraftingCategoryRepository $craftingCategoryRepository */
-        $craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
-
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->once())
-                      ->method('getRepository')
-                      ->with(CraftingCategory::class)
-                      ->willReturn($craftingCategoryRepository);
-
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
                           ->setMethods(['get'])
                           ->getMockForAbstractClass();
-        $container->expects($this->exactly(2))
+        $container->expects($this->exactly(3))
                   ->method('get')
                   ->withConsecutive(
-                      [EntityManager::class],
+                      [CraftingCategoryRepository::class],
+                      [EntityManagerInterface::class],
                       [RegistryService::class]
                   )
                   ->willReturnOnConsecutiveCalls(
-                      $entityManager,
+                      $this->createMock(CraftingCategoryRepository::class),
+                      $this->createMock(EntityManagerInterface::class),
                       $this->createMock(RegistryService::class)
                   );
 

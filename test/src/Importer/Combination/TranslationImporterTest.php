@@ -7,7 +7,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Constant\TranslationType;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
@@ -41,8 +41,8 @@ class TranslationImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -214,8 +214,8 @@ class TranslationImporterTest extends TestCase
                               ->method('addTranslation')
                               ->with($translation2);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -295,8 +295,8 @@ class TranslationImporterTest extends TestCase
                                   [$item2->getDescriptions(), 'mno', 'pqr', false, true]
                               );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $importer = new TranslationImporter($entityManager, $registryService);
         $this->invokeMethod($importer, 'processItems', $translationAggregator, $itemHashes);
@@ -358,8 +358,8 @@ class TranslationImporterTest extends TestCase
                                   [$machine2->getDescriptions(), TranslationType::MACHINE, 'jkl']
                               );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $importer = new TranslationImporter($entityManager, $registryService);
         $this->invokeMethod($importer, 'processMachines', $translationAggregator, $machineHashes);
@@ -422,8 +422,8 @@ class TranslationImporterTest extends TestCase
                                   [$recipe2->getDescriptions(), TranslationType::RECIPE, 'jkl']
                               );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $importer = new TranslationImporter($entityManager, $registryService);
         $this->invokeMethod($importer, 'processRecipes', $translationAggregator, $recipeHashes);

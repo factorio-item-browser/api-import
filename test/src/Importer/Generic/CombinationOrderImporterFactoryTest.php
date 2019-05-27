@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Generic;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Mod;
-use FactorioItemBrowser\Api\Database\Entity\ModCombination;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Importer\Generic\CombinationOrderImporter;
@@ -30,35 +28,22 @@ class CombinationOrderImporterFactoryTest extends TestCase
      */
     public function testInvoke(): void
     {
-        /* @var ModRepository $modRepository */
-        $modRepository = $this->createMock(ModRepository::class);
-        /* @var ModCombinationRepository $modCombinationRepository */
-        $modCombinationRepository = $this->createMock(ModCombinationRepository::class);
-
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->exactly(2))
-                      ->method('getRepository')
-                      ->withConsecutive(
-                          [ModCombination::class],
-                          [Mod::class]
-                      )
-                      ->willReturnOnConsecutiveCalls(
-                          $modCombinationRepository,
-                          $modRepository
-                      );
-
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
                           ->setMethods(['get'])
                           ->getMockForAbstractClass();
-        $container->expects($this->once())
+        $container->expects($this->exactly(3))
                   ->method('get')
-                  ->with(EntityManager::class)
-                  ->willReturn($entityManager);
+                  ->withConsecutive(
+                      [EntityManagerInterface::class],
+                      [ModCombinationRepository::class],
+                      [ModRepository::class]
+                  )
+                  ->willReturnOnConsecutiveCalls(
+                      $this->createMock(EntityManagerInterface::class),
+                      $this->createMock(ModCombinationRepository::class),
+                      $this->createMock(ModRepository::class)
+                  );
 
         $factory = new CombinationOrderImporterFactory();
         $factory($container, CombinationOrderImporter::class);

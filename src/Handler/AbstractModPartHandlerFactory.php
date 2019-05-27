@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Handler;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -52,13 +50,10 @@ class AbstractModPartHandlerFactory implements AbstractFactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
+        /* @var ModRepository $modRepository */
+        $modRepository = $container->get(ModRepository::class);
         /* @var RegistryService $registryService */
         $registryService = $container->get(RegistryService::class);
-
-        /* @var ModRepository $modRepository */
-        $modRepository = $entityManager->getRepository(Mod::class);
 
         return new ModPartHandler(
             $container->get(self::IMPORTER_MAP[$requestedName]),

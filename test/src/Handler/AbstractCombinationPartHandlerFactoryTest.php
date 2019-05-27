@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Handler;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\ModCombination;
 use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -90,19 +88,6 @@ class AbstractCombinationPartHandlerFactoryTest extends TestCase
      */
     public function testInvoke(string $requestedName, string $expectedImporterClass): void
     {
-        /* @var ModCombinationRepository $modCombinationRepository*/
-        $modCombinationRepository = $this->createMock(ModCombinationRepository::class);
-
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->once())
-                      ->method('getRepository')
-                      ->with(ModCombination::class)
-                      ->willReturn($modCombinationRepository);
-
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
                           ->setMethods(['get'])
@@ -110,12 +95,12 @@ class AbstractCombinationPartHandlerFactoryTest extends TestCase
         $container->expects($this->exactly(3))
                   ->method('get')
                   ->withConsecutive(
-                      [EntityManager::class],
+                      [ModCombinationRepository::class],
                       [RegistryService::class],
                       [$expectedImporterClass]
                   )
                   ->willReturnOnConsecutiveCalls(
-                      $entityManager,
+                      $this->createMock(ModCombinationRepository::class),
                       $this->createMock(RegistryService::class),
                       $this->createMock(CombinationImporterInterface::class)
                   );

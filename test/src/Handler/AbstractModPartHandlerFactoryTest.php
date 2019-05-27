@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Handler;
 
-use Doctrine\ORM\EntityManager;
-use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
@@ -81,19 +79,6 @@ class AbstractModPartHandlerFactoryTest extends TestCase
      */
     public function testInvoke(string $requestedName, string $expectedImporterClass): void
     {
-        /* @var ModRepository $modRepository*/
-        $modRepository = $this->createMock(ModRepository::class);
-
-        /* @var EntityManager|MockObject $entityManager */
-        $entityManager = $this->getMockBuilder(EntityManager::class)
-                              ->setMethods(['getRepository'])
-                              ->disableOriginalConstructor()
-                              ->getMock();
-        $entityManager->expects($this->once())
-                      ->method('getRepository')
-                      ->with(Mod::class)
-                      ->willReturn($modRepository);
-
         /* @var ContainerInterface|MockObject $container */
         $container = $this->getMockBuilder(ContainerInterface::class)
                           ->setMethods(['get'])
@@ -101,12 +86,12 @@ class AbstractModPartHandlerFactoryTest extends TestCase
         $container->expects($this->exactly(3))
                   ->method('get')
                   ->withConsecutive(
-                      [EntityManager::class],
+                      [ModRepository::class],
                       [RegistryService::class],
                       [$expectedImporterClass]
                   )
                   ->willReturnOnConsecutiveCalls(
-                      $entityManager,
+                      $this->createMock(ModRepository::class),
                       $this->createMock(RegistryService::class),
                       $this->createMock(ModImporterInterface::class)
                   );

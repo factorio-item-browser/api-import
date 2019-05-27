@@ -7,7 +7,7 @@ namespace FactorioItemBrowserTest\Api\Import\Importer\Mod;
 use BluePsyduck\Common\Test\ReflectionTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Import\Database\ModService;
@@ -38,8 +38,8 @@ class CombinationImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModService $modService */
         $modService = $this->createMock(ModService::class);
         /* @var RegistryService $registryService */
@@ -165,8 +165,8 @@ class CombinationImporterTest extends TestCase
                             $exportCombination2
                         );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModService $modService */
         $modService = $this->createMock(ModService::class);
 
@@ -238,8 +238,8 @@ class CombinationImporterTest extends TestCase
                        $mod2
                    );
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var RegistryService $registryService */
         $registryService = $this->createMock(RegistryService::class);
 
@@ -330,8 +330,8 @@ class CombinationImporterTest extends TestCase
                     ->method('setOptionalModIds')
                     ->with($optionalModIds);
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModService $modService */
         $modService = $this->createMock(ModService::class);
         /* @var RegistryService $registryService */
@@ -351,8 +351,8 @@ class CombinationImporterTest extends TestCase
         $combination = new DatabaseCombination(new DatabaseMod('foo'), 'abc');
         $expectedResult = 'abc';
 
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->createMock(EntityManager::class);
+        /* @var EntityManagerInterface $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         /* @var ModService $modService */
         $modService = $this->createMock(ModService::class);
         /* @var RegistryService $registryService */
