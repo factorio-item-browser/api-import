@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "33e54de00448a413c43a95edfbf2eeb0",
+    "content-hash": "8c210b3ea5648299f1f6d5e661ffee83",
     "packages": [
         {
             "name": "bluepsyduck/common",

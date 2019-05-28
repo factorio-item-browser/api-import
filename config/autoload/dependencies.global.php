@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import;
 
+use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
 use Zend\Expressive\Middleware\ErrorResponseGenerator;
 
@@ -22,27 +23,27 @@ return [
             Handler\AbstractModPartHandlerFactory::class,
         ],
         'factories'  => [
-            Database\CraftingCategoryService::class => Database\CraftingCategoryServiceFactory::class,
-            Database\ItemService::class => Database\ItemServiceFactory::class,
-            Database\ModService::class => Database\ModServiceFactory::class,
+            Database\CraftingCategoryService::class => AutoWireFactory::class,
+            Database\ItemService::class => AutoWireFactory::class,
+            Database\ModService::class => AutoWireFactory::class,
 
-            ExportData\RegistryService::class => ExportData\RegistryServiceFactory::class,
+            ExportData\RegistryService::class => AutoWireFactory::class,
 
-            Handler\ModHandler::class => Handler\ModHandlerFactory::class,
+            Handler\ModHandler::class => AutoWireFactory::class,
 
-            Importer\Combination\CraftingCategoryImporter::class => Importer\Combination\CraftingCategoryImporterFactory::class,
-            Importer\Combination\IconImporter::class => Importer\Combination\IconImporterFactory::class,
-            Importer\Combination\ItemImporter::class => Importer\Combination\ItemImporterFactory::class,
-            Importer\Combination\MachineImporter::class => Importer\Combination\MachineImporterFactory::class,
-            Importer\Combination\RecipeImporter::class => Importer\Combination\RecipeImporterFactory::class,
-            Importer\Combination\TranslationImporter::class => Importer\Combination\TranslationImporterFactory::class,
+            Importer\Combination\CraftingCategoryImporter::class => AutoWireFactory::class,
+            Importer\Combination\IconImporter::class => AutoWireFactory::class,
+            Importer\Combination\ItemImporter::class => AutoWireFactory::class,
+            Importer\Combination\MachineImporter::class => AutoWireFactory::class,
+            Importer\Combination\RecipeImporter::class => AutoWireFactory::class,
+            Importer\Combination\TranslationImporter::class => AutoWireFactory::class,
             Importer\Generic\CleanupImporter::class => Importer\Generic\CleanupImporterFactory::class,
-            Importer\Generic\ClearCacheImporter::class => Importer\Generic\ClearCacheImporterFactory::class,
-            Importer\Generic\CombinationOrderImporter::class => Importer\Generic\CombinationOrderImporterFactory::class,
-            Importer\Generic\ModOrderImporter::class => Importer\Generic\ModOrderImporterFactory::class,
-            Importer\Mod\CombinationImporter::class => Importer\Mod\CombinationImporterFactory::class,
-            Importer\Mod\DependencyImporter::class => Importer\Mod\DependencyImporterFactory::class,
-            Importer\Mod\TranslationImporter::class => Importer\Mod\TranslationImporterFactory::class,
+            Importer\Generic\ClearCacheImporter::class => AutoWireFactory::class,
+            Importer\Generic\CombinationOrderImporter::class => AutoWireFactory::class,
+            Importer\Generic\ModOrderImporter::class => AutoWireFactory::class,
+            Importer\Mod\CombinationImporter::class => AutoWireFactory::class,
+            Importer\Mod\DependencyImporter::class => AutoWireFactory::class,
+            Importer\Mod\TranslationImporter::class => AutoWireFactory::class,
 
             Middleware\ApiKeyMiddleware::class => Middleware\ApiKeyMiddlewareFactory::class,
 
