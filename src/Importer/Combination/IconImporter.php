@@ -188,7 +188,8 @@ class IconImporter extends AbstractImporter implements CombinationImporterInterf
             $iconFile = $this->createIconFile($iconHash);
         }
 
-        $iconFile->setImage($this->registryService->getRenderedIcon($iconHash));
+        $iconFile->setImage($this->registryService->getRenderedIcon($iconHash))
+                 ->setSize($this->registryService->getIcon($iconHash)->getSize());
         return $iconFile;
     }
 

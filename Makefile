@@ -6,6 +6,9 @@ help: ## Show this help.
 bash: ## Run the docker container and connect to it using bash.
 	docker-compose run php bash
 
+build-cache: ## Cleans and re-nuilds the cache.
+	docker-compose run php composer build-cache
+
 install: ## Installs the dependencies of the project without updating any of them.
 	docker-compose run php install
 

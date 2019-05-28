@@ -24,7 +24,7 @@ $container = new ServiceManager();
 (new Config($config['dependencies']))->configureServiceManager($container);
 
 if ($config[ConfigAggregator::ENABLE_CACHE]) {
-    AutoWireFactory::setCacheFile(__DIR__ . '../data/cache/autowire-factory-cache.php');
+    AutoWireFactory::setCacheFile(__DIR__ . '/../data/cache/autowire-factory-cache.php');
 }
 
 // Inject config

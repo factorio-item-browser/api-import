@@ -48,6 +48,12 @@
     }
   },
   "scripts": {
+    "build-cache": [
+      "rm -rf data/cache/*",
+      "bin/build-cache.php",
+      "vendor/bin/doctrine orm:generate-proxies",
+      "chown -R www-data:www-data data/cache/*"
+    ],
     "coverage-check": "coverage-check test/log/clover.xml 100",
     "phpcbf": "phpcbf -p --colors",
     "phpcs": "phpcs -p --colors",
