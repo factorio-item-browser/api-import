@@ -11,15 +11,17 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import;
 
+use FactorioItemBrowser\Api\Import\Constant\ConfigKey;
+
 return [
-    'factorio-item-browser' => [
-        'api-import' => [
-            'api-keys' => [
+    ConfigKey::PROJECT => [
+        ConfigKey::API_IMPORT => [
+            ConfigKey::API_KEYS => [
                 'debug' => 'factorio-item-browser',
             ],
         ],
-        'export-data' => [
-            'directory' => __DIR__ . '/../../data/export',
-        ],
+        ConfigKey::EXPORT_DATA => [
+            ConfigKey::EXPORT_DATA_DIRECTORY => __DIR__ . '/../../data/export',
+        ]
     ],
 ];

@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import;
 
 use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
+use BluePsyduck\ZendAutoWireFactory\ConfigReaderFactory;
+use FactorioItemBrowser\Api\Import\Constant\ConfigKey;
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
 use Zend\Expressive\Middleware\ErrorResponseGenerator;
 
@@ -45,7 +47,10 @@ return [
             Importer\Mod\DependencyImporter::class => AutoWireFactory::class,
             Importer\Mod\TranslationImporter::class => AutoWireFactory::class,
 
-            Middleware\ApiKeyMiddleware::class => Middleware\ApiKeyMiddlewareFactory::class,
+            Middleware\ApiKeyMiddleware::class => AutoWireFactory::class,
+
+            // Auto-wire helpers
+            'array $apiKeys' => ConfigReaderFactory::register(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::API_KEYS),
 
             // 3rd-party services
             ErrorResponseGenerator::class => Response\ErrorResponseGeneratorFactory::class,
