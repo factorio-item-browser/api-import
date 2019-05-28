@@ -19,6 +19,7 @@ use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\Api\Import\Importer\Combination\IconImporter;
 use FactorioItemBrowser\Common\Constant\EntityType;
+use FactorioItemBrowser\ExportData\Entity\Icon as ExportIcon;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
@@ -564,35 +565,42 @@ class IconImporterTest extends TestCase
     {
         $iconHash = 'ab12cd34';
         $image = 'abc';
+        $size = 42;
 
-        /* @var IconFile|MockObject $iconFile */
-        $iconFile = $this->getMockBuilder(IconFile::class)
-                         ->setMethods(['setImage'])
-                         ->disableOriginalConstructor()
-                         ->getMock();
+        /* @var ExportIcon&MockObject $exportIcon */
+        $exportIcon = $this->createMock(ExportIcon::class);
+        $exportIcon->expects($this->once())
+                   ->method('getSize')
+                   ->willReturn($size);
+
+        /* @var IconFile&MockObject $iconFile */
+        $iconFile = $this->createMock(IconFile::class);
         $iconFile->expects($this->once())
                  ->method('setImage')
-                 ->with($image);
+                 ->with($this->identicalTo($image))
+                 ->willReturnSelf();
+        $iconFile->expects($this->once())
+                 ->method('setSize')
+                 ->with($this->identicalTo($size))
+                 ->willReturnSelf();
 
-        /* @var IconFileRepository|MockObject $iconFileRepository */
-        $iconFileRepository = $this->getMockBuilder(IconFileRepository::class)
-                                   ->setMethods(['findByHashes'])
-                                   ->disableOriginalConstructor()
-                                   ->getMock();
+        /* @var IconFileRepository&MockObject $iconFileRepository */
+        $iconFileRepository = $this->createMock(IconFileRepository::class);
         $iconFileRepository->expects($this->once())
                            ->method('findByHashes')
-                           ->with([$iconHash])
+                           ->with($this->identicalTo([$iconHash]))
                            ->willReturn($resultWithIcon ? [$iconFile] : []);
 
-        /* @var RegistryService|MockObject $registryService */
-        $registryService = $this->getMockBuilder(RegistryService::class)
-                                ->setMethods(['getRenderedIcon'])
-                                ->disableOriginalConstructor()
-                                ->getMock();
+        /* @var RegistryService&MockObject $registryService */
+        $registryService = $this->createMock(RegistryService::class);
         $registryService->expects($this->once())
                         ->method('getRenderedIcon')
-                        ->with($iconHash)
+                        ->with($this->identicalTo($iconHash))
                         ->willReturn($image);
+        $registryService->expects($this->once())
+                        ->method('getIcon')
+                        ->with($this->identicalTo($iconHash))
+                        ->willReturn($exportIcon);
 
         /* @var EntityManagerInterface $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -604,7 +612,7 @@ class IconImporterTest extends TestCase
                          ->getMock();
         $importer->expects($expectCreate ? $this->once() : $this->never())
                  ->method('createIconFile')
-                 ->with($iconHash)
+                 ->with($this->identicalTo($iconHash))
                  ->willReturn($iconFile);
 
         $result = $this->invokeMethod($importer, 'fetchIconFile', $iconHash);
