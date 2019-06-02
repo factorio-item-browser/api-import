@@ -45,6 +45,7 @@ return [
             Importer\Generic\ModOrderImporter::class => AutoWireFactory::class,
             Importer\Mod\CombinationImporter::class => AutoWireFactory::class,
             Importer\Mod\DependencyImporter::class => AutoWireFactory::class,
+            Importer\Mod\ThumbnailImporter::class => AutoWireFactory::class,
             Importer\Mod\TranslationImporter::class => AutoWireFactory::class,
 
             Middleware\ApiKeyMiddleware::class => AutoWireFactory::class,

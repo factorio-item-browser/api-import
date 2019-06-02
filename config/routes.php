@@ -31,6 +31,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/mod/{modName}', Handler\ModHandler::class, RouteName::MOD);
     $app->get('/mod/{modName}/combinations', ServiceName::MOD_COMBINATIONS_HANDLER, RouteName::MOD_COMBINATIONS);
     $app->get('/mod/{modName}/dependencies', ServiceName::MOD_DEPENDENCIES_HANDLER, RouteName::MOD_DEPENDENCIES);
+    $app->get('/mod/{modName}/thumbnail', ServiceName::MOD_THUMBNAIL_HANDLER, RouteName::MOD_THUMBNAIL);
     $app->get('/mod/{modName}/translations', ServiceName::MOD_TRANSLATIONS_HANDLER, RouteName::MOD_TRANSLATIONS);
 
     $app->get('/order/combinations', ServiceName::GENERIC_ORDER_COMBINATIONS, RouteName::ORDER_COMBINATIONS);
