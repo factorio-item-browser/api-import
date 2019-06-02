@@ -54,11 +54,11 @@
       "vendor/bin/doctrine orm:generate-proxies",
       "chown -R www-data:www-data data/cache/*"
     ],
-    "coverage-check": "coverage-check test/log/clover.xml 100",
+    "coverage-check": "coverage-check test/coverage/clover.xml 100",
     "phpcbf": "phpcbf -p --colors",
     "phpcs": "phpcs -p --colors",
     "phpstan": "phpstan analyse --no-interaction --ansi",
-    "phpunit": "phpunit --colors=always --coverage-html=test/log --coverage-clover=test/log/clover.xml",
+    "phpunit": "phpunit --colors=always --coverage-html=test/coverage --coverage-clover=test/coverage/clover.xml",
     "post-autoload-dump": [
       "mkdir -p data/cache data/log && chmod 0777 data/cache data/log"
     ],

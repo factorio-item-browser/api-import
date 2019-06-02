@@ -1,6 +1,6 @@
 /.idea
 /data/*
-/test/log
+/test/coverage
 /vendor
 
 /.phpunit.result.cache
