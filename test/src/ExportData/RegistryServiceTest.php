@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\ExportData;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Import\Exception\UnknownHashException;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\ExportData\Entity\Icon;
@@ -66,6 +66,7 @@ class RegistryServiceTest extends TestCase
      * @param Combination|null $combination
      * @param bool $expectException
      * @param Combination|null $expectedResult
+     * @throws ReflectionException
      * @throws UnknownHashException
      * @covers ::getCombination
      * @dataProvider provideGetCombination
@@ -125,6 +126,7 @@ class RegistryServiceTest extends TestCase
      * @param Mod|null $mod
      * @param bool $expectException
      * @param Mod|null $expectedResult
+     * @throws ReflectionException
      * @throws UnknownHashException
      * @covers ::getMod
      * @dataProvider provideGetMod
@@ -184,6 +186,7 @@ class RegistryServiceTest extends TestCase
      * @param Icon|null $icon
      * @param bool $expectException
      * @param Icon|null $expectedResult
+     * @throws ReflectionException
      * @throws UnknownHashException
      * @covers ::getIcon
      * @dataProvider provideGetIcon
@@ -240,6 +243,7 @@ class RegistryServiceTest extends TestCase
      * @param Item|null $item
      * @param bool $expectException
      * @param Item|null $expectedResult
+     * @throws ReflectionException
      * @throws UnknownHashException
      * @covers ::getItem
      * @dataProvider provideGetItem
@@ -296,6 +300,7 @@ class RegistryServiceTest extends TestCase
      * @param Machine|null $machine
      * @param bool $expectException
      * @param Machine|null $expectedResult
+     * @throws ReflectionException
      * @throws UnknownHashException
      * @covers ::getMachine
      * @dataProvider provideGetMachine
@@ -352,6 +357,7 @@ class RegistryServiceTest extends TestCase
      * @param Recipe|null $recipe
      * @param bool $expectException
      * @param Recipe|null $expectedResult
+     * @throws ReflectionException
      * @throws UnknownHashException
      * @covers ::getRecipe
      * @dataProvider provideGetRecipe
@@ -407,6 +413,7 @@ class RegistryServiceTest extends TestCase
      * @param string|null $renderedIcon
      * @param bool $expectException
      * @param string|null $expectedResult
+     * @throws ReflectionException
      * @throws UnknownHashException
      * @covers ::getRenderedIcon
      * @dataProvider provideGetRenderedIcon

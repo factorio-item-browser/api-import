@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Generic;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Repository\RepositoryWithOrphansInterface;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
@@ -47,6 +47,7 @@ class CleanupImporterTest extends TestCase
     /**
      * Tests the import method.
      * @throws ImportException
+     * @throws ReflectionException
      * @covers ::import
      */
     public function testImport(): void

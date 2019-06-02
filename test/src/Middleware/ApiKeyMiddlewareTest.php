@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Middleware;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Import\Exception\ErrorResponseException;
 use FactorioItemBrowser\Api\Import\Middleware\ApiKeyMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -66,6 +66,7 @@ class ApiKeyMiddlewareTest extends TestCase
      * @param string $header
      * @param bool $expectException
      * @throws ErrorResponseException
+     * @throws ReflectionException
      * @covers ::process
      * @dataProvider provideProcess
      */

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Handler;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Repository\ModCombinationRepository;
@@ -56,6 +56,7 @@ class CombinationPartHandlerTest extends TestCase
     /**
      * Tests the handle method.
      * @throws ImportException
+     * @throws ReflectionException
      * @covers ::handle
      */
     public function testHandle(): void

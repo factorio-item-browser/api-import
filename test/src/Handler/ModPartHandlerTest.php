@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Handler;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Exception\ErrorResponseException;
@@ -55,6 +55,7 @@ class ModPartHandlerTest extends TestCase
     /**
      * Tests the handle method.
      * @throws ImportException
+     * @throws ReflectionException
      * @covers ::handle
      */
     public function testHandle(): void

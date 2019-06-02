@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Helper;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Database\Entity\ModCombination;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
@@ -74,6 +74,7 @@ class TranslationAggregatorTest extends TestCase
 
     /**
      * Tests the applyLocalisedStringToValue method.
+     * @throws ReflectionException
      * @covers ::applyLocalisedStringToValue
      */
     public function testApplyLocalisedStringToValue(): void
@@ -123,6 +124,7 @@ class TranslationAggregatorTest extends TestCase
     
     /**
      * Tests the applyLocalisedStringToDescription method.
+     * @throws ReflectionException
      * @covers ::applyLocalisedStringToDescription
      */
     public function testApplyLocalisedStringToDescription(): void
@@ -172,6 +174,7 @@ class TranslationAggregatorTest extends TestCase
 
     /**
      * Tests the applyLocalisedStringToDuplicationFlags method.
+     * @throws ReflectionException
      * @covers ::applyLocalisedStringToDuplicationFlags
      */
     public function testApplyLocalisedStringToDuplicationFlags(): void
@@ -239,6 +242,7 @@ class TranslationAggregatorTest extends TestCase
     /**
      * Provides the data for the getTranslation test.
      * @return array
+     * @throws ReflectionException
      */
     public function provideGetTranslation(): array
     {
@@ -370,6 +374,7 @@ class TranslationAggregatorTest extends TestCase
 
     /**
      * Tests the getIdentifierOfTranslation method.
+     * @throws ReflectionException
      * @covers ::getIdentifierOfTranslation
      */
     public function testGetIdentifierOfTranslation(): void
