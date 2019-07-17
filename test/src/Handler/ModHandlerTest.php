@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Handler;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
@@ -56,6 +56,7 @@ class ModHandlerTest extends TestCase
     /**
      * Tests the handle method.
      * @throws ImportException
+     * @throws ReflectionException
      * @covers ::handle
      */
     public function testHandle(): void
@@ -206,10 +207,15 @@ class ModHandlerTest extends TestCase
                         ->setMethods(['createDatabaseMod'])
                         ->setConstructorArgs([$entityManager, $modRepository, $registryService])
                         ->getMock();
-        $handler->expects($resultCreate === null ? $this->never() : $this->once())
-                ->method('createDatabaseMod')
-                ->with($exportMod)
-                ->willReturn($resultCreate);
+        if ($resultCreate === null) {
+            $handler->expects($this->never())
+                    ->method('createDatabaseMod');
+        } else {
+            $handler->expects($this->once())
+                    ->method('createDatabaseMod')
+                    ->with($exportMod)
+                    ->willReturn($resultCreate);
+        }
 
         $result = $this->invokeMethod($handler, 'fetchDatabaseMod', $exportMod);
         $this->assertSame($expectedResult, $result);

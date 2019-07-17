@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Handler;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Handler\GenericPartHandler;
 use FactorioItemBrowser\Api\Import\Importer\Generic\GenericImporterInterface;
@@ -43,6 +43,7 @@ class GenericPartHandlerTest extends TestCase
     /**
      * Tests the handle method.
      * @throws ImportException
+     * @throws ReflectionException
      * @covers ::handle
      */
     public function testHandle(): void

@@ -15,9 +15,10 @@
   "require": {
     "php": "^7.2",
     "ext-PDO": "*",
-    "factorio-item-browser/api-database": "dev-refactor-doctrine",
+    "bluepsyduck/zend-autowire-factory": "^1.0",
+    "factorio-item-browser/api-database": "^2.1",
     "factorio-item-browser/common": "^1.0",
-    "factorio-item-browser/export-data": "^2.0",
+    "factorio-item-browser/export-data": "^2.1",
     "zendframework/zend-config-aggregator": "^1.0",
     "zendframework/zend-diactoros": "^1.7",
     "zendframework/zend-expressive": "^3.0",
@@ -28,11 +29,11 @@
     "zendframework/zend-stdlib": "^3.1"
   },
   "require-dev": {
-    "bluepsyduck/common": "^1.0",
-    "phpstan/phpstan": "^0.10",
-    "phpstan/phpstan-phpunit": "^0.10",
-    "phpstan/phpstan-strict-rules": "^0.10",
-    "phpunit/phpunit": "^7.2",
+    "bluepsyduck/test-helper": "^1.0",
+    "phpstan/phpstan": "^0.11",
+    "phpstan/phpstan-phpunit": "^0.11",
+    "phpstan/phpstan-strict-rules": "^0.11",
+    "phpunit/phpunit": "^8.0",
     "rregeer/phpunit-coverage-check": "^0.1",
     "squizlabs/php_codesniffer": "^3.3"
   },
@@ -47,11 +48,17 @@
     }
   },
   "scripts": {
-    "coverage-check": "coverage-check test/log/clover.xml 100",
+    "build-cache": [
+      "rm -rf data/cache/*",
+      "bin/build-cache.php",
+      "vendor/bin/doctrine orm:generate-proxies",
+      "chown -R www-data:www-data data/cache/*"
+    ],
+    "coverage-check": "coverage-check test/coverage/clover.xml 100",
     "phpcbf": "phpcbf -p --colors",
     "phpcs": "phpcs -p --colors",
     "phpstan": "phpstan analyse --no-interaction --ansi",
-    "phpunit": "phpunit --colors=always --coverage-html=test/log --coverage-clover=test/log/clover.xml",
+    "phpunit": "phpunit --colors=always --coverage-html=test/coverage --coverage-clover=test/coverage/clover.xml",
     "post-autoload-dump": [
       "mkdir -p data/cache data/log && chmod 0777 data/cache data/log"
     ],

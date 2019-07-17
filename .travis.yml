@@ -3,25 +3,20 @@ language: php
 matrix:
   fast_finish: true
   include:
-    - php: 7.2
-    - php: 7.3
-    - php: nightly
-      env: SKIP_COVERAGE=true
-  allow_failures:
-    - php: nightly
-      env: SKIP_COVERAGE=true
+    - php: '7.2'
+    - php: '7.3'
 
 cache:
   directories:
     - $HOME/.composer/cache/files
 
 install:
-  - composer install --prefer-dist --no-interaction
+  - composer install --prefer-dist --no-interaction --no-suggest
 
 script:
   - composer validate --strict
   - vendor/bin/phpunit --coverage-clover=coverage.xml
-  - if [ "$SKIP_COVERAGE" != "true" ]; then vendor/bin/coverage-check coverage.xml 100; fi
+  - vendor/bin/coverage-check coverage.xml 100
   - vendor/bin/phpcs -np --colors
   - vendor/bin/phpstan analyse --no-interaction
 

@@ -25,6 +25,7 @@ interface RouteName
     public const MOD = 'mod';
     public const MOD_COMBINATIONS = 'mod.combinations';
     public const MOD_DEPENDENCIES = 'mod.dependencies';
+    public const MOD_THUMBNAIL = 'mod.thumbnail';
     public const MOD_TRANSLATIONS = 'mod.translations';
 
     public const ORDER_COMBINATIONS = 'order.combinations';

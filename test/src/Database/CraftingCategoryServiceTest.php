@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Database;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Exception\MissingEntityException;
@@ -90,10 +90,16 @@ class CraftingCategoryServiceTest extends TestCase
                         ->setMethods(['fetchByName'])
                         ->disableOriginalConstructor()
                         ->getMock();
-        $service->expects($resultFetch === null ? $this->never() : $this->once())
-                ->method('fetchByName')
-                ->with($name)
-                ->willReturn($resultFetch);
+        if ($resultFetch === null) {
+            $service->expects($this->never())
+                    ->method('fetchByName');
+        } else {
+            $service->expects($this->once())
+                    ->method('fetchByName')
+                    ->with($name)
+                    ->willReturn($resultFetch);
+        }
+
         $this->injectProperty($service, 'cache', $cache);
 
         $result = $service->getByName($name);

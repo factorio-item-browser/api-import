@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Generic;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Database\Repository\CachedSearchResultRepository;
 use FactorioItemBrowser\Api\Import\Importer\Generic\ClearCacheImporter;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -42,6 +42,7 @@ class ClearCacheImporterTest extends TestCase
 
     /**
      * Tests the import method.
+     * @throws ReflectionException
      * @covers ::import
      */
     public function testImport(): void

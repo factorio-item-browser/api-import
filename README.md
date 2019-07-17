@@ -23,6 +23,7 @@ imported.
 * `/mod/<modName>`: Imports the basic meta data of the mod.
 * `/mod/<modName>/combinations`: Adds all the combinations to the database to be imported next.
 * `/mod/<modName>/dependencies`: Adds the meta data of the dependencies of the mod to the database.
+* `/mod/<modName>/thumbnail`: Adds the thumbnail of the mod to the database, if available.
 * `/mod/<modName>/translations`: Adds the translations of the meta data of the mod to the database, i.e. titles and
   descriptions.
    

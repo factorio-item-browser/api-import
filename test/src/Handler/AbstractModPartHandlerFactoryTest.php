@@ -11,10 +11,12 @@ use FactorioItemBrowser\Api\Import\Handler\AbstractModPartHandlerFactory;
 use FactorioItemBrowser\Api\Import\Importer\Mod\CombinationImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\DependencyImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\ModImporterInterface;
+use FactorioItemBrowser\Api\Import\Importer\Mod\ThumbnailImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\TranslationImporter;
 use Interop\Container\ContainerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 
 /**
  * The PHPUnit test of the AbstractModPartHandlerFactory class.
@@ -34,6 +36,7 @@ class AbstractModPartHandlerFactoryTest extends TestCase
         return [
             [ServiceName::MOD_COMBINATIONS_HANDLER, true],
             [ServiceName::MOD_DEPENDENCIES_HANDLER, true],
+            [ServiceName::MOD_THUMBNAIL_HANDLER, true],
             [ServiceName::MOD_TRANSLATIONS_HANDLER, true],
             ['foo', false],
         ];
@@ -43,12 +46,13 @@ class AbstractModPartHandlerFactoryTest extends TestCase
      * Tests the canCreate method.
      * @param string $requestedName
      * @param bool $expectedResult
+     * @throws ReflectionException
      * @covers ::canCreate
      * @dataProvider provideCanCreate
      */
     public function testCanCreate(string $requestedName, bool $expectedResult): void
     {
-        /* @var ContainerInterface $container */
+        /* @var ContainerInterface&MockObject $container */
         $container = $this->createMock(ContainerInterface::class);
 
         $factory = new AbstractModPartHandlerFactory();
@@ -66,6 +70,7 @@ class AbstractModPartHandlerFactoryTest extends TestCase
         return [
             [ServiceName::MOD_COMBINATIONS_HANDLER, CombinationImporter::class],
             [ServiceName::MOD_DEPENDENCIES_HANDLER, DependencyImporter::class],
+            [ServiceName::MOD_THUMBNAIL_HANDLER, ThumbnailImporter::class],
             [ServiceName::MOD_TRANSLATIONS_HANDLER, TranslationImporter::class],
         ];
     }
@@ -74,21 +79,20 @@ class AbstractModPartHandlerFactoryTest extends TestCase
      * Tests the invoking.
      * @param string $requestedName
      * @param string $expectedImporterClass
+     * @throws ReflectionException
      * @covers ::__invoke
      * @dataProvider provideInvoke
      */
     public function testInvoke(string $requestedName, string $expectedImporterClass): void
     {
-        /* @var ContainerInterface|MockObject $container */
-        $container = $this->getMockBuilder(ContainerInterface::class)
-                          ->setMethods(['get'])
-                          ->getMockForAbstractClass();
+        /* @var ContainerInterface&MockObject $container */
+        $container = $this->createMock(ContainerInterface::class);
         $container->expects($this->exactly(3))
                   ->method('get')
                   ->withConsecutive(
-                      [ModRepository::class],
-                      [RegistryService::class],
-                      [$expectedImporterClass]
+                      [$this->identicalTo(ModRepository::class)],
+                      [$this->identicalTo(RegistryService::class)],
+                      [$this->identicalTo($expectedImporterClass)]
                   )
                   ->willReturnOnConsecutiveCalls(
                       $this->createMock(ModRepository::class),

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Response;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\Response\ErrorResponseGenerator;
 use FactorioItemBrowser\Api\Import\Response\ErrorResponseGeneratorFactory;
@@ -28,6 +28,7 @@ class ErrorResponseGeneratorFactoryTest extends TestCase
     /**
      * Provides the data for the invoke test.
      * @return array
+     * @throws ReflectionException
      */
     public function provideInvoke(): array
     {

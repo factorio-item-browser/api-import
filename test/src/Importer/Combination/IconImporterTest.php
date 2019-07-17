@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Combination;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,24 +39,47 @@ class IconImporterTest extends TestCase
     use ReflectionTrait;
 
     /**
+     * The mocked entity manager.
+     * @var EntityManagerInterface&MockObject
+     */
+    protected $entityManager;
+
+    /**
+     * The mocked icon file repository.
+     * @var IconFileRepository&MockObject
+     */
+    protected $iconFileRepository;
+
+    /**
+     * The mocked registry service.
+     * @var RegistryService&MockObject
+     */
+    protected $registryService;
+
+    /**
+     * Sets up the test case.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->iconFileRepository = $this->createMock(IconFileRepository::class);
+        $this->registryService = $this->createMock(RegistryService::class);
+    }
+
+    /**
      * Tests the constructing.
-     * @covers ::__construct
      * @throws ReflectionException
+     * @covers ::__construct
      */
     public function testConstruct(): void
     {
-        /* @var EntityManagerInterface $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        /* @var IconFileRepository $iconFileRepository */
-        $iconFileRepository = $this->createMock(IconFileRepository::class);
-        /* @var RegistryService $registryService */
-        $registryService = $this->createMock(RegistryService::class);
+        $importer = new IconImporter($this->entityManager, $this->iconFileRepository, $this->registryService);
 
-        $importer = new IconImporter($entityManager, $iconFileRepository, $registryService);
-
-        $this->assertSame($entityManager, $this->extractProperty($importer, 'entityManager'));
-        $this->assertSame($iconFileRepository, $this->extractProperty($importer, 'iconFileRepository'));
-        $this->assertSame($registryService, $this->extractProperty($importer, 'registryService'));
+        $this->assertSame($this->entityManager, $this->extractProperty($importer, 'entityManager'));
+        $this->assertSame($this->iconFileRepository, $this->extractProperty($importer, 'iconFileRepository'));
+        $this->assertSame($this->registryService, $this->extractProperty($importer, 'registryService'));
     }
 
     /**
@@ -66,9 +89,9 @@ class IconImporterTest extends TestCase
      */
     public function testImport(): void
     {
-        /* @var Collection $iconCollection */
+        /* @var Collection&MockObject $iconCollection */
         $iconCollection = $this->createMock(Collection::class);
-        /* @var ExportCombination $exportCombination */
+        /* @var ExportCombination&MockObject $exportCombination */
         $exportCombination = $this->createMock(ExportCombination::class);
 
         $newIcons = [
@@ -84,16 +107,13 @@ class IconImporterTest extends TestCase
             $this->createMock(DatabaseIcon::class),
         ];
 
-        /* @var DatabaseCombination|MockObject $databaseCombination */
-        $databaseCombination = $this->getMockBuilder(DatabaseCombination::class)
-                                    ->setMethods(['getIcons'])
-                                    ->disableOriginalConstructor()
-                                    ->getMock();
+        /* @var DatabaseCombination&MockObject $databaseCombination */
+        $databaseCombination = $this->createMock(DatabaseCombination::class);
         $databaseCombination->expects($this->once())
                             ->method('getIcons')
                             ->willReturn($iconCollection);
 
-        /* @var IconImporter|MockObject $importer */
+        /* @var IconImporter&MockObject $importer */
         $importer = $this->getMockBuilder(IconImporter::class)
                          ->setMethods([
                              'getIconsFromCombination',
@@ -101,7 +121,7 @@ class IconImporterTest extends TestCase
                              'persistEntities',
                              'assignEntitiesToCollection'
                          ])
-                         ->disableOriginalConstructor()
+                         ->setConstructorArgs([$this->entityManager, $this->iconFileRepository, $this->registryService])
                          ->getMock();
 
         $importer->expects($this->once())
@@ -130,17 +150,17 @@ class IconImporterTest extends TestCase
      */
     public function testGetIconsFromCombination(): void
     {
-        /* @var DatabaseIcon $icon1 */
+        /* @var DatabaseIcon&MockObject $icon1 */
         $icon1 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $icon2 */
+        /* @var DatabaseIcon&MockObject $icon2 */
         $icon2 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $icon3 */
+        /* @var DatabaseIcon&MockObject $icon3 */
         $icon3 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $icon4 */
+        /* @var DatabaseIcon&MockObject $icon4 */
         $icon4 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $icon5 */
+        /* @var DatabaseIcon&MockObject $icon5 */
         $icon5 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $icon6 */
+        /* @var DatabaseIcon&MockObject $icon6 */
         $icon6 = $this->createMock(DatabaseIcon::class);
 
         $itemIcons = [
@@ -164,15 +184,15 @@ class IconImporterTest extends TestCase
             'pqr' => $icon6,
         ];
 
-        /* @var ExportCombination $exportCombination */
+        /* @var ExportCombination&MockObject $exportCombination */
         $exportCombination = $this->createMock(ExportCombination::class);
-        /* @var DatabaseCombination $databaseCombination */
+        /* @var DatabaseCombination&MockObject $databaseCombination */
         $databaseCombination = $this->createMock(DatabaseCombination::class);
 
-        /* @var IconImporter|MockObject $importer */
+        /* @var IconImporter&MockObject $importer */
         $importer = $this->getMockBuilder(IconImporter::class)
                          ->setMethods(['getIconsForItems', 'getIconsForMachines', 'getIconsForRecipes'])
-                         ->disableOriginalConstructor()
+                         ->setConstructorArgs([$this->entityManager, $this->iconFileRepository, $this->registryService])
                          ->getMock();
         $importer->expects($this->once())
                  ->method('getIconsForItems')
@@ -212,13 +232,15 @@ class IconImporterTest extends TestCase
               ->setName('vwx')
               ->setIconHash('yza');
 
-        /* @var IconFile $iconFile1 */
+        /* @var DatabaseCombination&MockObject $databaseCombination */
+        $databaseCombination = $this->createMock(DatabaseCombination::class);
+        /* @var IconFile&MockObject $iconFile1 */
         $iconFile1 = $this->createMock(IconFile::class);
-        /* @var IconFile $iconFile2 */
+        /* @var IconFile&MockObject $iconFile2 */
         $iconFile2 = $this->createMock(IconFile::class);
-        /* @var DatabaseIcon $icon1 */
+        /* @var DatabaseIcon&MockObject $icon1 */
         $icon1 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $icon2 */
+        /* @var DatabaseIcon&MockObject $icon2 */
         $icon2 = $this->createMock(DatabaseIcon::class);
 
         $expectedResult = [
@@ -226,39 +248,29 @@ class IconImporterTest extends TestCase
             'efg' => $icon2,
         ];
 
-        /* @var RegistryService|MockObject $registryService */
-        $registryService = $this->getMockBuilder(RegistryService::class)
-                                ->setMethods(['getItem'])
-                                ->disableOriginalConstructor()
-                                ->getMock();
-        $registryService->expects($this->exactly(3))
-                        ->method('getItem')
-                        ->withConsecutive(
-                            ['abc'],
-                            ['def'],
-                            ['ghi']
-                        )
-                        ->willReturnOnConsecutiveCalls(
-                            $item1,
-                            new ExportItem(),
-                            $item2
-                        );
+        $this->registryService->expects($this->exactly(3))
+                              ->method('getItem')
+                              ->withConsecutive(
+                                  [$this->identicalTo('abc')],
+                                  [$this->identicalTo('def')],
+                                  [$this->identicalTo('ghi')]
+                              )
+                              ->willReturnOnConsecutiveCalls(
+                                  $item1,
+                                  new ExportItem(),
+                                  $item2
+                              );
 
-        /* @var EntityManagerInterface $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        /* @var IconFileRepository $iconFileRepository */
-        $iconFileRepository = $this->createMock(IconFileRepository::class);
-
-        /* @var IconImporter|MockObject $importer */
+        /* @var IconImporter&MockObject $importer */
         $importer = $this->getMockBuilder(IconImporter::class)
                          ->setMethods(['getIconFile', 'createIcon', 'getIdentifier'])
-                         ->setConstructorArgs([$entityManager, $iconFileRepository, $registryService])
+                         ->setConstructorArgs([$this->entityManager, $this->iconFileRepository, $this->registryService])
                          ->getMock();
         $importer->expects($this->exactly(2))
                  ->method('getIconFile')
                  ->withConsecutive(
-                     ['pqr'],
-                     ['yza']
+                     [$this->identicalTo('pqr')],
+                     [$this->identicalTo('yza')]
                  )
                  ->willReturnOnConsecutiveCalls(
                      $iconFile1,
@@ -267,8 +279,18 @@ class IconImporterTest extends TestCase
         $importer->expects($this->exactly(2))
                  ->method('createIcon')
                  ->withConsecutive(
-                     [$iconFile1, 'jkl', 'mno'],
-                     [$iconFile2, 'stu', 'vwx']
+                     [
+                         $this->identicalTo($databaseCombination),
+                         $this->identicalTo($iconFile1),
+                         $this->identicalTo('jkl'),
+                         $this->identicalTo('mno')
+                     ],
+                     [
+                         $this->identicalTo($databaseCombination),
+                         $this->identicalTo($iconFile2),
+                         $this->identicalTo('stu'),
+                         $this->identicalTo('vwx')
+                     ]
                  )
                  ->willReturnOnConsecutiveCalls(
                      $icon1,
@@ -277,13 +299,14 @@ class IconImporterTest extends TestCase
         $importer->expects($this->exactly(2))
                  ->method('getIdentifier')
                  ->withConsecutive(
-                     [$icon1],
-                     [$icon2]
+                     [$this->identicalTo($icon1)],
+                     [$this->identicalTo($icon2)]
                  )
                  ->willReturnOnConsecutiveCalls(
                      'bcd',
                      'efg'
                  );
+        $this->injectProperty($importer, 'databaseCombination', $databaseCombination);
 
         $result = $this->invokeMethod($importer, 'getIconsForItems', $exportCombination);
 
@@ -305,13 +328,15 @@ class IconImporterTest extends TestCase
         $machine2->setName('pqr')
                  ->setIconHash('stu');
 
-        /* @var IconFile $iconFile1 */
+        /* @var DatabaseCombination&MockObject $databaseCombination */
+        $databaseCombination = $this->createMock(DatabaseCombination::class);
+        /* @var IconFile&MockObject $iconFile1 */
         $iconFile1 = $this->createMock(IconFile::class);
-        /* @var IconFile $iconFile2 */
+        /* @var IconFile&MockObject $iconFile2 */
         $iconFile2 = $this->createMock(IconFile::class);
-        /* @var DatabaseIcon $icon1 */
+        /* @var DatabaseIcon&MockObject $icon1 */
         $icon1 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $icon2 */
+        /* @var DatabaseIcon&MockObject $icon2 */
         $icon2 = $this->createMock(DatabaseIcon::class);
 
         $expectedResult = [
@@ -319,39 +344,29 @@ class IconImporterTest extends TestCase
             'yza' => $icon2,
         ];
 
-        /* @var RegistryService|MockObject $registryService */
-        $registryService = $this->getMockBuilder(RegistryService::class)
-                                ->setMethods(['getMachine'])
-                                ->disableOriginalConstructor()
-                                ->getMock();
-        $registryService->expects($this->exactly(3))
-                        ->method('getMachine')
-                        ->withConsecutive(
-                            ['abc'],
-                            ['def'],
-                            ['ghi']
-                        )
-                        ->willReturnOnConsecutiveCalls(
-                            $machine1,
-                            new ExportMachine(),
-                            $machine2
-                        );
+        $this->registryService->expects($this->exactly(3))
+                              ->method('getMachine')
+                              ->withConsecutive(
+                                  ['abc'],
+                                  ['def'],
+                                  ['ghi']
+                              )
+                              ->willReturnOnConsecutiveCalls(
+                                  $machine1,
+                                  new ExportMachine(),
+                                  $machine2
+                              );
 
-        /* @var EntityManagerInterface $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        /* @var IconFileRepository $iconFileRepository */
-        $iconFileRepository = $this->createMock(IconFileRepository::class);
-
-        /* @var IconImporter|MockObject $importer */
+        /* @var IconImporter&MockObject $importer */
         $importer = $this->getMockBuilder(IconImporter::class)
                          ->setMethods(['getIconFile', 'createIcon', 'getIdentifier'])
-                         ->setConstructorArgs([$entityManager, $iconFileRepository, $registryService])
+                         ->setConstructorArgs([$this->entityManager, $this->iconFileRepository, $this->registryService])
                          ->getMock();
         $importer->expects($this->exactly(2))
                  ->method('getIconFile')
                  ->withConsecutive(
-                     ['mno'],
-                     ['stu']
+                     [$this->identicalTo('mno')],
+                     [$this->identicalTo('stu')]
                  )
                  ->willReturnOnConsecutiveCalls(
                      $iconFile1,
@@ -360,8 +375,18 @@ class IconImporterTest extends TestCase
         $importer->expects($this->exactly(2))
                  ->method('createIcon')
                  ->withConsecutive(
-                     [$iconFile1, EntityType::MACHINE, 'jkl'],
-                     [$iconFile2, EntityType::MACHINE, 'pqr']
+                     [
+                         $this->identicalTo($databaseCombination),
+                         $this->identicalTo($iconFile1),
+                         $this->identicalTo(EntityType::MACHINE),
+                         $this->identicalTo('jkl'),
+                     ],
+                     [
+                         $this->identicalTo($databaseCombination),
+                         $this->identicalTo($iconFile2),
+                         $this->identicalTo(EntityType::MACHINE),
+                         $this->identicalTo('pqr'),
+                     ]
                  )
                  ->willReturnOnConsecutiveCalls(
                      $icon1,
@@ -370,13 +395,14 @@ class IconImporterTest extends TestCase
         $importer->expects($this->exactly(2))
                  ->method('getIdentifier')
                  ->withConsecutive(
-                     [$icon1],
-                     [$icon2]
+                     [$this->identicalTo($icon1)],
+                     [$this->identicalTo($icon2)]
                  )
                  ->willReturnOnConsecutiveCalls(
                      'vwx',
                      'yza'
                  );
+        $this->injectProperty($importer, 'databaseCombination', $databaseCombination);
 
         $result = $this->invokeMethod($importer, 'getIconsForMachines', $exportCombination);
 
@@ -398,13 +424,15 @@ class IconImporterTest extends TestCase
         $recipe2->setName('pqr')
                 ->setIconHash('stu');
 
-        /* @var IconFile $iconFile1 */
+        /* @var DatabaseCombination&MockObject $databaseCombination */
+        $databaseCombination = $this->createMock(DatabaseCombination::class);
+        /* @var IconFile&MockObject $iconFile1 */
         $iconFile1 = $this->createMock(IconFile::class);
-        /* @var IconFile $iconFile2 */
+        /* @var IconFile&MockObject $iconFile2 */
         $iconFile2 = $this->createMock(IconFile::class);
-        /* @var DatabaseIcon $icon1 */
+        /* @var DatabaseIcon&MockObject $icon1 */
         $icon1 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $icon2 */
+        /* @var DatabaseIcon&MockObject $icon2 */
         $icon2 = $this->createMock(DatabaseIcon::class);
 
         $expectedResult = [
@@ -412,33 +440,23 @@ class IconImporterTest extends TestCase
             'yza' => $icon2,
         ];
 
-        /* @var RegistryService|MockObject $registryService */
-        $registryService = $this->getMockBuilder(RegistryService::class)
-                                ->setMethods(['getRecipe'])
-                                ->disableOriginalConstructor()
-                                ->getMock();
-        $registryService->expects($this->exactly(3))
-                        ->method('getRecipe')
-                        ->withConsecutive(
-                            ['abc'],
-                            ['def'],
-                            ['ghi']
-                        )
-                        ->willReturnOnConsecutiveCalls(
-                            $recipe1,
-                            new ExportRecipe(),
-                            $recipe2
-                        );
+        $this->registryService->expects($this->exactly(3))
+                              ->method('getRecipe')
+                              ->withConsecutive(
+                                  [$this->identicalTo('abc')],
+                                  [$this->identicalTo('def')],
+                                  [$this->identicalTo('ghi')]
+                              )
+                              ->willReturnOnConsecutiveCalls(
+                                  $recipe1,
+                                  new ExportRecipe(),
+                                  $recipe2
+                              );
 
-        /* @var EntityManagerInterface $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        /* @var IconFileRepository $iconFileRepository */
-        $iconFileRepository = $this->createMock(IconFileRepository::class);
-
-        /* @var IconImporter|MockObject $importer */
+        /* @var IconImporter&MockObject $importer */
         $importer = $this->getMockBuilder(IconImporter::class)
                          ->setMethods(['getIconFile', 'createIcon', 'getIdentifier'])
-                         ->setConstructorArgs([$entityManager, $iconFileRepository, $registryService])
+                         ->setConstructorArgs([$this->entityManager, $this->iconFileRepository, $this->registryService])
                          ->getMock();
         $importer->expects($this->exactly(2))
                  ->method('getIconFile')
@@ -453,8 +471,18 @@ class IconImporterTest extends TestCase
         $importer->expects($this->exactly(2))
                  ->method('createIcon')
                  ->withConsecutive(
-                     [$iconFile1, EntityType::RECIPE, 'jkl'],
-                     [$iconFile2, EntityType::RECIPE, 'pqr']
+                     [
+                         $this->identicalTo($databaseCombination),
+                         $this->identicalTo($iconFile1),
+                         $this->identicalTo(EntityType::RECIPE),
+                         $this->identicalTo('jkl'),
+                     ],
+                     [
+                         $this->identicalTo($databaseCombination),
+                         $this->identicalTo($iconFile2),
+                         $this->identicalTo(EntityType::RECIPE),
+                         $this->identicalTo('pqr'),
+                     ]
                  )
                  ->willReturnOnConsecutiveCalls(
                      $icon1,
@@ -463,13 +491,14 @@ class IconImporterTest extends TestCase
         $importer->expects($this->exactly(2))
                  ->method('getIdentifier')
                  ->withConsecutive(
-                     [$icon1],
-                     [$icon2]
+                     [$this->identicalTo($icon1)],
+                     [$this->identicalTo($icon2)]
                  )
                  ->willReturnOnConsecutiveCalls(
                      'vwx',
                      'yza'
                  );
+        $this->injectProperty($importer, 'databaseCombination', $databaseCombination);
 
         $result = $this->invokeMethod($importer, 'getIconsForRecipes', $exportCombination);
 
@@ -479,12 +508,13 @@ class IconImporterTest extends TestCase
     /**
      * Provides the data for the getIconFile test.
      * @return array
+     * @throws ReflectionException
      */
     public function provideGetIconFile(): array
     {
-        /* @var IconFile $iconFile1 */
+        /* @var IconFile&MockObject $iconFile1 */
         $iconFile1 = $this->createMock(IconFile::class);
-        /* @var IconFile $iconFile2 */
+        /* @var IconFile&MockObject $iconFile2 */
         $iconFile2 = $this->createMock(IconFile::class);
 
         return [
@@ -523,15 +553,21 @@ class IconImporterTest extends TestCase
         IconFile $expectedResult,
         array $expectedIconFiles
     ): void {
-        /* @var IconImporter|MockObject $importer */
+        /* @var IconImporter&MockObject $importer */
         $importer = $this->getMockBuilder(IconImporter::class)
                          ->setMethods(['fetchIconFile'])
-                         ->disableOriginalConstructor()
+                         ->setConstructorArgs([$this->entityManager, $this->iconFileRepository, $this->registryService])
                          ->getMock();
-        $importer->expects($iconFile === null ? $this->never() : $this->once())
-                 ->method('fetchIconFile')
-                 ->with($iconHash)
-                 ->willReturn($iconFile);
+        if ($iconFile === null) {
+            $importer->expects($this->never())
+                     ->method('fetchIconFile');
+        } else {
+            $importer->expects($this->once())
+                     ->method('fetchIconFile')
+                     ->with($iconHash)
+                     ->willReturn($iconFile);
+        }
+
         $this->injectProperty($importer, 'iconFiles', $iconFiles);
 
         $result = $this->invokeMethod($importer, 'getIconFile', $iconHash);
@@ -541,157 +577,28 @@ class IconImporterTest extends TestCase
     }
 
     /**
-     * Provides the data for the fetchIconFile test.
-     * @return array
-     */
-    public function provideFetchIconFile(): array
-    {
-        return [
-            [true, false],
-            [false, true],
-        ];
-    }
-
-    /**
-     * Tests the fetchIconFile method.
-     * @param bool $resultWithIcon
-     * @param bool $expectCreate
-     * @throws ReflectionException
-     * @covers ::fetchIconFile
-     * @dataProvider provideFetchIconFile
-     */
-    public function testFetchIconFile(bool $resultWithIcon, bool $expectCreate): void
-    {
-        $iconHash = 'ab12cd34';
-        $image = 'abc';
-
-        /* @var IconFile|MockObject $iconFile */
-        $iconFile = $this->getMockBuilder(IconFile::class)
-                         ->setMethods(['setImage'])
-                         ->disableOriginalConstructor()
-                         ->getMock();
-        $iconFile->expects($this->once())
-                 ->method('setImage')
-                 ->with($image);
-
-        /* @var IconFileRepository|MockObject $iconFileRepository */
-        $iconFileRepository = $this->getMockBuilder(IconFileRepository::class)
-                                   ->setMethods(['findByHashes'])
-                                   ->disableOriginalConstructor()
-                                   ->getMock();
-        $iconFileRepository->expects($this->once())
-                           ->method('findByHashes')
-                           ->with([$iconHash])
-                           ->willReturn($resultWithIcon ? [$iconFile] : []);
-
-        /* @var RegistryService|MockObject $registryService */
-        $registryService = $this->getMockBuilder(RegistryService::class)
-                                ->setMethods(['getRenderedIcon'])
-                                ->disableOriginalConstructor()
-                                ->getMock();
-        $registryService->expects($this->once())
-                        ->method('getRenderedIcon')
-                        ->with($iconHash)
-                        ->willReturn($image);
-
-        /* @var EntityManagerInterface $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-
-        /* @var IconImporter|MockObject $importer */
-        $importer = $this->getMockBuilder(IconImporter::class)
-                         ->setMethods(['createIconFile'])
-                         ->setConstructorArgs([$entityManager, $iconFileRepository, $registryService])
-                         ->getMock();
-        $importer->expects($expectCreate ? $this->once() : $this->never())
-                 ->method('createIconFile')
-                 ->with($iconHash)
-                 ->willReturn($iconFile);
-
-        $result = $this->invokeMethod($importer, 'fetchIconFile', $iconHash);
-
-        $this->assertSame($iconFile, $result);
-    }
-
-    /**
-     * Tests the createIconFile method.
-     * @throws ReflectionException
-     * @covers ::createIconFile
-     */
-    public function testCreateIconFile(): void
-    {
-        $iconHash = 'ab12cd34';
-        $expectedResult = new IconFile('ab12cd34');
-
-        /* @var IconImporter|MockObject $importer */
-        $importer = $this->getMockBuilder(IconImporter::class)
-                         ->setMethods(['persistEntity'])
-                         ->disableOriginalConstructor()
-                         ->getMock();
-        $importer->expects($this->once())
-                 ->method('persistEntity')
-                 ->with($this->equalTo($expectedResult));
-
-        $result = $this->invokeMethod($importer, 'createIconFile', $iconHash);
-
-        $this->assertEquals($expectedResult, $result);
-    }
-
-    /**
-     * Tests the createIcon method.
-     * @throws ReflectionException
-     * @covers ::createIcon
-     */
-    public function testCreateIcon(): void
-    {
-        /* @var DatabaseCombination $databaseCombination */
-        $databaseCombination = $this->createMock(DatabaseCombination::class);
-        /* @var IconFile $iconFile */
-        $iconFile = $this->createMock(IconFile::class);
-
-        $type = 'abc';
-        $name = 'def';
-
-        $expectedResult = new DatabaseIcon($databaseCombination, $iconFile);
-        $expectedResult->setType('abc')
-                       ->setName('def');
-
-        /* @var EntityManagerInterface $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        /* @var IconFileRepository $iconFileRepository */
-        $iconFileRepository = $this->createMock(IconFileRepository::class);
-        /* @var RegistryService $registryService */
-        $registryService = $this->createMock(RegistryService::class);
-
-        $importer = new IconImporter($entityManager, $iconFileRepository, $registryService);
-        $this->injectProperty($importer, 'databaseCombination', $databaseCombination);
-
-        $result = $this->invokeMethod($importer, 'createIcon', $iconFile, $type, $name);
-        $this->assertEquals($expectedResult, $result);
-    }
-
-    /**
      * Tests the getExistingIcons method.
      * @throws ReflectionException
      * @covers ::getExistingIcons
      */
     public function testGetExistingIcons(): void
     {
-        /* @var DatabaseIcon $newIcon */
+        /* @var DatabaseIcon&MockObject $newIcon */
         $newIcon = $this->createMock(DatabaseIcon::class);
         $newIcons = [
             'abc' => $newIcon,
         ];
 
-        /* @var DatabaseIcon $existingIcon1 */
+        /* @var DatabaseIcon&MockObject $existingIcon1 */
         $existingIcon1 = $this->createMock(DatabaseIcon::class);
-        /* @var DatabaseIcon $existingIcon2 */
+        /* @var DatabaseIcon&MockObject $existingIcon2 */
         $existingIcon2 = $this->createMock(DatabaseIcon::class);
         $expectedResult = [
             'abc' => $existingIcon1,
             'def' => $existingIcon2,
         ];
 
-        /* @var DatabaseCombination|MockObject $databaseCombination */
+        /* @var DatabaseCombination&MockObject $databaseCombination */
         $databaseCombination = $this->getMockBuilder(DatabaseCombination::class)
                                     ->setMethods(['getIcons'])
                                     ->disableOriginalConstructor()
@@ -700,10 +607,10 @@ class IconImporterTest extends TestCase
                             ->method('getIcons')
                             ->willReturn(new ArrayCollection([$existingIcon1, $existingIcon2]));
 
-        /* @var IconImporter|MockObject $importer */
+        /* @var IconImporter&MockObject $importer */
         $importer = $this->getMockBuilder(IconImporter::class)
                          ->setMethods(['getIdentifier', 'applyChanges'])
-                         ->disableOriginalConstructor()
+                         ->setConstructorArgs([$this->entityManager, $this->iconFileRepository, $this->registryService])
                          ->getMock();
         $importer->expects($this->exactly(2))
                  ->method('getIdentifier')
@@ -731,35 +638,22 @@ class IconImporterTest extends TestCase
      */
     public function testApplyChanges(): void
     {
-        /* @var IconFile $iconFile */
+        /* @var IconFile&MockObject $iconFile */
         $iconFile = $this->createMock(IconFile::class);
 
-        /* @var DatabaseIcon|MockObject $source */
-        $source = $this->getMockBuilder(DatabaseIcon::class)
-                       ->setMethods(['getFile'])
-                       ->disableOriginalConstructor()
-                       ->getMock();
+        /* @var DatabaseIcon&MockObject $source */
+        $source = $this->createMock(DatabaseIcon::class);
         $source->expects($this->once())
                ->method('getFile')
                ->willReturn($iconFile);
 
-        /* @var DatabaseIcon|MockObject $destination */
-        $destination = $this->getMockBuilder(DatabaseIcon::class)
-                            ->setMethods(['setFile'])
-                            ->disableOriginalConstructor()
-                            ->getMock();
+        /* @var DatabaseIcon&MockObject $destination */
+        $destination = $this->createMock(DatabaseIcon::class);
         $destination->expects($this->once())
                     ->method('setFile')
                     ->with($iconFile);
 
-        /* @var EntityManagerInterface $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        /* @var IconFileRepository $iconFileRepository */
-        $iconFileRepository = $this->createMock(IconFileRepository::class);
-        /* @var RegistryService $registryService */
-        $registryService = $this->createMock(RegistryService::class);
-
-        $importer = new IconImporter($entityManager, $iconFileRepository, $registryService);
+        $importer = new IconImporter($this->entityManager, $this->iconFileRepository, $this->registryService);
 
         $this->invokeMethod($importer, 'applyChanges', $source, $destination);
     }
@@ -777,14 +671,7 @@ class IconImporterTest extends TestCase
              ->setName('bar');
         $expectedResult = 'foo|bar';
 
-        /* @var EntityManagerInterface $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        /* @var IconFileRepository $iconFileRepository */
-        $iconFileRepository = $this->createMock(IconFileRepository::class);
-        /* @var RegistryService $registryService */
-        $registryService = $this->createMock(RegistryService::class);
-
-        $importer = new IconImporter($entityManager, $iconFileRepository, $registryService);
+        $importer = new IconImporter($this->entityManager, $this->iconFileRepository, $this->registryService);
 
         $result = $this->invokeMethod($importer, 'getIdentifier', $icon);
         $this->assertSame($expectedResult, $result);

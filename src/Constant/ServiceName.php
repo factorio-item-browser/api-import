@@ -28,5 +28,6 @@ interface ServiceName
 
     public const MOD_COMBINATIONS_HANDLER = 'handle.mod.combinations';
     public const MOD_DEPENDENCIES_HANDLER = 'handler.mod.dependencies';
+    public const MOD_THUMBNAIL_HANDLER = 'handler.mod.thumbnail';
     public const MOD_TRANSLATIONS_HANDLER = 'handler.mod.translations';
 }

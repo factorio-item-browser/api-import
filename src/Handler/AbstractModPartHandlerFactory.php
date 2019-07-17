@@ -9,6 +9,7 @@ use FactorioItemBrowser\Api\Import\Constant\ServiceName;
 use FactorioItemBrowser\Api\Import\ExportData\RegistryService;
 use FactorioItemBrowser\Api\Import\Importer\Mod\CombinationImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\DependencyImporter;
+use FactorioItemBrowser\Api\Import\Importer\Mod\ThumbnailImporter;
 use FactorioItemBrowser\Api\Import\Importer\Mod\TranslationImporter;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\AbstractFactoryInterface;
@@ -27,6 +28,7 @@ class AbstractModPartHandlerFactory implements AbstractFactoryInterface
     protected const IMPORTER_MAP = [
         ServiceName::MOD_COMBINATIONS_HANDLER => CombinationImporter::class,
         ServiceName::MOD_DEPENDENCIES_HANDLER => DependencyImporter::class,
+        ServiceName::MOD_THUMBNAIL_HANDLER => ThumbnailImporter::class,
         ServiceName::MOD_TRANSLATIONS_HANDLER => TranslationImporter::class,
     ];
 

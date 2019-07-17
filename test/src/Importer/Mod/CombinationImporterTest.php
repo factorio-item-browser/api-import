@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Importer\Mod;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,6 +55,7 @@ class CombinationImporterTest extends TestCase
     /**
      * Tests the import method.
      * @throws ImportException
+     * @throws ReflectionException
      * @covers ::import
      */
     public function testImport(): void

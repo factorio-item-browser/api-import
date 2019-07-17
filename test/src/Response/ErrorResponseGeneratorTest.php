@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\Api\Import\Response;
 
-use BluePsyduck\Common\Test\ReflectionTrait;
+use BluePsyduck\TestHelper\ReflectionTrait;
 use Exception;
 use FactorioItemBrowser\Api\Import\Response\ErrorResponseGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -60,6 +60,7 @@ class ErrorResponseGeneratorTest extends TestCase
      * @param int $exceptionCode
      * @param bool $withLogger
      * @param int $expectedStatusCode
+     * @throws ReflectionException
      * @covers ::__invoke
      * @dataProvider provideInvoke
      */
