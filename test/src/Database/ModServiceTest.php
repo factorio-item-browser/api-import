@@ -90,10 +90,15 @@ class ModServiceTest extends TestCase
                         ->setMethods(['fetchByName'])
                         ->disableOriginalConstructor()
                         ->getMock();
-        $service->expects($resultFetch === null ? $this->never() : $this->once())
-                ->method('fetchByName')
-                ->with($name)
-                ->willReturn($resultFetch);
+        if ($resultFetch === null) {
+            $service->expects($this->never())
+                    ->method('fetchByName');
+        } else {
+            $service->expects($this->once())
+                    ->method('fetchByName')
+                    ->with($name)
+                    ->willReturn($resultFetch);
+        }
         $this->injectProperty($service, 'cache', $cache);
 
         $result = $service->getByName($name);

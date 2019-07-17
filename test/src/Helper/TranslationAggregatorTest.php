@@ -301,10 +301,15 @@ class TranslationAggregatorTest extends TestCase
                            ->setMethods(['createTranslation'])
                            ->disableOriginalConstructor()
                            ->getMock();
-        $aggregator->expects($resultCreate === null ? $this->never() : $this->once())
-                   ->method('createTranslation')
-                   ->with($locale, $type, $name)
-                   ->willReturn($resultCreate);
+        if ($resultCreate === null) {
+            $aggregator->expects($this->never())
+                       ->method('createTranslation');
+        } else {
+            $aggregator->expects($this->once())
+                       ->method('createTranslation')
+                       ->with($locale, $type, $name)
+                       ->willReturn($resultCreate);
+        }
         $this->injectProperty($aggregator, 'translations', $translations);
 
         $result = $this->invokeMethod($aggregator, 'getTranslation', $locale, $type, $name);
@@ -374,7 +379,6 @@ class TranslationAggregatorTest extends TestCase
 
     /**
      * Tests the getIdentifierOfTranslation method.
-     * @throws ReflectionException
      * @covers ::getIdentifierOfTranslation
      */
     public function testGetIdentifierOfTranslation(): void

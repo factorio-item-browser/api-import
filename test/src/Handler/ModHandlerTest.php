@@ -207,10 +207,15 @@ class ModHandlerTest extends TestCase
                         ->setMethods(['createDatabaseMod'])
                         ->setConstructorArgs([$entityManager, $modRepository, $registryService])
                         ->getMock();
-        $handler->expects($resultCreate === null ? $this->never() : $this->once())
-                ->method('createDatabaseMod')
-                ->with($exportMod)
-                ->willReturn($resultCreate);
+        if ($resultCreate === null) {
+            $handler->expects($this->never())
+                    ->method('createDatabaseMod');
+        } else {
+            $handler->expects($this->once())
+                    ->method('createDatabaseMod')
+                    ->with($exportMod)
+                    ->willReturn($resultCreate);
+        }
 
         $result = $this->invokeMethod($handler, 'fetchDatabaseMod', $exportMod);
         $this->assertSame($expectedResult, $result);

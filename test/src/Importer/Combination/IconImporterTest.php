@@ -58,7 +58,6 @@ class IconImporterTest extends TestCase
 
     /**
      * Sets up the test case.
-     * @throws ReflectionException
      */
     protected function setUp(): void
     {
@@ -86,7 +85,6 @@ class IconImporterTest extends TestCase
     /**
      * Tests the import method.
      * @throws ImportException
-     * @throws ReflectionException
      * @covers ::import
      */
     public function testImport(): void
@@ -560,10 +558,16 @@ class IconImporterTest extends TestCase
                          ->setMethods(['fetchIconFile'])
                          ->setConstructorArgs([$this->entityManager, $this->iconFileRepository, $this->registryService])
                          ->getMock();
-        $importer->expects($iconFile === null ? $this->never() : $this->once())
-                 ->method('fetchIconFile')
-                 ->with($iconHash)
-                 ->willReturn($iconFile);
+        if ($iconFile === null) {
+            $importer->expects($this->never())
+                     ->method('fetchIconFile');
+        } else {
+            $importer->expects($this->once())
+                     ->method('fetchIconFile')
+                     ->with($iconHash)
+                     ->willReturn($iconFile);
+        }
+
         $this->injectProperty($importer, 'iconFiles', $iconFiles);
 
         $result = $this->invokeMethod($importer, 'getIconFile', $iconHash);

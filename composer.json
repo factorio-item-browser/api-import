@@ -16,7 +16,7 @@
     "php": "^7.2",
     "ext-PDO": "*",
     "bluepsyduck/zend-autowire-factory": "^1.0",
-    "factorio-item-browser/api-database": "dev-feature/icon-size",
+    "factorio-item-browser/api-database": "^2.1",
     "factorio-item-browser/common": "^1.0",
     "factorio-item-browser/export-data": "^2.1",
     "zendframework/zend-config-aggregator": "^1.0",

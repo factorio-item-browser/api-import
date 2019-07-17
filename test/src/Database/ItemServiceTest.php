@@ -94,10 +94,15 @@ class ItemServiceTest extends TestCase
                         ->setMethods(['fetchByTypeAndName'])
                         ->disableOriginalConstructor()
                         ->getMock();
-        $service->expects($resultFetch === null ? $this->never() : $this->once())
-                ->method('fetchByTypeAndName')
-                ->with($type, $name)
-                ->willReturn($resultFetch);
+        if ($resultFetch === null) {
+            $service->expects($this->never())
+                    ->method('fetchByTypeAndName');
+        } else {
+            $service->expects($this->once())
+                    ->method('fetchByTypeAndName')
+                    ->with($type, $name)
+                    ->willReturn($resultFetch);
+        }
         $this->injectProperty($service, 'cache', $cache);
 
         $result = $service->getByTypeAndName($type, $name);
