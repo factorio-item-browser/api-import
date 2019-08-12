@@ -64,7 +64,7 @@ class AbstractIconImporter extends AbstractImporter
         }
 
         $iconFile->setImage($this->registryService->getRenderedIcon($iconHash))
-                 ->setSize($this->registryService->getIcon($iconHash)->getSize());
+                 ->setSize($this->registryService->getIcon($iconHash)->getRenderedSize());
         return $iconFile;
     }
 

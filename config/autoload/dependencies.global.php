@@ -12,10 +12,11 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import;
 
 use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
-use BluePsyduck\ZendAutoWireFactory\ConfigReaderFactory;
 use FactorioItemBrowser\Api\Import\Constant\ConfigKey;
 use FactorioItemBrowser\ExportData\Service\ExportDataService;
 use Zend\Expressive\Middleware\ErrorResponseGenerator;
+use function BluePsyduck\ZendAutoWireFactory\injectAliasArray;
+use function BluePsyduck\ZendAutoWireFactory\readConfig;
 
 return [
     'dependencies' => [
@@ -39,7 +40,7 @@ return [
             Importer\Combination\MachineImporter::class => AutoWireFactory::class,
             Importer\Combination\RecipeImporter::class => AutoWireFactory::class,
             Importer\Combination\TranslationImporter::class => AutoWireFactory::class,
-            Importer\Generic\CleanupImporter::class => Importer\Generic\CleanupImporterFactory::class,
+            Importer\Generic\CleanupImporter::class => AutoWireFactory::class,
             Importer\Generic\ClearCacheImporter::class => AutoWireFactory::class,
             Importer\Generic\CombinationOrderImporter::class => AutoWireFactory::class,
             Importer\Generic\ModOrderImporter::class => AutoWireFactory::class,
@@ -51,7 +52,8 @@ return [
             Middleware\ApiKeyMiddleware::class => AutoWireFactory::class,
 
             // Auto-wire helpers
-            'array $apiKeys' => ConfigReaderFactory::register(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::API_KEYS),
+            'array $apiKeys' => readConfig(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::API_KEYS),
+            'array $repositoriesWithOrphans' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::REPOSITORIES_WITH_ORPHANS),
 
             // 3rd-party services
             ErrorResponseGenerator::class => Response\ErrorResponseGeneratorFactory::class,

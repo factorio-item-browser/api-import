@@ -36,4 +36,9 @@ interface ConfigKey
      * The key holding the directory of the export data.
      */
     public const EXPORT_DATA_DIRECTORY = 'directory';
+
+    /**
+     * The key holding the aliases for the repositories with orphans.
+     */
+    public const REPOSITORIES_WITH_ORPHANS = 'repositories-with-orphans';
 }

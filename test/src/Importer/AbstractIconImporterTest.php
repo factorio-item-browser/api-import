@@ -105,7 +105,7 @@ class AbstractIconImporterTest extends TestCase
         /* @var ExportIcon&MockObject $exportIcon */
         $exportIcon = $this->createMock(ExportIcon::class);
         $exportIcon->expects($this->once())
-                   ->method('getSize')
+                   ->method('getRenderedSize')
                    ->willReturn($size);
 
         /* @var IconFile&MockObject $iconFile */
