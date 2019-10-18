@@ -23,22 +23,7 @@ interface ConfigKey
     public const API_IMPORT = 'api-import';
 
     /**
-     * The key holding the API keys to access the importer.
+     * The key holding the importer aliases.
      */
-    public const API_KEYS = 'api-keys';
-
-    /**
-     * The key holding configuration values for the export data component.
-     */
-    public const EXPORT_DATA = 'export-data';
-
-    /**
-     * The key holding the directory of the export data.
-     */
-    public const EXPORT_DATA_DIRECTORY = 'directory';
-
-    /**
-     * The key holding the aliases for the repositories with orphans.
-     */
-    public const REPOSITORIES_WITH_ORPHANS = 'repositories-with-orphans';
+    public const IMPORTERS = 'importers';
 }

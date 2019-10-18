@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Helper;
 
-use FactorioItemBrowser\Api\Database\Entity\ModCombination;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
+use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\LocalisedString;
-use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 
 /**
  * The class helping with aggregating translations.
@@ -18,86 +17,28 @@ use FactorioItemBrowser\ExportData\Utils\EntityUtils;
 class TranslationAggregator
 {
     /**
-     * The combination to assign to the translations.
-     * @var ModCombination
-     */
-    protected $combination;
-
-    /**
      * The aggregated translations.
-     * @var array|Translation[]
+     * @var array|Translation[][][]
      */
     protected $translations = [];
 
     /**
-     * Initializes the aggregator.
-     * @param ModCombination $combination
-     */
-    public function __construct(ModCombination $combination)
-    {
-        $this->combination = $combination;
-    }
-
-    /**
-     * Adds an actual translation entity to the aggregator.
-     * @param Translation $translation
-     */
-    public function addTranslation(Translation $translation): void
-    {
-        $this->translations[self::getIdentifierOfTranslation($translation)] = $translation;
-    }
-
-    /**
-     * Applies the localised string to the value of the respective translations.
-     * @param LocalisedString $localisedString
+     * Adds translations to the aggregator.
      * @param string $type
      * @param string $name
+     * @param LocalisedString $values
+     * @param LocalisedString $descriptions
+     * @return $this
      */
-    public function applyLocalisedStringToValue(LocalisedString $localisedString, string $type, string $name): void
+    public function add(string $type, string $name, LocalisedString $values, LocalisedString $descriptions): self
     {
-        foreach ($localisedString->getTranslations() as $locale => $value) {
-            $translation = $this->getTranslation($locale, $type, $name);
-            $translation->setValue($value);
+        foreach ($values->getTranslations() as $locale => $value) {
+            $this->createTranslation($locale, $type, $name)->setValue($value);
         }
-    }
-
-    /**
-     * Applies the localised string to the description of the respective translations.
-     * @param LocalisedString $localisedString
-     * @param string $type
-     * @param string $name
-     */
-    public function applyLocalisedStringToDescription(
-        LocalisedString $localisedString,
-        string $type,
-        string $name
-    ): void {
-        foreach ($localisedString->getTranslations() as $locale => $value) {
-            $translation = $this->getTranslation($locale, $type, $name);
-            $translation->setDescription($value);
+        foreach ($descriptions->getTranslations() as $locale => $description) {
+            $this->createTranslation($locale, $type, $name)->setDescription($description);
         }
-    }
-
-    /**
-     * Applies the localised string to the duplication flags of the respective translations.
-     * @param LocalisedString $localisedString
-     * @param string $type
-     * @param string $name
-     * @param bool $isDuplicatedByMachine
-     * @param bool $isDuplicatedByRecipe
-     */
-    public function applyLocalisedStringToDuplicationFlags(
-        LocalisedString $localisedString,
-        string $type,
-        string $name,
-        bool $isDuplicatedByMachine,
-        bool $isDuplicatedByRecipe
-    ): void {
-        foreach ($localisedString->getTranslations() as $locale => $value) {
-            $translation = $this->getTranslation($locale, $type, $name);
-            $translation->setIsDuplicatedByMachine($isDuplicatedByMachine)
-                        ->setIsDuplicatedByRecipe($isDuplicatedByRecipe);
-        }
+        return $this;
     }
 
     /**
@@ -107,55 +48,87 @@ class TranslationAggregator
      * @param string $name
      * @return Translation
      */
-    protected function getTranslation(string $locale, string $type, string $name): Translation
+    protected function createTranslation(string $locale, string $type, string $name): Translation
     {
-        $key = self::getIdentifier($locale, $type, $name);
-        if (!isset($this->translations[$key])) {
-            $this->translations[$key] = $this->createTranslation($locale, $type, $name);
+        if (!isset($this->translations[$locale][$type][$name])) {
+            $translation = new Translation();
+            $translation->setLocale($locale)
+                        ->setType($type)
+                        ->setName($name);
+            $this->translations[$locale][$type][$name] = $translation;
         }
-        return $this->translations[$key];
+        return $this->translations[$locale][$type][$name];
     }
 
     /**
-     * Creates a new translation entity.
-     * @param string $locale
-     * @param string $type
-     * @param string $name
-     * @return Translation
+     * Optimizes the translations.
+     * @return $this
      */
-    protected function createTranslation(string $locale, string $type, string $name): Translation
+    public function optimize(): self
     {
-        return new Translation($this->combination, $locale, $type, $name);
+        $this->optimizeType(EntityType::MACHINE, function (Translation $translation): void {
+            $translation->setIsDuplicatedByMachine(true);
+        });
+        $this->optimizeType(EntityType::RECIPE, function (Translation $translation): void {
+            $translation->setIsDuplicatedByRecipe(true);
+        });
+
+        return $this;
+    }
+
+    /**
+     * Optimizes a type of translations.
+     * @param string $type
+     * @param callable $callbackMarkAsDuplicate
+     */
+    protected function optimizeType(string $type, callable $callbackMarkAsDuplicate): void
+    {
+        foreach ($this->translations as $locale => $translationsByLocale) {
+            foreach ($translationsByLocale[$type] ?? [] as $name => $translation) {
+                $duplicatingTranslation = $this->getDuplicatingTranslation($translation);
+                if ($duplicatingTranslation !== null) {
+                    $callbackMarkAsDuplicate($duplicatingTranslation);
+                    unset($this->translations[$locale][$type][$name]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the translation duplicating the specified one, if there is any.
+     * @param Translation $translation
+     * @return Translation|null
+     */
+    protected function getDuplicatingTranslation(Translation $translation): ?Translation
+    {
+        foreach ([EntityType::ITEM, EntityType::FLUID] as $type) {
+            $possibleDuplicate = $this->translations[$translation->getLocale()][$type][$translation->getName()] ?? null;
+            if ($possibleDuplicate !== null
+                && $translation->getValue() === $possibleDuplicate->getValue()
+                && ($translation->getDescription() === ''
+                    || $translation->getDescription() === $possibleDuplicate->getDescription()
+                )
+            ) {
+                return $possibleDuplicate;
+            }
+        }
+        return null;
     }
 
     /**
      * Returns the aggregated translations.
      * @return array|Translation[]
      */
-    public function getAggregatedTranslations(): array
+    public function getTranslations(): array
     {
-        return $this->translations;
-    }
-
-    /**
-     * Returns the identifier for the specified values.
-     * @param string $locale
-     * @param string $type
-     * @param string $name
-     * @return string
-     */
-    public static function getIdentifier(string $locale, string $type, string $name): string
-    {
-        return EntityUtils::buildIdentifier([$locale, $type, $name]);
-    }
-
-    /**
-     * Returns the identifier of the specified translation.
-     * @param Translation $translation
-     * @return string
-     */
-    public static function getIdentifierOfTranslation(Translation $translation): string
-    {
-        return self::getIdentifier($translation->getLocale(), $translation->getType(), $translation->getName());
+        $result = [];
+        foreach ($this->translations as $translationsByLocale) {
+            foreach ($translationsByLocale as $translationsByType) {
+                foreach ($translationsByType as $translation) {
+                    $result[] = $translation;
+                }
+            }
+        }
+        return $result;
     }
 }

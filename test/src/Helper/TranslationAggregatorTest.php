@@ -284,7 +284,7 @@ class TranslationAggregatorTest extends TestCase
      * @param Translation $expectedResult
      * @param array|Translation[] $expectedTranslations
      * @throws ReflectionException
-     * @covers ::getTranslation
+     * @covers ::createTranslation
      * @dataProvider provideGetTranslation
      */
     public function testGetTranslation(
