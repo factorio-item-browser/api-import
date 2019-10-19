@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
+use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\IconImage;
+use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
-use FactorioItemBrowser\Api\Import\Constant\ParameterName;
+use FactorioItemBrowser\ExportData\Entity\Icon;
+use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
 use Ramsey\Uuid\Uuid;
-use Zend\Console\Adapter\AdapterInterface;
-use ZF\Console\Route;
 
 /**
  * The command for importing all the image data of a combination.
@@ -19,19 +20,13 @@ use ZF\Console\Route;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ImportImagesCommand implements CommandInterface
+class ImportImagesCommand extends AbstractCombinationImportCommand
 {
     /**
      * The entity manager.
      * @var EntityManagerInterface
      */
     protected $entityManager;
-
-    /**
-     * The export data service.
-     * @var ExportDataService
-     */
-    protected $exportDataService;
 
     /**
      * The icon image repository.
@@ -41,44 +36,57 @@ class ImportImagesCommand implements CommandInterface
 
     /**
      * Initializes the command.
+     * @param CombinationRepository $combinationRepository
      * @param EntityManagerInterface $entityManager
      * @param ExportDataService $exportDataService
      * @param IconImageRepository $iconImageRepository
      */
     public function __construct(
+        CombinationRepository $combinationRepository,
         EntityManagerInterface $entityManager,
         ExportDataService $exportDataService,
         IconImageRepository $iconImageRepository
     ) {
+        parent::__construct($combinationRepository, $exportDataService);
         $this->entityManager = $entityManager;
-        $this->exportDataService = $exportDataService;
         $this->iconImageRepository = $iconImageRepository;
     }
 
     /**
-     * Invokes the command.
-     * @param Route $route
-     * @param AdapterInterface $consoleAdapter
-     * @return int
+     * Imports the export data into the combination.
+     * @param ExportData $exportData
+     * @param Combination $combination
      */
-    public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
+    protected function import(ExportData $exportData, Combination $combination): void
     {
-        $combinationId = $route->getMatchedParam(ParameterName::COMBINATION, '');
-
-        $exportData = $this->exportDataService->loadExport($combinationId);
         foreach ($exportData->getCombination()->getIcons() as $icon) {
-            $image = $this->iconImageRepository->findByIds([Uuid::fromString($icon->getHash())])[0];
-            if (!$image instanceof IconImage) {
-                continue;
+            $image = $this->getImage($icon);
+            if ($image !== null) {
+                $image->setContents($exportData->getRenderedIcon($icon));
+                $this->persist($image);
             }
-
-            $image->setContents($exportData->getRenderedIcon($icon));
-
-            $this->entityManager->persist($image);
-            $this->entityManager->flush();
-            $this->entityManager->detach($image);
         }
+    }
 
-        return 0;
+    /**
+     * Returns the image entity to the icon.
+     * @param Icon $icon
+     * @return IconImage|null
+     */
+    protected function getImage(Icon $icon): ?IconImage
+    {
+        $images = $this->iconImageRepository->findByIds([Uuid::fromString($icon->getHash())]);
+        return array_shift($images);
+    }
+
+    /**
+     * Persists the image into the database.
+     * @param IconImage $image
+     */
+    protected function persist(IconImage $image): void
+    {
+        $this->entityManager->persist($image);
+        $this->entityManager->flush();
+        $this->entityManager->detach($image);
     }
 }

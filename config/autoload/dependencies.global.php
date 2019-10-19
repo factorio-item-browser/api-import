@@ -18,6 +18,7 @@ use function BluePsyduck\ZendAutoWireFactory\injectAliasArray;
 return [
     'dependencies' => [
         'factories'  => [
+            Command\ImportCommand::class => AutoWireFactory::class,
             Command\ImportImagesCommand::class => AutoWireFactory::class,
             Command\ImportTranslationsCommand::class => AutoWireFactory::class,
             Command\ProcessCommand::class => AutoWireFactory::class,

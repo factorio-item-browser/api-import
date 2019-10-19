@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import\Command;
 
 use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Machine;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
-use FactorioItemBrowser\Api\Import\Constant\ParameterName;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
 use FactorioItemBrowser\Common\Constant\EntityType;
@@ -20,36 +18,15 @@ use FactorioItemBrowser\ExportData\Entity\Mod;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
-use Ramsey\Uuid\Uuid;
-use Zend\Console\Adapter\AdapterInterface;
-use ZF\Console\Route;
 
 /**
- *
+ * The command for importing the translations of a combination.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ImportTranslationsCommand implements CommandInterface
+class ImportTranslationsCommand extends AbstractCombinationImportCommand
 {
-    /**
-     * The combination repository.
-     * @var CombinationRepository
-     */
-    protected $combinationRepository;
-
-    /**
-     * The export data service.
-     * @var ExportDataService
-     */
-    protected $exportDataService;
-
-    /**
-     * The entity manager.
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
     /**
      * The id calculator.
      * @var IdCalculator
@@ -63,45 +40,34 @@ class ImportTranslationsCommand implements CommandInterface
     protected $translationRepository;
 
     /**
-     * ImportTranslationsCommand constructor.
+     * Initializes the command.
      * @param CombinationRepository $combinationRepository
      * @param ExportDataService $exportDataService
-     * @param EntityManagerInterface $entityManager
      * @param IdCalculator $idCalculator
      * @param TranslationRepository $translationRepository
      */
     public function __construct(
         CombinationRepository $combinationRepository,
         ExportDataService $exportDataService,
-        EntityManagerInterface $entityManager,
         IdCalculator $idCalculator,
         TranslationRepository $translationRepository
     ) {
-        $this->combinationRepository = $combinationRepository;
-        $this->exportDataService = $exportDataService;
-        $this->entityManager = $entityManager;
+        parent::__construct($combinationRepository, $exportDataService);
         $this->idCalculator = $idCalculator;
         $this->translationRepository = $translationRepository;
     }
 
     /**
-     * Invokes the command.
-     * @param Route $route
-     * @param AdapterInterface $consoleAdapter
-     * @return int
+     * Imports the export data into the combination.
+     * @param ExportData $exportData
+     * @param Combination $combination
      * @throws DBALException
      */
-    public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
+    protected function import(ExportData $exportData, Combination $combination): void
     {
-        $combinationId = $route->getMatchedParam(ParameterName::COMBINATION, '');
-        $exportData = $this->exportDataService->loadExport($combinationId);
-        $combination = $this->combinationRepository->findById(Uuid::fromString($combinationId));
-
         $translations = $this->process($exportData);
         $this->hydrateIds($translations);
         $this->translationRepository->persistTranslationsToCombination($combination, $translations);
-
-        return 0;
     }
 
     /**

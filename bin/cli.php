@@ -32,7 +32,8 @@ require(__DIR__ . '/../vendor/autoload.php');
         $dispatcher
     );
 
-    $application->setBannerDisabledForUserCommands(isset($_ENV['SUBCMD']));
+    $application->setDebug($config['debug'])
+                ->setBannerDisabledForUserCommands(isset($_ENV['SUBCMD']));
 
     $exit = $application->run();
     exit ($exit);

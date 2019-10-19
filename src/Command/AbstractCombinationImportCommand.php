@@ -4,33 +4,28 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
-use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
+use FactorioItemBrowser\Api\Import\Constant\ParameterName;
+use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
+use Ramsey\Uuid\Uuid;
 use Zend\Console\Adapter\AdapterInterface;
 use ZF\Console\Route;
 
 /**
- * The command for processing the next job in the import queue.
+ * The abstract class of commands importing data into a combination.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ProcessCommand implements CommandInterface
+abstract class AbstractCombinationImportCommand implements CommandInterface
 {
     /**
      * The combination repository.
      * @var CombinationRepository
      */
     protected $combinationRepository;
-
-    /**
-     * The entity manager.
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
 
     /**
      * The export data service.
@@ -40,13 +35,13 @@ class ProcessCommand implements CommandInterface
 
     /**
      * Initializes the command.
+     * @param CombinationRepository $combinationRepository
      * @param ExportDataService $exportDataService
      */
-    public function __construct(EntityManagerInterface $entityManager, ExportDataService $exportDataService, array $importers)
+    public function __construct(CombinationRepository $combinationRepository, ExportDataService $exportDataService)
     {
-        $this->entityManager = $entityManager;
+        $this->combinationRepository = $combinationRepository;
         $this->exportDataService = $exportDataService;
-        $this->importers = $importers;
     }
 
     /**
@@ -57,8 +52,19 @@ class ProcessCommand implements CommandInterface
      */
     public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
     {
-        $exportData = $this->exportDataService->loadExport('6e6f47e8-5727-44c0-b759-ef9ed5f994a2');
+        $combinationId = Uuid::fromString($route->getMatchedParam(ParameterName::COMBINATION));
+        $exportData = $this->exportDataService->loadExport($combinationId->toString());
+        $combination = $this->combinationRepository->findById($combinationId);
 
+        $this->import($exportData, $combination);
 
+        return 0;
     }
+
+    /**
+     * Imports the export data into the combination.
+     * @param ExportData $exportData
+     * @param Combination $combination
+     */
+    abstract protected function import(ExportData $exportData, Combination $combination): void;
 }
