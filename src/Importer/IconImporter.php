@@ -80,8 +80,8 @@ class IconImporter implements ImporterInterface
     protected function processMods(array $mods): void
     {
         foreach ($mods as $mod) {
-            if ($mod->getThumbnailHash() !== '') {
-                $this->add($this->create(EntityType::MOD, $mod->getName(), $mod->getThumbnailHash()));
+            if ($mod->getThumbnailId() !== '') {
+                $this->add($this->create(EntityType::MOD, $mod->getName(), $mod->getThumbnailId()));
             }
         }
     }
@@ -93,8 +93,8 @@ class IconImporter implements ImporterInterface
     protected function processItems(array $items): void
     {
         foreach ($items as $item) {
-            if ($item->getIconHash() !== '') {
-                $this->add($this->create($item->getType(), $item->getName(), $item->getIconHash()));
+            if ($item->getIconId() !== '') {
+                $this->add($this->create($item->getType(), $item->getName(), $item->getIconId()));
             }
         }
     }
@@ -106,8 +106,8 @@ class IconImporter implements ImporterInterface
     protected function processMachines(array $machines): void
     {
         foreach ($machines as $machine) {
-            if ($machine->getIconHash() !== '') {
-                $this->add($this->create(EntityType::MACHINE, $machine->getName(), $machine->getIconHash()));
+            if ($machine->getIconId() !== '') {
+                $this->add($this->create(EntityType::MACHINE, $machine->getName(), $machine->getIconId()));
             }
         }
     }
@@ -119,8 +119,8 @@ class IconImporter implements ImporterInterface
     protected function processRecipes(array $recipes): void
     {
         foreach ($recipes as $recipe) {
-            if ($recipe->getIconHash() !== '') {
-                $this->add($this->create(EntityType::RECIPE, $recipe->getName(), $recipe->getIconHash()));
+            if ($recipe->getIconId() !== '') {
+                $this->add($this->create(EntityType::RECIPE, $recipe->getName(), $recipe->getIconId()));
             }
         }
     }

@@ -75,7 +75,7 @@ class IconImageImporter implements ImporterInterface
     public function create(Icon $icon): IconImage
     {
         $image = new IconImage();
-        $image->setId(Uuid::fromString($icon->getHash()))
+        $image->setId(Uuid::fromString($icon->getId()))
               ->setSize($icon->getRenderedSize());
 
         return $image;
@@ -97,10 +97,6 @@ class IconImageImporter implements ImporterInterface
      */
     public function parse(ExportData $exportData): void
     {
-        // @todo Importing the image files must happen later as of memory issues...
-//        foreach ($this->images as $image) {
-//            $image->setContents($exportData->getRenderedIcon($this->icons[$image->getId()->toString()]));
-//        }
     }
 
     /**

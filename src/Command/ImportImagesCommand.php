@@ -75,7 +75,7 @@ class ImportImagesCommand extends AbstractCombinationImportCommand
      */
     protected function getImage(Icon $icon): ?IconImage
     {
-        $images = $this->iconImageRepository->findByIds([Uuid::fromString($icon->getHash())]);
+        $images = $this->iconImageRepository->findByIds([Uuid::fromString($icon->getId())]);
         return array_shift($images);
     }
 
