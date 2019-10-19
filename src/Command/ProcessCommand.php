@@ -55,7 +55,7 @@ class ProcessCommand implements CommandInterface
      */
     public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
     {
-        $exportData = $this->exportDataService->loadExport('foo');
+        $exportData = $this->exportDataService->loadExport('6e6f47e8-5727-44c0-b759-ef9ed5f994a2');
 
         $qb = $this->entityManager->createQueryBuilder();
         $qb->select('c')
@@ -76,10 +76,10 @@ class ProcessCommand implements CommandInterface
         }
         $this->entityManager->flush();
 
-        foreach ($this->importers as $importer) {
-            $importer->cleanup();
-        }
-        $this->entityManager->flush();
+//        foreach ($this->importers as $importer) {
+//            $importer->cleanup();
+//        }
+//        $this->entityManager->flush();
         die;
     }
 }

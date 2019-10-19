@@ -8,6 +8,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Exception\MissingItemException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\ExportData;
@@ -115,10 +117,15 @@ class ItemImporter implements ImporterInterface
      * @param string $type
      * @param string $name
      * @return DatabaseItem
+     * @throws ImportException
      */
     public function getByTypeAndName(string $type, string $name): DatabaseItem
     {
-        return $this->itemsByTypeAndName[$type][$name];
+        if (isset($this->itemsByTypeAndName[$type][$name])) {
+            return $this->itemsByTypeAndName[$type][$name];
+        }
+
+        throw new MissingItemException($type, $name);
     }
 
     /**

@@ -18,11 +18,12 @@ return [
         ConfigKey::API_IMPORT => [
             ConfigKey::IMPORTERS => [
                 Importer\CraftingCategoryImporter::class,
+                Importer\IconImageImporter::class,
+                Importer\IconImporter::class,
                 Importer\ItemImporter::class,
                 Importer\MachineImporter::class,
                 Importer\ModImporter::class,
                 Importer\RecipeImporter::class,
-                Importer\TranslationImporter::class,
             ],
         ],
     ],

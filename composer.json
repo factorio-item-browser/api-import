@@ -20,6 +20,7 @@
     "factorio-item-browser/api-database": "dev-project-phoenix",
     "factorio-item-browser/common": "^1.0",
     "factorio-item-browser/export-data": "dev-project-phoenix",
+    "ramsey/uuid": "^3.8",
     "zendframework/zend-config-aggregator": "^1.0",
     "zendframework/zend-servicemanager": "^3.3",
     "zfcampus/zf-console": "^1.3"

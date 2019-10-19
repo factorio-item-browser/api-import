@@ -8,6 +8,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Exception\MissingCraftingCategoryException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\ExportData\ExportData;
 
@@ -110,11 +112,15 @@ class CraftingCategoryImporter implements ImporterInterface
      * Returns the crafting category with the specified name.
      * @param string $name
      * @return CraftingCategory
+     * @throws ImportException
      */
     public function getByName(string $name): CraftingCategory
     {
-        // @todo Exception if missing
-        return $this->craftingCategoriesByName[$name];
+        if (isset($this->craftingCategoriesByName[$name])) {
+            return $this->craftingCategoriesByName[$name];
+        }
+
+        throw new MissingCraftingCategoryException($name);
     }
 
     /**

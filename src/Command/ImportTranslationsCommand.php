@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\Api\Import\Importer;
+namespace FactorioItemBrowser\Api\Import\Command;
 
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Machine;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
+use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
+use FactorioItemBrowser\Api\Import\Constant\ParameterName;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
 use FactorioItemBrowser\Common\Constant\EntityType;
@@ -16,15 +19,37 @@ use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Mod;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\ExportData;
+use FactorioItemBrowser\ExportData\ExportDataService;
+use Ramsey\Uuid\Uuid;
+use Zend\Console\Adapter\AdapterInterface;
+use ZF\Console\Route;
 
 /**
- * The importer of the translations.
+ *
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class TranslationImporter implements ImporterInterface
+class ImportTranslationsCommand implements CommandInterface
 {
+    /**
+     * The combination repository.
+     * @var CombinationRepository
+     */
+    protected $combinationRepository;
+
+    /**
+     * The export data service.
+     * @var ExportDataService
+     */
+    protected $exportDataService;
+
+    /**
+     * The entity manager.
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
+
     /**
      * The id calculator.
      * @var IdCalculator
@@ -38,27 +63,53 @@ class TranslationImporter implements ImporterInterface
     protected $translationRepository;
 
     /**
-     * The parsed translations.
-     * @var array|Translation[]
-     */
-    protected $translations = [];
-
-    /**
-     * Initializes the importer.
+     * ImportTranslationsCommand constructor.
+     * @param CombinationRepository $combinationRepository
+     * @param ExportDataService $exportDataService
+     * @param EntityManagerInterface $entityManager
      * @param IdCalculator $idCalculator
      * @param TranslationRepository $translationRepository
      */
-    public function __construct(IdCalculator $idCalculator, TranslationRepository $translationRepository)
-    {
+    public function __construct(
+        CombinationRepository $combinationRepository,
+        ExportDataService $exportDataService,
+        EntityManagerInterface $entityManager,
+        IdCalculator $idCalculator,
+        TranslationRepository $translationRepository
+    ) {
+        $this->combinationRepository = $combinationRepository;
+        $this->exportDataService = $exportDataService;
+        $this->entityManager = $entityManager;
         $this->idCalculator = $idCalculator;
         $this->translationRepository = $translationRepository;
     }
 
     /**
-     * Prepares the data provided for the other importers.
-     * @param ExportData $exportData
+     * Invokes the command.
+     * @param Route $route
+     * @param AdapterInterface $consoleAdapter
+     * @return int
+     * @throws DBALException
      */
-    public function prepare(ExportData $exportData): void
+    public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
+    {
+        $combinationId = $route->getMatchedParam(ParameterName::COMBINATION, '');
+        $exportData = $this->exportDataService->loadExport($combinationId);
+        $combination = $this->combinationRepository->findById(Uuid::fromString($combinationId));
+
+        $translations = $this->process($exportData);
+        $this->hydrateIds($translations);
+        $this->translationRepository->persistTranslationsToCombination($combination, $translations);
+
+        return 0;
+    }
+
+    /**
+     * Processes all translations, returning the created entities.
+     * @param ExportData $exportData
+     * @return array|Translation[]
+     */
+    public function process(ExportData $exportData): array
     {
         $translationAggregator = new TranslationAggregator();
 
@@ -68,29 +119,7 @@ class TranslationImporter implements ImporterInterface
         $this->processRecipes($translationAggregator, $exportData->getCombination()->getRecipes());
 
         $translationAggregator->optimize();
-        $this->translations = $translationAggregator->getTranslations();
-    }
-
-    /**
-     * Actually parses the data, having access to data provided by other importers.
-     * @param ExportData $exportData
-     */
-    public function parse(ExportData $exportData): void
-    {
-        $ids = [];
-        $translationsByIds = [];
-        foreach ($this->translations as $translation) {
-            $id = $this->idCalculator->calculateIdOfTranslation($translation);
-            $translation->setId($id);
-
-            $ids[] = $id;
-            $translationsByIds[$id->toString()] = $translation;
-        }
-
-        foreach ($this->translationRepository->findByIds($ids) as $translation) {
-            $translationsByIds[$translation->getId()->toString()] = $translation;
-        }
-        $this->translations = $translationsByIds;
+        return $translationAggregator->getTranslations();
     }
 
     /**
@@ -160,26 +189,15 @@ class TranslationImporter implements ImporterInterface
             );
         }
     }
-    
-    /**
-     * Persists the parsed data to the combination.
-     * @param EntityManagerInterface $entityManager
-     * @param Combination $combination
-     */
-    public function persist(EntityManagerInterface $entityManager, Combination $combination): void
-    {
-        $combination->getTranslations()->clear();
-        foreach ($this->translations as $translation) {
-            $entityManager->persist($translation);
-            $combination->getTranslations()->add($translation);
-        }
-    }
 
     /**
-     * Cleans up any left-over data.
+     * Hydrates the ids to the translation entities.
+     * @param array|Translation[] $translations
      */
-    public function cleanup(): void
+    protected function hydrateIds(array $translations): void
     {
-//        $this->translationRepository->removeOrphans();
+        foreach ($translations as $translation) {
+            $translation->setId($this->idCalculator->calculateIdOfTranslation($translation));
+        }
     }
 }
