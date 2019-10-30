@@ -67,7 +67,7 @@ class ImportTranslationsCommand extends AbstractCombinationImportCommand
     {
         $translations = $this->process($exportData);
         $this->hydrateIds($translations);
-        $this->translationRepository->persistTranslationsToCombination($combination, $translations);
+        $this->translationRepository->persistTranslationsToCombination($combination->getId(), $translations);
     }
 
     /**

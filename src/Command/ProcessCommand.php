@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Command;
 
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\ExportQueue\Client\Client\Facade;
@@ -66,6 +68,7 @@ class ProcessCommand implements CommandInterface
      * @param AdapterInterface $consoleAdapter
      * @return int
      * @throws ClientException
+     * @throws Exception
      */
     public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
     {
@@ -122,6 +125,7 @@ class ProcessCommand implements CommandInterface
      * Fetches the combination or creates a new one if it does not yet exist.
      * @param Job $job
      * @return Combination
+     * @throws Exception
      */
     protected function fetchCombination(Job $job): Combination
     {
@@ -132,7 +136,9 @@ class ProcessCommand implements CommandInterface
         }
 
         $combination = new Combination();
-        $combination->setId($combinationId);
+        $combination->setId($combinationId)
+                    ->setImportTime(new DateTime())
+                    ->setLastUsageTime(new DateTime());
 
         $this->entityManager->persist($combination);
         $this->entityManager->flush();

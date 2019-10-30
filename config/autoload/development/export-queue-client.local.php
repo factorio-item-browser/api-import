@@ -17,7 +17,7 @@ return [
         ConfigKey::EXPORT_QUEUE_CLIENT => [
             ConfigKey::OPTIONS => [
                 ConfigKey::OPTION_API_URL => 'http://fib-eq-php',
-                ConfigKey::OPTION_API_KEY => 'factorio-item-browser',
+                ConfigKey::OPTION_API_KEY => 'debug',
             ],
         ],
     ],
