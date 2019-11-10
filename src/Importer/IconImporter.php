@@ -158,15 +158,39 @@ class IconImporter implements ImporterInterface
      */
     public function persist(EntityManagerInterface $entityManager, Combination $combination): void
     {
-        $combination->getIcons()->clear();
+        $persistedIcons = [];
+        foreach ($combination->getIcons() as $icon) {
+            $key = $this->getKeyForIcon($icon);
+            $persistedIcons[$key] = $icon;
+        }
+
         foreach ($this->icons as $type => $iconsByType) {
             foreach ($iconsByType as $name => $icon) {
                 $icon->setCombination($combination);
-                $entityManager->persist($icon);
 
-                $combination->getIcons()->add($icon);
+                $key = $this->getKeyForIcon($icon);
+                if (isset($persistedIcons[$key])) {
+                    $persistedIcons[$key]->setImage($icon->getImage());
+                    unset($persistedIcons[$key]);
+                } else {
+                    $entityManager->persist($icon);
+                }
             }
         }
+
+        foreach ($persistedIcons as $icon) {
+            $entityManager->remove($icon);
+        }
+    }
+
+    /**
+     * Returns  a key for the icon to detect duplicates.
+     * @param Icon $icon
+     * @return string
+     */
+    protected function getKeyForIcon(Icon $icon): string
+    {
+        return "{$icon->getCombination()->getId()->toString()}|{$icon->getType()}|{$icon->getName()}";
     }
 
     /**
