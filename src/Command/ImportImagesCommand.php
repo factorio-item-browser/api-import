@@ -9,6 +9,7 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\IconImage;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
+use FactorioItemBrowser\Api\Import\Console\Console;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
@@ -20,7 +21,7 @@ use Ramsey\Uuid\Uuid;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ImportImagesCommand extends AbstractCombinationImportCommand
+class ImportImagesCommand extends AbstractImportCommand
 {
     /**
      * The entity manager.
@@ -37,19 +38,30 @@ class ImportImagesCommand extends AbstractCombinationImportCommand
     /**
      * Initializes the command.
      * @param CombinationRepository $combinationRepository
+     * @param Console $console
      * @param EntityManagerInterface $entityManager
      * @param ExportDataService $exportDataService
      * @param IconImageRepository $iconImageRepository
      */
     public function __construct(
         CombinationRepository $combinationRepository,
+        Console $console,
         EntityManagerInterface $entityManager,
         ExportDataService $exportDataService,
         IconImageRepository $iconImageRepository
     ) {
-        parent::__construct($combinationRepository, $exportDataService);
+        parent::__construct($combinationRepository, $console, $exportDataService);
         $this->entityManager = $entityManager;
         $this->iconImageRepository = $iconImageRepository;
+    }
+
+    /**
+     * Returns a label describing what the import is doing.
+     * @return string
+     */
+    protected function getLabel(): string
+    {
+        return 'Processing the images of the icons';
     }
 
     /**
@@ -60,6 +72,7 @@ class ImportImagesCommand extends AbstractCombinationImportCommand
     protected function import(ExportData $exportData, Combination $combination): void
     {
         foreach ($exportData->getCombination()->getIcons() as $icon) {
+            $this->console->writeAction(sprintf('Importing image of icon %s', $icon->getId()));
             $image = $this->getImage($icon);
             if ($image !== null) {
                 $image->setContents($exportData->getRenderedIcon($icon));

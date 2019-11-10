@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Database\Entity\Machine;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
+use FactorioItemBrowser\Api\Import\Console\Console;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
 use FactorioItemBrowser\Common\Constant\EntityType;
@@ -25,7 +26,7 @@ use FactorioItemBrowser\ExportData\ExportDataService;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ImportTranslationsCommand extends AbstractCombinationImportCommand
+class ImportTranslationsCommand extends AbstractImportCommand
 {
     /**
      * The id calculator.
@@ -42,19 +43,30 @@ class ImportTranslationsCommand extends AbstractCombinationImportCommand
     /**
      * Initializes the command.
      * @param CombinationRepository $combinationRepository
+     * @param Console $console
      * @param ExportDataService $exportDataService
      * @param IdCalculator $idCalculator
      * @param TranslationRepository $translationRepository
      */
     public function __construct(
         CombinationRepository $combinationRepository,
+        Console $console,
         ExportDataService $exportDataService,
         IdCalculator $idCalculator,
         TranslationRepository $translationRepository
     ) {
-        parent::__construct($combinationRepository, $exportDataService);
+        parent::__construct($combinationRepository, $console, $exportDataService);
         $this->idCalculator = $idCalculator;
         $this->translationRepository = $translationRepository;
+    }
+
+    /**
+     * Returns a label describing what the import is doing.
+     * @return string
+     */
+    protected function getLabel(): string
+    {
+        return 'Processing the translations';
     }
 
     /**
@@ -67,6 +79,8 @@ class ImportTranslationsCommand extends AbstractCombinationImportCommand
     {
         $translations = $this->process($exportData);
         $this->hydrateIds($translations);
+
+        $this->console->writeAction('Persisting processed data');
         $this->translationRepository->persistTranslationsToCombination($combination->getId(), $translations);
     }
 
@@ -95,6 +109,7 @@ class ImportTranslationsCommand extends AbstractCombinationImportCommand
      */
     protected function processMods(TranslationAggregator $translationAggregator, array $mods): void
     {
+        $this->console->writeAction('Processing mods');
         foreach ($mods as $mod) {
             $translationAggregator->add(
                 EntityType::MOD,
@@ -112,6 +127,7 @@ class ImportTranslationsCommand extends AbstractCombinationImportCommand
      */
     protected function processItems(TranslationAggregator $translationAggregator, array $items): void
     {
+        $this->console->writeAction('Processing items');
         foreach ($items as $item) {
             $translationAggregator->add(
                 $item->getType(),
@@ -129,6 +145,7 @@ class ImportTranslationsCommand extends AbstractCombinationImportCommand
      */
     protected function processMachines(TranslationAggregator $translationAggregator, array $machines): void
     {
+        $this->console->writeAction('Processing machines');
         foreach ($machines as $machine) {
             $translationAggregator->add(
                 EntityType::MACHINE,
@@ -146,6 +163,7 @@ class ImportTranslationsCommand extends AbstractCombinationImportCommand
      */
     protected function processRecipes(TranslationAggregator $translationAggregator, array $recipes): void
     {
+        $this->console->writeAction('Processing recipes');
         foreach ($recipes as $recipe) {
             $translationAggregator->add(
                 EntityType::RECIPE,

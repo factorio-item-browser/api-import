@@ -9,25 +9,20 @@ declare(strict_types=1);
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
 
-namespace FactorioItemBrowser\Api\Import;
+namespace FactorioItemBrowser\Api\Server;
 
-use Doctrine\DBAL\Migrations\Tools\Console\Helper\ConfigurationHelper;
+use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Helper\HelperSet;
-use Symfony\Component\Console\Helper\QuestionHelper;
 
 /* @var ContainerInterface $container */
-$container = require(__DIR__  . '/container.php');
+$container = require(__DIR__ . '/../config/container.php');
 /* @var EntityManagerInterface $entityManager */
 $entityManager = $container->get(EntityManagerInterface::class);
 
 return new HelperSet([
     'em' => new EntityManagerHelper($entityManager),
-    'question' => new QuestionHelper(),
-    'configuration' => new ConfigurationHelper(
-        $entityManager->getConnection(),
-        $container->get('doctrine.migrations.orm_default')
-    ),
+    'db' => new ConnectionHelper($entityManager->getConnection()),
 ]);

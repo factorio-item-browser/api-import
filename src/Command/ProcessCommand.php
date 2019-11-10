@@ -9,6 +9,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
+use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
 use FactorioItemBrowser\ExportQueue\Client\Client\Facade;
 use FactorioItemBrowser\ExportQueue\Client\Constant\JobStatus;
 use FactorioItemBrowser\ExportQueue\Client\Entity\Job;
@@ -29,10 +31,10 @@ use ZF\Console\Route;
 class ProcessCommand implements CommandInterface
 {
     /**
-     * The export queue facade.
-     * @var Facade
+     * The console.
+     * @var Console
      */
-    protected $exportQueueFacade;
+    protected $console;
 
     /**
      * The combination repository.
@@ -47,19 +49,28 @@ class ProcessCommand implements CommandInterface
     protected $entityManager;
 
     /**
+     * The export queue facade.
+     * @var Facade
+     */
+    protected $exportQueueFacade;
+
+    /**
      * Initializes the command.
-     * @param Facade $exportQueueFacade
      * @param CombinationRepository $combinationRepository
+     * @param Console $console
      * @param EntityManagerInterface $entityManager
+     * @param Facade $exportQueueFacade
      */
     public function __construct(
-        Facade $exportQueueFacade,
         CombinationRepository $combinationRepository,
-        EntityManagerInterface $entityManager
+        Console $console,
+        EntityManagerInterface $entityManager,
+        Facade $exportQueueFacade
     ) {
-        $this->exportQueueFacade = $exportQueueFacade;
         $this->combinationRepository = $combinationRepository;
+        $this->console = $console;
         $this->entityManager = $entityManager;
+        $this->exportQueueFacade = $exportQueueFacade;
     }
 
     /**
@@ -67,25 +78,23 @@ class ProcessCommand implements CommandInterface
      * @param Route $route
      * @param AdapterInterface $consoleAdapter
      * @return int
-     * @throws ClientException
      * @throws Exception
      */
     public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
     {
-        $exportJob = $this->fetchNextJob();
-        if ($exportJob === null) {
+        try {
+            $job = $this->fetchNextJob();
+            if ($job === null) {
+                $this->console->writeMessage('No job to import. Done.');
+                return 0;
+            }
+
+            $this->processJob($job);
             return 0;
+        } catch (Exception $e) {
+            $this->console->writeException($e);
+            return 1;
         }
-
-        $exportJob = $this->updateJobStatus($exportJob, JobStatus::IMPORTING);
-        $combination = $this->fetchCombination($exportJob);
-
-        $this->runImportCommand('import', $combination);
-        $this->runImportCommand('import-images', $combination);
-        $this->runImportCommand('import-translations', $combination);
-
-        $this->updateJobStatus($exportJob, JobStatus::DONE);
-        return 0;
     }
 
     /**
@@ -101,6 +110,26 @@ class ProcessCommand implements CommandInterface
 
         $response = $this->exportQueueFacade->getJobList($request);
         return $response->getJobs()[0] ?? null;
+    }
+
+    /**
+     * Processes the job.
+     * @param Job $job
+     * @throws Exception
+     */
+    protected function processJob(Job $job): void
+    {
+        $this->console->writeHeadline(sprintf('Importing combination %s', $job->getCombinationId()));
+
+        $job = $this->updateJobStatus($job, JobStatus::IMPORTING);
+        $combination = $this->fetchCombination($job);
+
+        $this->runImportCommand('import', $combination);
+        $this->runImportCommand('import-images', $combination);
+        $this->runImportCommand('import-translations', $combination);
+
+        $this->updateJobStatus($job, JobStatus::DONE);
+        $this->console->writeStep('Done.');
     }
 
     /**
@@ -153,19 +182,24 @@ class ProcessCommand implements CommandInterface
      */
     protected function runImportCommand(string $commandName, Combination $combination): void
     {
-        $process = new Process([
-            'php',
-            $_SERVER['SCRIPT_FILENAME'],
-            $commandName,
-            $combination->getId()->toString(),
-        ], null, ['SUBCMD' => 1]);
-        $process->setTimeout(0);
-
+        $process = $this->createImportCommand($commandName, $combination);
         $process->run();
-        echo $process->getOutput();
+
+        $this->console->writeData($process->getOutput());
         if (!$process->isSuccessful()) {
-            echo $process->getErrorOutput();
+            echo "Command failed. Abort.";
             die;
         }
+    }
+
+    /**
+     * Creates a process to run an import command.
+     * @param string $commandName
+     * @param Combination $combination
+     * @return Process
+     */
+    protected function createImportCommand(string $commandName, Combination $combination): Process
+    {
+        return new ImportCommandProcess($commandName, $combination);
     }
 }

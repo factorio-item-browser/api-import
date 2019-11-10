@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\ExportData;
@@ -72,6 +73,7 @@ class MachineImporter implements ImporterInterface
     /**
      * Actually parses the data, having access to data provided by other importers.
      * @param ExportData $exportData
+     * @throws ImportException
      */
     public function parse(ExportData $exportData): void
     {
@@ -91,6 +93,7 @@ class MachineImporter implements ImporterInterface
      * Maps the export machine to a database one.
      * @param ExportMachine $exportMachine
      * @return DatabaseMachine
+     * @throws ImportException
      */
     protected function map(ExportMachine $exportMachine): DatabaseMachine
     {

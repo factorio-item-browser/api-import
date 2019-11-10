@@ -7,6 +7,7 @@ namespace FactorioItemBrowser\Api\Import\Command;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
+use FactorioItemBrowser\Api\Import\Console\Console;
 use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
@@ -17,7 +18,7 @@ use FactorioItemBrowser\ExportData\ExportDataService;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ImportCommand extends AbstractCombinationImportCommand
+class ImportCommand extends AbstractImportCommand
 {
     /**
      * The entity manager.
@@ -34,20 +35,31 @@ class ImportCommand extends AbstractCombinationImportCommand
     /**
      * Initializes the command.
      * @param CombinationRepository $combinationRepository
+     * @param Console $console
      * @param EntityManagerInterface $entityManager
      * @param ExportDataService $exportDataService
      * @param ImporterInterface[] $importers
      */
     public function __construct(
         CombinationRepository $combinationRepository,
+        Console $console,
         EntityManagerInterface $entityManager,
         ExportDataService $exportDataService,
         array $importers
     )
     {
-        parent::__construct($combinationRepository, $exportDataService);
+        parent::__construct($combinationRepository, $console, $exportDataService);
         $this->entityManager = $entityManager;
         $this->importers = $importers;
+    }
+
+    /**
+     * Returns a label describing what the import is doing.
+     * @return string
+     */
+    protected function getLabel(): string
+    {
+        return 'Processing the main data of the combination';
     }
 
     /**
@@ -57,22 +69,26 @@ class ImportCommand extends AbstractCombinationImportCommand
      */
     protected function import(ExportData $exportData, Combination $combination): void
     {
+        $this->console->writeAction('Preparing importers');
         foreach ($this->importers as $importer) {
             $importer->prepare($exportData);
         }
 
+        $this->console->writeAction('Parsing the export data');
         foreach ($this->importers as $importer) {
             $importer->parse($exportData);
         }
 
+        $this->console->writeAction('Persisting the parsed data');
         foreach ($this->importers as $importer) {
             $importer->persist($this->entityManager, $combination);
         }
         $this->entityManager->flush();
 
-//        foreach ($this->importers as $importer) {
-//            $importer->cleanup();
-//        }
-//        $this->entityManager->flush();
+        $this->console->writeAction('Cleaning up obsolete data');
+        foreach ($this->importers as $importer) {
+            $importer->cleanup();
+        }
+        $this->entityManager->flush();
     }
 }

@@ -13,7 +13,10 @@ namespace FactorioItemBrowser\Api\Import;
 
 use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
 use FactorioItemBrowser\Api\Import\Constant\ConfigKey;
+use Zend\Console\Adapter\AdapterInterface;
+use Zend\Console\Console as ZendConsole;
 use function BluePsyduck\ZendAutoWireFactory\injectAliasArray;
+use function BluePsyduck\ZendAutoWireFactory\readConfig;
 
 return [
     'dependencies' => [
@@ -22,6 +25,8 @@ return [
             Command\ImportImagesCommand::class => AutoWireFactory::class,
             Command\ImportTranslationsCommand::class => AutoWireFactory::class,
             Command\ProcessCommand::class => AutoWireFactory::class,
+
+            Console\Console::class => AutoWireFactory::class,
 
             Helper\IdCalculator::class => AutoWireFactory::class,
 
@@ -35,6 +40,11 @@ return [
 
             // Auto-wire helpers
             'array $importers' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORTERS),
+
+            'bool $isDebug' => readConfig('debug'),
+        ],
+        'services' => [
+            AdapterInterface::class => ZendConsole::getInstance(),
         ],
     ],
 ];
