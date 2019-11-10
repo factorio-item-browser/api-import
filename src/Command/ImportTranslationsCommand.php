@@ -6,7 +6,6 @@ namespace FactorioItemBrowser\Api\Import\Command;
 
 use Doctrine\DBAL\DBALException;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
-use FactorioItemBrowser\Api\Database\Entity\Machine;
 use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
@@ -15,6 +14,7 @@ use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\Item;
+use FactorioItemBrowser\ExportData\Entity\Machine;
 use FactorioItemBrowser\ExportData\Entity\Mod;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\ExportData;

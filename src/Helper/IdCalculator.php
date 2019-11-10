@@ -137,6 +137,6 @@ class IdCalculator
      */
     protected function calculateId(array $data): UuidInterface
     {
-        return Uuid::fromString(hash('md5', json_encode($data)));
+        return Uuid::fromString(hash('md5', (string) json_encode($data)));
     }
 }

@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient as DatabaseIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct as DatabaseProduct;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient as ExportIngredient;
@@ -85,6 +86,7 @@ class RecipeImporter implements ImporterInterface
     /**
      * Actually parses the data, having access to data provided by other importers.
      * @param ExportData $exportData
+     * @throws ImportException
      */
     public function parse(ExportData $exportData): void
     {
@@ -104,6 +106,7 @@ class RecipeImporter implements ImporterInterface
      * Maps the export recipe to a database one.
      * @param ExportRecipe $exportRecipe
      * @return DatabaseRecipe
+     * @throws ImportException
      */
     protected function mapRecipe(ExportRecipe $exportRecipe): DatabaseRecipe
     {
@@ -137,14 +140,15 @@ class RecipeImporter implements ImporterInterface
      * Maps the export ingredient to a database one.
      * @param ExportIngredient $exportIngredient
      * @return DatabaseIngredient
+     * @throws ImportException
      */
     protected function mapIngredient(ExportIngredient $exportIngredient): DatabaseIngredient
     {
         $databaseIngredient = new DatabaseIngredient();
         $databaseIngredient->setItem($this->itemImporter->getByTypeAndName(
-                               $exportIngredient->getType(),
-                               $exportIngredient->getName()
-                           ))
+            $exportIngredient->getType(),
+            $exportIngredient->getName()
+        ))
                            ->setAmount($exportIngredient->getAmount());
         return $databaseIngredient;
     }
@@ -153,14 +157,15 @@ class RecipeImporter implements ImporterInterface
      * Maps the export product to a database one.
      * @param ExportProduct $exportProduct
      * @return DatabaseProduct
+     * @throws ImportException
      */
     protected function mapProduct(ExportProduct $exportProduct): DatabaseProduct
     {
         $databaseProduct = new DatabaseProduct();
         $databaseProduct->setItem($this->itemImporter->getByTypeAndName(
-                               $exportProduct->getType(),
-                               $exportProduct->getName()
-                           ))
+            $exportProduct->getType(),
+            $exportProduct->getName()
+        ))
                            ->setAmountMin($exportProduct->getAmountMin())
                            ->setAmountMax($exportProduct->getAmountMax())
                            ->setProbability($exportProduct->getProbability());

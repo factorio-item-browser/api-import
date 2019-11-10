@@ -42,7 +42,7 @@ class ItemImporter implements ImporterInterface
 
     /**
      * The items by their type and name.
-     * @var array|DatabaseItem[]
+     * @var array|DatabaseItem[][]
      */
     protected $itemsByTypeAndName = [];
 

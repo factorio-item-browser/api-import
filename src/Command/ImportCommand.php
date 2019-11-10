@@ -46,8 +46,7 @@ class ImportCommand extends AbstractImportCommand
         EntityManagerInterface $entityManager,
         ExportDataService $exportDataService,
         array $importers
-    )
-    {
+    ) {
         parent::__construct($combinationRepository, $console, $exportDataService);
         $this->entityManager = $entityManager;
         $this->importers = $importers;

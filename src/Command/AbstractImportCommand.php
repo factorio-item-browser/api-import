@@ -8,6 +8,7 @@ use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
 use Ramsey\Uuid\Uuid;
@@ -70,6 +71,11 @@ abstract class AbstractImportCommand implements CommandInterface
             $combinationId = Uuid::fromString($route->getMatchedParam('combination'));
             $exportData = $this->exportDataService->loadExport($combinationId->toString());
             $combination = $this->combinationRepository->findById($combinationId);
+
+            if ($combination === null) {
+                // @todo Create specific exception.
+                throw new ImportException('Combination is missing which should exist.');
+            }
 
             $this->import($exportData, $combination);
             return 0;
