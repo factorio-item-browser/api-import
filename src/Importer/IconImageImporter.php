@@ -8,6 +8,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\IconImage;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Exception\MissingIconImageException;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\ExportData;
 use Ramsey\Uuid\Uuid;
@@ -25,12 +27,6 @@ class IconImageImporter implements ImporterInterface
      * @var IconImageRepository
      */
     protected $iconImageRepository;
-
-    /**
-     * The icons of the export.
-     * @var array|Icon[]
-     */
-    protected $icons = [];
 
     /**
      * The parsed icon images.
@@ -53,17 +49,18 @@ class IconImageImporter implements ImporterInterface
      */
     public function prepare(ExportData $exportData): void
     {
+        $this->images = [];
+
         $ids = [];
         foreach ($exportData->getCombination()->getIcons() as $icon) {
             $image = $this->create($icon);
             $ids[] = $image->getId();
 
-            $this->icons[$image->getId()->toString()] = $icon;
-            $this->images[$image->getId()->toString()] = $image;
+            $this->add($image);
         }
 
         foreach ($this->iconImageRepository->findByIds($ids) as $image) {
-            $this->images[$image->getId()->toString()] = $image;
+            $this->add($image);
         }
     }
 
@@ -82,13 +79,27 @@ class IconImageImporter implements ImporterInterface
     }
 
     /**
+     * Adds an image to the local properties of the importer.
+     * @param IconImage $image
+     */
+    protected function add(IconImage $image): void
+    {
+        $this->images[$image->getId()->toString()] = $image;
+    }
+
+    /**
      * Returns the icon image with the specified id.
      * @param string $id
      * @return IconImage
+     * @throws ImportException
      */
     public function getById(string $id): IconImage
     {
-        return $this->images[$id];
+        if (isset($this->images[$id])) {
+            return $this->images[$id];
+        }
+
+        throw new MissingIconImageException($id);
     }
 
     /**

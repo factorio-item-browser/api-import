@@ -34,16 +34,10 @@ class CraftingCategoryImporter implements ImporterInterface
     protected $idCalculator;
 
     /**
-     * The crafting categories.
-     * @var array|CraftingCategory[]
-     */
-    protected $craftingCategories = [];
-
-    /**
      * The crafting categories by their name.
      * @var array|CraftingCategory[]
      */
-    protected $craftingCategoriesByName = [];
+    protected $craftingCategories = [];
 
     /**
      * Initializes the importer.
@@ -63,20 +57,21 @@ class CraftingCategoryImporter implements ImporterInterface
     public function prepare(ExportData $exportData): void
     {
         $this->craftingCategories = [];
-        $this->craftingCategoriesByName = [];
 
         $ids = [];
         foreach ($exportData->getCombination()->getMachines() as $machine) {
             foreach ($machine->getCraftingCategories() as $name) {
                 $craftingCategory = $this->create($name);
-                $this->add($craftingCategory);
                 $ids[] = $craftingCategory->getId();
+
+                $this->add($craftingCategory);
             }
         }
         foreach ($exportData->getCombination()->getRecipes() as $recipe) {
             $craftingCategory = $this->create($recipe->getCraftingCategory());
-            $this->add($craftingCategory);
             $ids[] = $craftingCategory->getId();
+
+            $this->add($craftingCategory);
         }
 
         foreach ($this->craftingCategoryRepository->findByIds($ids) as $craftingCategory) {
@@ -104,8 +99,7 @@ class CraftingCategoryImporter implements ImporterInterface
      */
     protected function add(CraftingCategory $craftingCategory): void
     {
-        $this->craftingCategories[$craftingCategory->getId()->toString()] = $craftingCategory;
-        $this->craftingCategoriesByName[$craftingCategory->getName()] = $craftingCategory;
+        $this->craftingCategories[$craftingCategory->getName()] = $craftingCategory;
     }
 
     /**
@@ -116,8 +110,8 @@ class CraftingCategoryImporter implements ImporterInterface
      */
     public function getByName(string $name): CraftingCategory
     {
-        if (isset($this->craftingCategoriesByName[$name])) {
-            return $this->craftingCategoriesByName[$name];
+        if (isset($this->craftingCategories[$name])) {
+            return $this->craftingCategories[$name];
         }
 
         throw new MissingCraftingCategoryException($name);

@@ -66,13 +66,14 @@ class ModImporter implements ImporterInterface
     {
         $ids = [];
         foreach ($exportData->getCombination()->getMods() as $exportMod) {
-            $databaseMachine = $this->map($exportMod);
-            $this->mods[$databaseMachine->getId()->toString()] = $databaseMachine;
-            $ids[] = $databaseMachine->getId();
+            $databaseMod = $this->map($exportMod);
+            $ids[] = $databaseMod->getId();
+
+            $this->add($databaseMod);
         }
 
         foreach ($this->modRepository->findByIds($ids) as $mod) {
-            $this->mods[$mod->getId()->toString()] = $mod;
+            $this->add($mod);
         }
     }
 
@@ -90,6 +91,15 @@ class ModImporter implements ImporterInterface
 
         $databaseMod->setId($this->idCalculator->calculateIdOfMod($databaseMod));
         return $databaseMod;
+    }
+
+    /**
+     * Adds the mod to the local properties of the importer.
+     * @param DatabaseMod $mod
+     */
+    protected function add(DatabaseMod $mod): void
+    {
+        $this->mods[$mod->getId()->toString()] = $mod;
     }
 
     /**

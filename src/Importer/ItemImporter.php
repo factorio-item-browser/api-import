@@ -35,16 +35,10 @@ class ItemImporter implements ImporterInterface
     protected $itemRepository;
 
     /**
-     * The items.
-     * @var array|DatabaseItem[]
-     */
-    protected $items = [];
-
-    /**
      * The items by their type and name.
      * @var array|DatabaseItem[][]
      */
-    protected $itemsByTypeAndName = [];
+    protected $items = [];
 
     /**
      * Initializes the importer.
@@ -64,13 +58,13 @@ class ItemImporter implements ImporterInterface
     public function prepare(ExportData $exportData): void
     {
         $this->items = [];
-        $this->itemsByTypeAndName = [];
 
         $itemIds = [];
         foreach ($exportData->getCombination()->getItems() as $exportItem) {
             $databaseItem = $this->map($exportItem);
-            $this->add($databaseItem);
             $itemIds[] = $databaseItem->getId();
+
+            $this->add($databaseItem);
         }
 
         $existingItems = $this->itemRepository->findByIds($itemIds);
@@ -108,8 +102,7 @@ class ItemImporter implements ImporterInterface
      */
     protected function add(DatabaseItem $databaseItem): void
     {
-        $this->items[$databaseItem->getId()->toString()] = $databaseItem;
-        $this->itemsByTypeAndName[$databaseItem->getType()][$databaseItem->getName()] = $databaseItem;
+        $this->items[$databaseItem->getType()][$databaseItem->getName()] = $databaseItem;
     }
 
     /**
@@ -121,8 +114,8 @@ class ItemImporter implements ImporterInterface
      */
     public function getByTypeAndName(string $type, string $name): DatabaseItem
     {
-        if (isset($this->itemsByTypeAndName[$type][$name])) {
-            return $this->itemsByTypeAndName[$type][$name];
+        if (isset($this->items[$type][$name])) {
+            return $this->items[$type][$name];
         }
 
         throw new MissingItemException($type, $name);
@@ -136,9 +129,11 @@ class ItemImporter implements ImporterInterface
     public function persist(EntityManagerInterface $entityManager, Combination $combination): void
     {
         $combination->getItems()->clear();
-        foreach ($this->items as $item) {
-            $entityManager->persist($item);
-            $combination->getItems()->add($item);
+        foreach ($this->items as $type => $items) {
+            foreach ($items as $item) {
+                $entityManager->persist($item);
+                $combination->getItems()->add($item);
+            }
         }
     }
 
