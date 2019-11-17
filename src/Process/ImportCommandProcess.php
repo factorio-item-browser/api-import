@@ -28,6 +28,8 @@ class ImportCommandProcess extends Process
      */
     public function __construct(string $commandName, Combination $combination)
     {
+        $this->combination = $combination;
+
         parent::__construct([
             'php',
             $_SERVER['SCRIPT_FILENAME'],
