@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Icon;
 use FactorioItemBrowser\Api\Database\Repository\IconRepository;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
@@ -64,6 +65,7 @@ class IconImporter implements ImporterInterface
     /**
      * Actually parses the data, having access to data provided by other importers.
      * @param ExportData $exportData
+     * @throws ImportException
      */
     public function parse(ExportData $exportData): void
     {
@@ -76,6 +78,7 @@ class IconImporter implements ImporterInterface
     /**
      * Processes the mods.
      * @param array|Mod[] $mods
+     * @throws ImportException
      */
     protected function processMods(array $mods): void
     {
@@ -89,6 +92,7 @@ class IconImporter implements ImporterInterface
     /**
      * Processes the items.
      * @param array|Item[] $items
+     * @throws ImportException
      */
     protected function processItems(array $items): void
     {
@@ -102,6 +106,7 @@ class IconImporter implements ImporterInterface
     /**
      * Processes the machines.
      * @param array|Machine[] $machines
+     * @throws ImportException
      */
     protected function processMachines(array $machines): void
     {
@@ -115,6 +120,7 @@ class IconImporter implements ImporterInterface
     /**
      * Processes the recipes.
      * @param array|Recipe[] $recipes
+     * @throws ImportException
      */
     protected function processRecipes(array $recipes): void
     {
@@ -131,6 +137,7 @@ class IconImporter implements ImporterInterface
      * @param string $name
      * @param string $imageId
      * @return Icon
+     * @throws ImportException
      */
     protected function create(string $type, string $name, string $imageId): Icon
     {

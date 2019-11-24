@@ -19,7 +19,6 @@ use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\ExportData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
@@ -203,10 +202,8 @@ class ItemImporterTest extends TestCase
      */
     public function testAdd(): void
     {
-        $itemId = Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3');
         $item = new DatabaseItem();
-        $item->setId($itemId)
-             ->setName('abc')
+        $item->setName('abc')
              ->setType('def');
 
         $expectedItems = [

@@ -69,6 +69,22 @@ class ModImporterTest extends TestCase
     }
 
     /**
+     * Tests the prepare method.
+     * @throws ReflectionException
+     * @covers ::prepare
+     */
+    public function testPrepare(): void
+    {
+        /* @var ExportData&MockObject $exportData */
+        $exportData = $this->createMock(ExportData::class);
+
+        $importer = new ModImporter($this->idCalculator, $this->modRepository);
+        $importer->prepare($exportData);
+
+        $this->assertSame([], $this->extractProperty($importer, 'mods'));
+    }
+
+    /**
      * Tests the parse method.
      * @covers ::parse
      */
@@ -140,22 +156,6 @@ class ModImporterTest extends TestCase
                  );
 
         $importer->parse($exportData);
-    }
-
-    /**
-     * Tests the prepare method.
-     * @throws ReflectionException
-     * @covers ::prepare
-     */
-    public function testPrepare(): void
-    {
-        /* @var ExportData&MockObject $exportData */
-        $exportData = $this->createMock(ExportData::class);
-
-        $importer = new ModImporter($this->idCalculator, $this->modRepository);
-        $importer->prepare($exportData);
-
-        $this->assertSame([], $this->extractProperty($importer, 'mods'));
     }
 
     /**

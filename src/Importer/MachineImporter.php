@@ -80,12 +80,13 @@ class MachineImporter implements ImporterInterface
         $ids = [];
         foreach ($exportData->getCombination()->getMachines() as $exportMachine) {
             $databaseMachine = $this->map($exportMachine);
-            $this->machines[$databaseMachine->getId()->toString()] = $databaseMachine;
             $ids[] = $databaseMachine->getId();
+
+            $this->add($databaseMachine);
         }
 
         foreach ($this->machineRepository->findByIds($ids) as $machine) {
-            $this->machines[$machine->getId()->toString()] = $machine;
+            $this->add($machine);
         }
     }
 
@@ -115,6 +116,15 @@ class MachineImporter implements ImporterInterface
 
         $databaseMachine->setId($this->idCalculator->calculateIdOfMachine($databaseMachine));
         return $databaseMachine;
+    }
+
+    /**
+     * Adds the machine to the local properties.
+     * @param DatabaseMachine $machine
+     */
+    protected function add(DatabaseMachine $machine): void
+    {
+        $this->machines[$machine->getId()->toString()] = $machine;
     }
 
     /**

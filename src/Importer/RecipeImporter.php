@@ -94,11 +94,12 @@ class RecipeImporter implements ImporterInterface
         foreach ($exportData->getCombination()->getRecipes() as $exportRecipe) {
             $databaseRecipe = $this->mapRecipe($exportRecipe);
             $ids[] = $databaseRecipe->getId();
-            $this->recipes[$databaseRecipe->getId()->toString()] = $databaseRecipe;
+
+            $this->add($databaseRecipe);
         }
 
         foreach ($this->recipeRepository->findByIds($ids) as $recipe) {
-            $this->recipes[$recipe->getId()->toString()] = $recipe;
+            $this->add($recipe);
         }
     }
 
@@ -118,22 +119,27 @@ class RecipeImporter implements ImporterInterface
                        )
                        ->setCraftingTime($exportRecipe->getCraftingTime());
 
+        $this->mapIngredients($exportRecipe, $databaseRecipe);
+        $this->mapProducts($exportRecipe, $databaseRecipe);
+
+        $databaseRecipe->setId($this->idCalculator->calculateIdOfRecipe($databaseRecipe));
+        return $databaseRecipe;
+    }
+
+    /**
+     * Maps the ingredients from the export recipe to the database one.
+     * @param ExportRecipe $exportRecipe
+     * @param DatabaseRecipe $databaseRecipe
+     * @throws ImportException
+     */
+    protected function mapIngredients(ExportRecipe $exportRecipe, DatabaseRecipe $databaseRecipe): void
+    {
         foreach ($exportRecipe->getIngredients() as $index => $exportIngredient) {
             $databaseIngredient = $this->mapIngredient($exportIngredient);
             $databaseIngredient->setRecipe($databaseRecipe)
                                ->setOrder($index);
             $databaseRecipe->getIngredients()->add($databaseIngredient);
         }
-
-        foreach ($exportRecipe->getProducts() as $index => $exportProduct) {
-            $databaseProduct = $this->mapProduct($exportProduct);
-            $databaseProduct->setRecipe($databaseRecipe)
-                            ->setOrder($index);
-            $databaseRecipe->getProducts()->add($databaseProduct);
-        }
-
-        $databaseRecipe->setId($this->idCalculator->calculateIdOfRecipe($databaseRecipe));
-        return $databaseRecipe;
     }
 
     /**
@@ -146,11 +152,27 @@ class RecipeImporter implements ImporterInterface
     {
         $databaseIngredient = new DatabaseIngredient();
         $databaseIngredient->setItem($this->itemImporter->getByTypeAndName(
-            $exportIngredient->getType(),
-            $exportIngredient->getName()
-        ))
+                               $exportIngredient->getType(),
+                               $exportIngredient->getName()
+                           ))
                            ->setAmount($exportIngredient->getAmount());
         return $databaseIngredient;
+    }
+
+    /**
+     * Maps the products from the export recipe to the database one.
+     * @param ExportRecipe $exportRecipe
+     * @param DatabaseRecipe $databaseRecipe
+     * @throws ImportException
+     */
+    protected function mapProducts(ExportRecipe $exportRecipe, DatabaseRecipe $databaseRecipe): void
+    {
+        foreach ($exportRecipe->getProducts() as $index => $exportProduct) {
+            $databaseProduct = $this->mapProduct($exportProduct);
+            $databaseProduct->setRecipe($databaseRecipe)
+                            ->setOrder($index);
+            $databaseRecipe->getProducts()->add($databaseProduct);
+        }
     }
     
     /**
@@ -163,13 +185,22 @@ class RecipeImporter implements ImporterInterface
     {
         $databaseProduct = new DatabaseProduct();
         $databaseProduct->setItem($this->itemImporter->getByTypeAndName(
-            $exportProduct->getType(),
-            $exportProduct->getName()
-        ))
-                           ->setAmountMin($exportProduct->getAmountMin())
-                           ->setAmountMax($exportProduct->getAmountMax())
-                           ->setProbability($exportProduct->getProbability());
+                            $exportProduct->getType(),
+                            $exportProduct->getName()
+                        ))
+                        ->setAmountMin($exportProduct->getAmountMin())
+                        ->setAmountMax($exportProduct->getAmountMax())
+                        ->setProbability($exportProduct->getProbability());
         return $databaseProduct;
+    }
+
+    /**
+     * Adds the recipe to the local properties.
+     * @param DatabaseRecipe $recipe
+     */
+    protected function add(DatabaseRecipe $recipe): void
+    {
+        $this->recipes[$recipe->getId()->toString()] = $recipe;
     }
 
     /**
