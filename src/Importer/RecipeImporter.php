@@ -150,11 +150,13 @@ class RecipeImporter implements ImporterInterface
      */
     protected function mapIngredient(ExportIngredient $exportIngredient): DatabaseIngredient
     {
+        $item = $this->itemImporter->getByTypeAndName(
+            $exportIngredient->getType(),
+            $exportIngredient->getName()
+        );
+
         $databaseIngredient = new DatabaseIngredient();
-        $databaseIngredient->setItem($this->itemImporter->getByTypeAndName(
-                               $exportIngredient->getType(),
-                               $exportIngredient->getName()
-                           ))
+        $databaseIngredient->setItem($item)
                            ->setAmount($exportIngredient->getAmount());
         return $databaseIngredient;
     }
@@ -183,11 +185,13 @@ class RecipeImporter implements ImporterInterface
      */
     protected function mapProduct(ExportProduct $exportProduct): DatabaseProduct
     {
+        $item = $this->itemImporter->getByTypeAndName(
+            $exportProduct->getType(),
+            $exportProduct->getName()
+        );
+
         $databaseProduct = new DatabaseProduct();
-        $databaseProduct->setItem($this->itemImporter->getByTypeAndName(
-                            $exportProduct->getType(),
-                            $exportProduct->getName()
-                        ))
+        $databaseProduct->setItem($item)
                         ->setAmountMin($exportProduct->getAmountMin())
                         ->setAmountMax($exportProduct->getAmountMax())
                         ->setProbability($exportProduct->getProbability());

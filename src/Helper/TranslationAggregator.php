@@ -103,7 +103,8 @@ class TranslationAggregator
     {
         foreach ([EntityType::ITEM, EntityType::FLUID] as $type) {
             $possibleDuplicate = $this->translations[$translation->getLocale()][$type][$translation->getName()] ?? null;
-            if ($possibleDuplicate !== null
+            if (
+                $possibleDuplicate !== null
                 && $translation->getValue() === $possibleDuplicate->getValue()
                 && ($translation->getDescription() === ''
                     || $translation->getDescription() === $possibleDuplicate->getDescription()
