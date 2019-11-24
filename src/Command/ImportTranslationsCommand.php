@@ -91,7 +91,7 @@ class ImportTranslationsCommand extends AbstractImportCommand
      */
     public function process(ExportData $exportData): array
     {
-        $translationAggregator = new TranslationAggregator();
+        $translationAggregator = $this->createTranslationAggregator();
 
         $this->processMods($translationAggregator, $exportData->getCombination()->getMods());
         $this->processItems($translationAggregator, $exportData->getCombination()->getItems());
@@ -100,6 +100,15 @@ class ImportTranslationsCommand extends AbstractImportCommand
 
         $translationAggregator->optimize();
         return $translationAggregator->getTranslations();
+    }
+
+    /**
+     * Creates the translation aggregator to use.
+     * @return TranslationAggregator
+     */
+    protected function createTranslationAggregator(): TranslationAggregator
+    {
+        return new TranslationAggregator();
     }
 
     /**
