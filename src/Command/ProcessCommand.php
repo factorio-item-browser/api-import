@@ -10,6 +10,8 @@ use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Exception\CommandFailureException;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
 use FactorioItemBrowser\ExportQueue\Client\Client\Facade;
 use FactorioItemBrowser\ExportQueue\Client\Constant\JobStatus;
@@ -82,6 +84,7 @@ class ProcessCommand implements CommandInterface
      */
     public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
     {
+        $job = null;
         try {
             $job = $this->fetchNextJob();
             if ($job === null) {
@@ -91,6 +94,11 @@ class ProcessCommand implements CommandInterface
 
             $this->processJob($job);
             return 0;
+        } catch (ImportException $e) {
+            if ($job instanceof Job) {
+                $this->updateJobStatus($job, JobStatus::ERROR, $e->getMessage());
+            }
+            return 1;
         } catch (Exception $e) {
             $this->console->writeException($e);
             return 1;
@@ -115,6 +123,7 @@ class ProcessCommand implements CommandInterface
     /**
      * Processes the job.
      * @param Job $job
+     * @throws ImportException
      * @throws Exception
      */
     protected function processJob(Job $job): void
@@ -179,16 +188,17 @@ class ProcessCommand implements CommandInterface
      * Runs an import command on the combination.
      * @param string $commandName
      * @param Combination $combination
+     * @throws ImportException
      */
     protected function runImportCommand(string $commandName, Combination $combination): void
     {
-        $process = $this->createImportCommand($commandName, $combination);
-        $process->run();
+        $process = $this->createImportCommandProcess($commandName, $combination);
+        $process->run(function ($type, $data) {
+            $this->console->writeData($data);
+        });
 
-        $this->console->writeData($process->getOutput());
         if (!$process->isSuccessful()) {
-            echo "Command failed. Abort.";
-            die;
+            throw new CommandFailureException($process->getOutput());
         }
     }
 
@@ -198,7 +208,7 @@ class ProcessCommand implements CommandInterface
      * @param Combination $combination
      * @return Process
      */
-    protected function createImportCommand(string $commandName, Combination $combination): Process
+    protected function createImportCommandProcess(string $commandName, Combination $combination): Process
     {
         return new ImportCommandProcess($commandName, $combination);
     }
