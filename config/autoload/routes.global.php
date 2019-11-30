@@ -37,12 +37,10 @@ return [
                 '<combination>' => 'The id of the combination to import.'
             ]
         ],
-
-
         [
             'name' => 'process',
             'handler' => Command\ProcessCommand::class,
-            'short_description' => 'Processes something',
+            'short_description' => 'Processes an export waiting in the export queue to be processed by the importer.',
         ],
     ]
 ];
