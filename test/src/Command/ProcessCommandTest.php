@@ -535,7 +535,7 @@ class ProcessCommandTest extends TestCase
         $process = $this->createMock(ImportCommandProcess::class);
         $process->expects($this->once())
                 ->method('run')
-                ->with($this->callback(function ($callback) use ($outputData) {
+                ->with($this->callback(function ($callback) use ($outputData): bool {
                     $this->assertIsCallable($callback);
                     $callback('foo', $outputData);
                     return true;
@@ -583,7 +583,7 @@ class ProcessCommandTest extends TestCase
         $process = $this->createMock(ImportCommandProcess::class);
         $process->expects($this->once())
                 ->method('run')
-                ->with($this->callback(function ($callback) use ($outputData) {
+                ->with($this->callback(function ($callback) use ($outputData): bool {
                     $this->assertIsCallable($callback);
                     $callback('foo', $outputData);
                     return true;

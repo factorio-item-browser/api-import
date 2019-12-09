@@ -193,7 +193,7 @@ class ProcessCommand implements CommandInterface
     protected function runImportCommand(string $commandName, Combination $combination): void
     {
         $process = $this->createImportCommandProcess($commandName, $combination);
-        $process->run(function ($type, $data) {
+        $process->run(function ($type, $data): void {
             $this->console->writeData($data);
         });
 
@@ -206,7 +206,7 @@ class ProcessCommand implements CommandInterface
      * Creates a process to run an import command.
      * @param string $commandName
      * @param Combination $combination
-     * @return Process
+     * @return Process<string>
      */
     protected function createImportCommandProcess(string $commandName, Combination $combination): Process
     {

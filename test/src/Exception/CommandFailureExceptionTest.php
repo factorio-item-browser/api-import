@@ -52,7 +52,7 @@ class CommandFailureExceptionTest extends TestCase
 
     /**
      * Provides the data for the extractExceptionMessage test.
-     * @return array
+     * @return array<mixed>
      */
     public function provideExtractExceptionMessage(): array
     {

@@ -177,7 +177,7 @@ class TranslationAggregatorTest extends TestCase
                ->withConsecutive(
                    [
                        $this->identicalTo(EntityType::MACHINE),
-                       $this->callback(function ($callback) use ($translation1) {
+                       $this->callback(function ($callback) use ($translation1): bool {
                            $this->assertIsCallable($callback);
                            $callback($translation1);
                            return true;
@@ -185,7 +185,7 @@ class TranslationAggregatorTest extends TestCase
                    ],
                    [
                        $this->identicalTo(EntityType::RECIPE),
-                       $this->callback(function ($callback) use ($translation2) {
+                       $this->callback(function ($callback) use ($translation2): bool {
                            $this->assertIsCallable($callback);
                            $callback($translation2);
                            return true;
@@ -228,7 +228,7 @@ class TranslationAggregatorTest extends TestCase
             ],
         ];
 
-        $callback = function (Translation $translation) use ($duplicatingTranslation1) {
+        $callback = function (Translation $translation) use ($duplicatingTranslation1): void {
             $this->assertSame($duplicatingTranslation1, $translation);
         };
         
@@ -255,7 +255,7 @@ class TranslationAggregatorTest extends TestCase
 
     /**
      * Provides the data for the getDuplicatingTranslation test.
-     * @return array
+     * @return array<mixed>
      */
     public function provideGetDuplicatingTranslation(): array
     {

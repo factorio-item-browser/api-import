@@ -132,7 +132,7 @@ class IdCalculator
     
     /**
      * Calculates the id for the specified data.
-     * @param array $data
+     * @param array<mixed> $data
      * @return UuidInterface
      */
     protected function calculateId(array $data): UuidInterface
