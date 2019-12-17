@@ -13,6 +13,8 @@ namespace FactorioItemBrowser\Api\Import;
 
 use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
 use Zend\ConfigAggregator\ConfigAggregator;
+use Zend\Console\Adapter\AdapterInterface;
+use Zend\Console\Console as ZendConsole;
 use Zend\ServiceManager\Config;
 use Zend\ServiceManager\ServiceManager;
 
@@ -29,5 +31,6 @@ if ($config[ConfigAggregator::ENABLE_CACHE]) {
 
 // Inject config
 $container->setService('config', $config);
+$container->setService(AdapterInterface::class, ZendConsole::getInstance());
 
 return $container;

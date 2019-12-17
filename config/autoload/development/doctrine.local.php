@@ -16,12 +16,6 @@ use PDO;
 
 return [
     'doctrine' => [
-//        'configuration' => [
-//            'orm_default' => [
-//                'metadata_cache' => 'filesystem',
-//                'query_cache' => 'filesystem',
-//            ],
-//        ],
         'connection' => [
             'orm_default' => [
                 'driverClass' => PDOMySqlDriver::class,
@@ -37,10 +31,5 @@ return [
                 ],
             ],
         ],
-//        'driver' => [
-//            'fib-api-database' => [
-//                'cache' => 'filesystem',
-//            ],
-//        ],
     ],
 ];
