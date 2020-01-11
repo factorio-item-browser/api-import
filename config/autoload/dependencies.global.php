@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import;
 
-use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
+use BluePsyduck\LaminasAutoWireFactory\AutoWireFactory;
 use FactorioItemBrowser\Api\Import\Constant\ConfigKey;
-use function BluePsyduck\ZendAutoWireFactory\injectAliasArray;
-use function BluePsyduck\ZendAutoWireFactory\readConfig;
+
+use function BluePsyduck\LaminasAutoWireFactory\injectAliasArray;
+use function BluePsyduck\LaminasAutoWireFactory\readConfig;
 
 return [
     'dependencies' => [

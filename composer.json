@@ -16,15 +16,15 @@
     "php": "^7.2",
     "ext-json": "*",
     "ext-pdo": "*",
-    "bluepsyduck/zend-autowire-factory": "^1.0",
+    "bluepsyduck/laminas-autowire-factory": "^1.0",
     "factorio-item-browser/api-database": "dev-project-phoenix",
     "factorio-item-browser/common": "^1.0",
     "factorio-item-browser/export-data": "dev-project-phoenix",
-    "factorio-item-browser/export-queue-client": "^1.0",
+    "factorio-item-browser/export-queue-client": "dev-project-phoenix",
+    "laminas/laminas-config-aggregator": "^1.0",
+    "laminas/laminas-servicemanager": "^3.3",
     "ramsey/uuid": "^3.8",
     "symfony/process": "^5.0",
-    "zendframework/zend-config-aggregator": "^1.0",
-    "zendframework/zend-servicemanager": "^3.3",
     "zfcampus/zf-console": "^1.3"
   },
   "require-dev": {
@@ -59,7 +59,7 @@
     "phpstan": "phpstan analyse --no-interaction --ansi",
     "phpunit": "phpunit --colors=always --coverage-html=test/coverage --coverage-clover=test/coverage/clover.xml",
     "post-autoload-dump": [
-      "mkdir -p data/cache data/log && chmod 0777 data/cache data/log"
+      "mkdir -p data/cache && chmod 0777 data/cache"
     ],
     "test": [
       "@composer validate --strict",
