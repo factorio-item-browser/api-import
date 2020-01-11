@@ -16,8 +16,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use ReflectionException;
-use Zend\Console\Adapter\AdapterInterface;
-use ZF\Console\Route;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * The PHPUnit test of the AbstractImportCommand class.
@@ -78,10 +79,34 @@ class AbstractImportCommandTest extends TestCase
     }
 
     /**
-     * Tests the invoking.
-     * @covers ::__invoke
+     * Tests the configure method.
+     * @throws ReflectionException
+     * @covers ::configure
      */
-    public function testInvoke(): void
+    public function testConfigure(): void
+    {
+        /* @var AbstractImportCommand&MockObject $command */
+        $command = $this->getMockBuilder(AbstractImportCommand::class)
+                        ->onlyMethods(['addArgument'])
+                        ->setConstructorArgs([$this->combinationRepository, $this->console, $this->exportDataService])
+                        ->getMockForAbstractClass();
+        $command->expects($this->once())
+                ->method('addArgument')
+                ->with(
+                    $this->identicalTo('combination'),
+                    $this->identicalTo(InputArgument::REQUIRED),
+                    $this->isType('string')
+                );
+
+        $this->invokeMethod($command, 'configure');
+    }
+
+    /**
+     * Tests the execute method.
+     * @throws ReflectionException
+     * @covers ::execute
+     */
+    public function testExecute(): void
     {
         $combinationIdString = '70acdb0f-36ca-4b30-9687-2baaade94cd3';
         $expectedCombinationId = Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3');
@@ -89,17 +114,17 @@ class AbstractImportCommandTest extends TestCase
         $label = 'abc';
         $expectedResult = 0;
 
-        /* @var AdapterInterface&MockObject $consoleAdapter */
-        $consoleAdapter = $this->createMock(AdapterInterface::class);
+        /* @var OutputInterface&MockObject $output */
+        $output = $this->createMock(OutputInterface::class);
         /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
         /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
-        /* @var Route&MockObject $route */
-        $route = $this->createMock(Route::class);
-        $route->expects($this->once())
-              ->method('getMatchedParam')
+        /* @var InputInterface&MockObject $input */
+        $input = $this->createMock(InputInterface::class);
+        $input->expects($this->once())
+              ->method('getArgument')
               ->with($this->identicalTo('combination'))
               ->willReturn($combinationIdString);
 
@@ -131,16 +156,17 @@ class AbstractImportCommandTest extends TestCase
                 ->method('import')
                 ->with($this->identicalTo($exportData), $this->identicalTo($combination));
 
-        $result = $command($route, $consoleAdapter);
+        $result = $this->invokeMethod($command, 'execute', $input, $output);
+
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the invoking.
+     * Tests the execute method.
      * @throws ReflectionException
-     * @covers ::__invoke
+     * @covers ::execute
      */
-    public function testInvokeWithoutCombination(): void
+    public function testExecuteWithoutCombination(): void
     {
         $combinationIdString = '70acdb0f-36ca-4b30-9687-2baaade94cd3';
         $expectedCombinationId = Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3');
@@ -148,15 +174,16 @@ class AbstractImportCommandTest extends TestCase
         $label = 'abc';
         $expectedResult = 1;
 
-        /* @var AdapterInterface&MockObject $consoleAdapter */
-        $consoleAdapter = $this->createMock(AdapterInterface::class);
+
+        /* @var OutputInterface&MockObject $output */
+        $output = $this->createMock(OutputInterface::class);
         /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
 
-        /* @var Route&MockObject $route */
-        $route = $this->createMock(Route::class);
-        $route->expects($this->once())
-              ->method('getMatchedParam')
+        /* @var InputInterface&MockObject $input */
+        $input = $this->createMock(InputInterface::class);
+        $input->expects($this->once())
+              ->method('getArgument')
               ->with($this->identicalTo('combination'))
               ->willReturn($combinationIdString);
 
@@ -188,7 +215,8 @@ class AbstractImportCommandTest extends TestCase
         $command->expects($this->never())
                 ->method('import');
 
-        $result = $command($route, $consoleAdapter);
+        $result = $this->invokeMethod($command, 'execute', $input, $output);
+
         $this->assertSame($expectedResult, $result);
     }
 }

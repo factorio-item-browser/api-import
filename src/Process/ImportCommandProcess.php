@@ -37,7 +37,6 @@ class ImportCommandProcess extends Process
             $combination->getId()->toString(),
         ]);
 
-        $this->setEnv(['SUBCMD' => 1]);
         $this->setTimeout(null);
     }
 

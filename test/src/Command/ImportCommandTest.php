@@ -10,12 +10,14 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Command\ImportCommand;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
+use Symfony\Component\Console\Input\InputArgument;
 
 /**
  * The PHPUnit test of the ImportCommand class.
@@ -90,6 +92,41 @@ class ImportCommandTest extends TestCase
         $this->assertSame($this->entityManager, $this->extractProperty($command, 'entityManager'));
         $this->assertSame($this->exportDataService, $this->extractProperty($command, 'exportDataService'));
         $this->assertSame($importers, $this->extractProperty($command, 'importers'));
+    }
+
+    /**
+     * Tests the configure method.
+     * @throws ReflectionException
+     * @covers ::configure
+     */
+    public function testConfigure(): void
+    {
+        /* @var ImportCommand&MockObject $command */
+        $command = $this->getMockBuilder(ImportCommand::class)
+                        ->onlyMethods(['setName', 'setDescription', 'addArgument'])
+                        ->setConstructorArgs([
+                            $this->combinationRepository,
+                            $this->console,
+                            $this->entityManager,
+                            $this->exportDataService,
+                            [],
+                        ])
+                        ->getMock();
+        $command->expects($this->once())
+                ->method('setName')
+                ->with($this->identicalTo(CommandName::IMPORT));
+        $command->expects($this->once())
+                ->method('setDescription')
+                ->with($this->isType('string'));
+        $command->expects($this->once())
+                ->method('addArgument')
+                ->with(
+                    $this->identicalTo('combination'),
+                    $this->identicalTo(InputArgument::REQUIRED),
+                    $this->isType('string')
+                );
+
+        $this->invokeMethod($command, 'configure');
     }
 
     /**

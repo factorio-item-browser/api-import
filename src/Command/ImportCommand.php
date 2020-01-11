@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
@@ -48,8 +49,20 @@ class ImportCommand extends AbstractImportCommand
         array $importers
     ) {
         parent::__construct($combinationRepository, $console, $exportDataService);
+
         $this->entityManager = $entityManager;
         $this->importers = $importers;
+    }
+
+    /**
+     * Configures the command.
+     */
+    protected function configure(): void
+    {
+        parent::configure();
+
+        $this->setName(CommandName::IMPORT);
+        $this->setDescription('Imports the main data of a combination.');
     }
 
     /**

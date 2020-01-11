@@ -15,8 +15,8 @@ use BluePsyduck\LaminasAutoWireFactory\AutoWireFactory;
 use Laminas\ConfigAggregator\ConfigAggregator;
 use Laminas\ServiceManager\Config;
 use Laminas\ServiceManager\ServiceManager;
-use Zend\Console\Adapter\AdapterInterface;
-use Zend\Console\Console as ZendConsole;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 // Load configuration
 $config = require __DIR__ . '/config.php';
@@ -31,6 +31,6 @@ if ($config[ConfigAggregator::ENABLE_CACHE]) {
 
 // Inject config
 $container->setService('config', $config);
-$container->setService(AdapterInterface::class, ZendConsole::getInstance());
+$container->setService(OutputInterface::class, new ConsoleOutput(ConsoleOutput::VERBOSITY_NORMAL, true));
 
 return $container;

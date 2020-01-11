@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
 use FactorioItemBrowser\Common\Constant\EntityType;
@@ -58,6 +59,17 @@ class ImportTranslationsCommand extends AbstractImportCommand
         parent::__construct($combinationRepository, $console, $exportDataService);
         $this->idCalculator = $idCalculator;
         $this->translationRepository = $translationRepository;
+    }
+
+    /**
+     * Configures the command.
+     */
+    protected function configure(): void
+    {
+        parent::configure();
+
+        $this->setName(CommandName::IMPORT_TRANSLATIONS);
+        $this->setDescription('Imports the translations of a combination.');
     }
 
     /**

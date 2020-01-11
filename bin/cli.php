@@ -11,9 +11,8 @@ declare(strict_types=1);
  */
 
 use Psr\Container\ContainerInterface;
-use Zend\Console\Console;
-use ZF\Console\Application;
-use ZF\Console\Dispatcher;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
 chdir(dirname(__DIR__));
 require(__DIR__ . '/../vendor/autoload.php');
@@ -22,18 +21,9 @@ require(__DIR__ . '/../vendor/autoload.php');
     /* @var ContainerInterface $container */
     $container = require(__DIR__ . '/../config/container.php');
     $config = $container->get('config');
-    $dispatcher = new Dispatcher($container);
 
-    $application = new Application(
-        $config['name'],
-        $config['version'],
-        $config['routes'],
-        Console::getInstance(),
-        $dispatcher
-    );
-
-    $application->setDebug($config['debug'])
-                ->setBannerDisabledForUserCommands(isset($_ENV['SUBCMD']));
+    $application = new Application($config['name'], $config['version']);
+    $application->setCommandLoader(new ContainerCommandLoader($container, $config['commands']));
 
     $exit = $application->run();
     exit ($exit);

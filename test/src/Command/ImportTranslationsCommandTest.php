@@ -11,6 +11,7 @@ use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
 use FactorioItemBrowser\Api\Import\Command\ImportTranslationsCommand;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\TranslationAggregator;
 use FactorioItemBrowser\Common\Constant\EntityType;
@@ -25,6 +26,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
+use Symfony\Component\Console\Input\InputArgument;
 
 /**
  * The PHPUnit test of the ImportTranslationsCommand class.
@@ -101,6 +103,41 @@ class ImportTranslationsCommandTest extends TestCase
         $this->assertSame($this->exportDataService, $this->extractProperty($command, 'exportDataService'));
         $this->assertSame($this->idCalculator, $this->extractProperty($command, 'idCalculator'));
         $this->assertSame($this->translationRepository, $this->extractProperty($command, 'translationRepository'));
+    }
+
+    /**
+     * Tests the configure method.
+     * @throws ReflectionException
+     * @covers ::configure
+     */
+    public function testConfigure(): void
+    {
+        /* @var ImportTranslationsCommand&MockObject $command */
+        $command = $this->getMockBuilder(ImportTranslationsCommand::class)
+                        ->onlyMethods(['setName', 'setDescription', 'addArgument'])
+                        ->setConstructorArgs([
+                            $this->combinationRepository,
+                            $this->console,
+                            $this->exportDataService,
+                            $this->idCalculator,
+                            $this->translationRepository
+                        ])
+                        ->getMock();
+        $command->expects($this->once())
+                ->method('setName')
+                ->with($this->identicalTo(CommandName::IMPORT_TRANSLATIONS));
+        $command->expects($this->once())
+                ->method('setDescription')
+                ->with($this->isType('string'));
+        $command->expects($this->once())
+                ->method('addArgument')
+                ->with(
+                    $this->identicalTo('combination'),
+                    $this->identicalTo(InputArgument::REQUIRED),
+                    $this->isType('string')
+                );
+
+        $this->invokeMethod($command, 'configure');
     }
 
     /**

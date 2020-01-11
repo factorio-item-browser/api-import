@@ -35,7 +35,6 @@ class ImportCommandProcessTest extends TestCase
         $process = new ImportCommandProcess($commandName, $combination);
 
         $this->assertSame($combination, $process->getCombination());
-        $this->assertSame(['SUBCMD' => 1], $process->getEnv());
         $this->assertNull($process->getTimeout());
         $this->assertSame($expectedCommandLine, $process->getCommandLine());
     }

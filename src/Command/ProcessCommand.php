@@ -10,6 +10,7 @@ use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\Api\Import\Exception\CommandFailureException;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
@@ -20,9 +21,10 @@ use FactorioItemBrowser\ExportQueue\Client\Exception\ClientException;
 use FactorioItemBrowser\ExportQueue\Client\Request\Job\ListRequest;
 use FactorioItemBrowser\ExportQueue\Client\Request\Job\UpdateRequest;
 use Ramsey\Uuid\Uuid;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
-use Zend\Console\Adapter\AdapterInterface;
-use ZF\Console\Route;
 
 /**
  * The command for processing the next job in the import queue.
@@ -30,7 +32,7 @@ use ZF\Console\Route;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ProcessCommand implements CommandInterface
+class ProcessCommand extends Command
 {
     /**
      * The console.
@@ -69,6 +71,8 @@ class ProcessCommand implements CommandInterface
         EntityManagerInterface $entityManager,
         Facade $exportQueueFacade
     ) {
+        parent::__construct();
+
         $this->combinationRepository = $combinationRepository;
         $this->console = $console;
         $this->entityManager = $entityManager;
@@ -76,13 +80,24 @@ class ProcessCommand implements CommandInterface
     }
 
     /**
-     * Invokes the command.
-     * @param Route $route
-     * @param AdapterInterface $consoleAdapter
+     * Configures the command.
+     */
+    protected function configure(): void
+    {
+        parent::configure();
+
+        $this->setName(CommandName::PROCESS);
+        $this->setDescription('Processes an export waiting in the export queue to be processed by the importer.');
+    }
+
+    /**
+     * Executes the command.
+     * @param InputInterface $input
+     * @param OutputInterface $output
      * @return int
      * @throws Exception
      */
-    public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $job = null;
         try {
@@ -133,9 +148,9 @@ class ProcessCommand implements CommandInterface
         $job = $this->updateJobStatus($job, JobStatus::IMPORTING);
         $combination = $this->fetchCombination($job);
 
-        $this->runImportCommand('import', $combination);
-        $this->runImportCommand('import-images', $combination);
-        $this->runImportCommand('import-translations', $combination);
+        $this->runImportCommand(CommandName::IMPORT, $combination);
+        $this->runImportCommand(CommandName::IMPORT_IMAGES, $combination);
+        $this->runImportCommand(CommandName::IMPORT_TRANSLATIONS, $combination);
 
         $this->updateJobStatus($job, JobStatus::DONE);
         $this->console->writeStep('Done.');

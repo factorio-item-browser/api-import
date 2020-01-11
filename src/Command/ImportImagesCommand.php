@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Database\Entity\IconImage;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
@@ -53,6 +54,17 @@ class ImportImagesCommand extends AbstractImportCommand
         parent::__construct($combinationRepository, $console, $exportDataService);
         $this->entityManager = $entityManager;
         $this->iconImageRepository = $iconImageRepository;
+    }
+
+    /**
+     * Configures the command.
+     */
+    protected function configure(): void
+    {
+        parent::configure();
+
+        $this->setName(CommandName::IMPORT_IMAGES);
+        $this->setDescription('Imports the images of a combination.');
     }
 
     /**

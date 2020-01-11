@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import\Console;
 
 use Exception;
-use Zend\Console\Adapter\AdapterInterface;
-use Zend\Console\ColorInterface;
+use Symfony\Component\Console\Formatter\OutputFormatter;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * The wrapper class for the actual console.
@@ -17,10 +18,10 @@ use Zend\Console\ColorInterface;
 class Console
 {
     /**
-     * The actual console instance.
-     * @var AdapterInterface
+     * The output instance.
+     * @var OutputInterface
      */
-    protected $consoleAdapter;
+    protected $output;
 
     /**
      * Whether the debug mode is enabled.
@@ -30,12 +31,12 @@ class Console
 
     /**
      * Initializes the console wrapper.
-     * @param AdapterInterface $consoleAdapter
+     * @param OutputInterface $output
      * @param bool $isDebug
      */
-    public function __construct(AdapterInterface $consoleAdapter, bool $isDebug)
+    public function __construct(OutputInterface $output, bool $isDebug)
     {
-        $this->consoleAdapter = $consoleAdapter;
+        $this->output = $output;
         $this->isDebug = $isDebug;
     }
 
@@ -46,10 +47,12 @@ class Console
      */
     public function writeHeadline(string $message): self
     {
-        $this->consoleAdapter->writeLine();
-        $this->consoleAdapter->writeLine($this->createHorizontalLine('-'), ColorInterface::LIGHT_YELLOW);
-        $this->consoleAdapter->writeLine(' ' . $message, ColorInterface::LIGHT_YELLOW);
-        $this->consoleAdapter->writeLine($this->createHorizontalLine('-'), ColorInterface::LIGHT_YELLOW);
+        $this->writeWithDecoration([
+            '',
+            $this->createHorizontalLine('-'),
+            ' ' . $message,
+            $this->createHorizontalLine('-'),
+        ], 'yellow', 'bold');
         return $this;
     }
 
@@ -60,9 +63,11 @@ class Console
      */
     public function writeStep(string $step): self
     {
-        $this->consoleAdapter->writeLine();
-        $this->consoleAdapter->writeLine(' ' . $step, ColorInterface::LIGHT_BLUE);
-        $this->consoleAdapter->writeLine($this->createHorizontalLine('-'), ColorInterface::LIGHT_BLUE);
+        $this->writeWithDecoration([
+            '',
+            ' ' . $step,
+            $this->createHorizontalLine('-')
+        ], 'blue', 'bold');
         return $this;
     }
 
@@ -73,7 +78,7 @@ class Console
      */
     public function writeAction(string $action): self
     {
-        $this->consoleAdapter->writeLine('> ' . $action . '...');
+        $this->output->writeln('> ' . $action . '...');
         return $this;
     }
 
@@ -84,7 +89,7 @@ class Console
      */
     public function writeMessage(string $message): self
     {
-        $this->consoleAdapter->writeLine('# ' . $message);
+        $this->output->writeln('# ' . $message);
         return $this;
     }
 
@@ -95,17 +100,17 @@ class Console
      */
     public function writeException(Exception $e): self
     {
-        $this->consoleAdapter->writeLine(
+        $this->writeWithDecoration([
             sprintf('! %s: %s', substr((string) strrchr(get_class($e), '\\'), 1), $e->getMessage()),
-            ColorInterface::LIGHT_RED
-        );
+        ], 'red', 'bold');
 
         if ($this->isDebug) {
-            $this->consoleAdapter->writeLine($this->createHorizontalLine('-'), ColorInterface::RED);
-            $this->consoleAdapter->writeLine($e->getTraceAsString(), ColorInterface::RED);
-            $this->consoleAdapter->writeLine($this->createHorizontalLine('-'), ColorInterface::RED);
+            $this->writeWithDecoration([
+                $this->createHorizontalLine('-'),
+                $e->getTraceAsString(),
+                $this->createHorizontalLine('-'),
+            ], 'red');
         }
-
         return $this;
     }
 
@@ -116,8 +121,34 @@ class Console
      */
     public function writeData(string $data): self
     {
-        $this->consoleAdapter->write($data);
+        $this->output->write($data, false, ConsoleOutput::OUTPUT_RAW);
         return $this;
+    }
+
+    /**
+     * Writes messages with decorations.
+     * @param array|string[] $messages
+     * @param string $color
+     * @param string $options
+     */
+    protected function writeWithDecoration(array $messages, string $color = '', string $options = ''): void
+    {
+        $messages = array_values(array_map([OutputFormatter::class, 'escape'], $messages));
+
+        $formats = [];
+        if ($color !== '') {
+            $formats[] = "fg={$color}";
+        }
+        if ($options !== '') {
+            $formats[] = "options={$options}";
+        }
+        $formatString = implode(';', $formats);
+        if ($formatString !== '') {
+            $messages[0] = "<{$formatString}>{$messages[0]}";
+            $messages[count($messages) - 1] .= '</>';
+        }
+
+        $this->output->writeln($messages);
     }
 
     /**
@@ -127,6 +158,6 @@ class Console
      */
     protected function createHorizontalLine(string $character): string
     {
-        return str_pad('', $this->consoleAdapter->getWidth(), $character);
+        return str_pad('', 80, $character);
     }
 }

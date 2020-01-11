@@ -12,8 +12,10 @@ use FactorioItemBrowser\Api\Import\Exception\MissingCombinationException;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
 use Ramsey\Uuid\Uuid;
-use Zend\Console\Adapter\AdapterInterface;
-use ZF\Console\Route;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * The abstract class of commands importing data into a combination.
@@ -21,7 +23,7 @@ use ZF\Console\Route;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-abstract class AbstractImportCommand implements CommandInterface
+abstract class AbstractImportCommand extends Command
 {
     /**
      * The combination repository.
@@ -52,23 +54,39 @@ abstract class AbstractImportCommand implements CommandInterface
         Console $console,
         ExportDataService $exportDataService
     ) {
+        parent::__construct();
+
         $this->combinationRepository = $combinationRepository;
         $this->console = $console;
         $this->exportDataService = $exportDataService;
     }
 
     /**
+     * Configures the command.
+     */
+    protected function configure(): void
+    {
+        parent::configure();
+
+        $this->addArgument(
+            'combination',
+            InputArgument::REQUIRED,
+            'The id of the combination to import.'
+        );
+    }
+
+    /**
      * Invokes the command.
-     * @param Route $route
-     * @param AdapterInterface $consoleAdapter
+     * @param InputInterface $input
+     * @param OutputInterface $output
      * @return int
      */
-    public function __invoke(Route $route, AdapterInterface $consoleAdapter): int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $this->console->writeStep($this->getLabel());
 
-            $combinationId = Uuid::fromString($route->getMatchedParam('combination'));
+            $combinationId = Uuid::fromString(strval($input->getArgument('combination')));
             $exportData = $this->exportDataService->loadExport($combinationId->toString());
             $combination = $this->combinationRepository->findById($combinationId);
             if ($combination === null) {

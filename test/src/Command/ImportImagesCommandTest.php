@@ -12,6 +12,7 @@ use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
 use FactorioItemBrowser\Api\Import\Command\ImportImagesCommand;
 use FactorioItemBrowser\Api\Import\Console\Console;
+use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\ExportData;
@@ -20,6 +21,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use ReflectionException;
+use Symfony\Component\Console\Input\InputArgument;
 
 /**
  * The PHPUnit test of the ImportImagesCommand class.
@@ -96,6 +98,41 @@ class ImportImagesCommandTest extends TestCase
         $this->assertSame($this->entityManager, $this->extractProperty($command, 'entityManager'));
         $this->assertSame($this->exportDataService, $this->extractProperty($command, 'exportDataService'));
         $this->assertSame($this->iconImageRepository, $this->extractProperty($command, 'iconImageRepository'));
+    }
+
+    /**
+     * Tests the configure method.
+     * @throws ReflectionException
+     * @covers ::configure
+     */
+    public function testConfigure(): void
+    {
+        /* @var ImportImagesCommand&MockObject $command */
+        $command = $this->getMockBuilder(ImportImagesCommand::class)
+                        ->onlyMethods(['setName', 'setDescription', 'addArgument'])
+                        ->setConstructorArgs([
+                            $this->combinationRepository,
+                            $this->console,
+                            $this->entityManager,
+                            $this->exportDataService,
+                            $this->iconImageRepository
+                        ])
+                        ->getMock();
+        $command->expects($this->once())
+                ->method('setName')
+                ->with($this->identicalTo(CommandName::IMPORT_IMAGES));
+        $command->expects($this->once())
+                ->method('setDescription')
+                ->with($this->isType('string'));
+        $command->expects($this->once())
+                ->method('addArgument')
+                ->with(
+                    $this->identicalTo('combination'),
+                    $this->identicalTo(InputArgument::REQUIRED),
+                    $this->isType('string')
+                );
+
+        $this->invokeMethod($command, 'configure');
     }
 
     /**
