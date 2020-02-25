@@ -4,11 +4,13 @@
 declare(strict_types=1);
 
 /**
- * The main CLI script of the export.
+ * The main CLI script of the commands.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
+
+namespace FactorioItemBrowser\Api\Import;
 
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application;
