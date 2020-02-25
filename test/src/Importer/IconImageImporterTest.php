@@ -136,7 +136,7 @@ class IconImageImporterTest extends TestCase
     {
         $icon = new Icon();
         $icon->setId('70acdb0f-36ca-4b30-9687-2baaade94cd3')
-             ->setRenderedSize(42);
+             ->setSize(42);
 
         $expectedResult = new IconImage();
         $expectedResult->setId(Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3'))

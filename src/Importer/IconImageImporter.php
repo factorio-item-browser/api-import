@@ -73,7 +73,7 @@ class IconImageImporter implements ImporterInterface
     {
         $image = new IconImage();
         $image->setId(Uuid::fromString($icon->getId()))
-              ->setSize($icon->getRenderedSize());
+              ->setSize($icon->getSize());
 
         return $image;
     }
