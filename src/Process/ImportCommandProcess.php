@@ -31,7 +31,7 @@ class ImportCommandProcess extends Process
         $this->combination = $combination;
 
         parent::__construct([
-            'php',
+            $_SERVER['_'] ?? 'php',
             $_SERVER['SCRIPT_FILENAME'],
             $commandName,
             $combination->getId()->toString(),
