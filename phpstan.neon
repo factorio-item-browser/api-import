@@ -6,8 +6,6 @@ parameters:
 
   ignoreErrors:
     - '#Dynamic call to static method PHPUnit\\Framework\\.*#'
-    - '#Parameter \#1 \$message of method Zend\\Log\\LoggerInterface::crit\(\) expects string, Throwable given\.#'
-    - '#Parameter \#1 \$recipe \(FactorioItemBrowser\\Api\\Database\\Entity\\Recipe\) of method FactorioItemBrowser\\Api\\Import\\Importer\\Combination\\RecipeImporter::persistEntity\(\) should be contravariant with parameter \$entity \(object\) of method FactorioItemBrowser\\Api\\Import\\Importer\\AbstractImporter::persistEntity\(\)#'
 
 includes:
   - vendor/phpstan/phpstan-phpunit/extension.neon

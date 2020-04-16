@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 /**
- * The script for building up the config caches.
+ * The main CLI script of the commands.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
@@ -13,6 +13,8 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import;
 
 use Psr\Container\ContainerInterface;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
 chdir(dirname(__DIR__));
 require(__DIR__ . '/../vendor/autoload.php');
@@ -22,7 +24,9 @@ require(__DIR__ . '/../vendor/autoload.php');
     $container = require(__DIR__ . '/../config/container.php');
     $config = $container->get('config');
 
-    foreach (array_keys($config['dependencies']['factories'] ?? []) as $alias) {
-        $container->get($alias);
-    }
+    $application = new Application($config['name'], $config['version']);
+    $application->setCommandLoader(new ContainerCommandLoader($container, $config['commands']));
+
+    $exit = $application->run();
+    exit ($exit);
 })();

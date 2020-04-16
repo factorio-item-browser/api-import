@@ -11,10 +11,12 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import;
 
-use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
-use Zend\ConfigAggregator\ConfigAggregator;
-use Zend\ServiceManager\Config;
-use Zend\ServiceManager\ServiceManager;
+use BluePsyduck\LaminasAutoWireFactory\AutoWireFactory;
+use Laminas\ConfigAggregator\ConfigAggregator;
+use Laminas\ServiceManager\Config;
+use Laminas\ServiceManager\ServiceManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 // Load configuration
 $config = require __DIR__ . '/config.php';
@@ -29,5 +31,6 @@ if ($config[ConfigAggregator::ENABLE_CACHE]) {
 
 // Inject config
 $container->setService('config', $config);
+$container->setService(OutputInterface::class, new ConsoleOutput(ConsoleOutput::VERBOSITY_NORMAL, true));
 
 return $container;
