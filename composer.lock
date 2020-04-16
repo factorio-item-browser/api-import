@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "593b8937023eee2c8668df7f6bcde474",
+    "content-hash": "b60ac37eae6b25720960651226ab3f6a",
     "packages": [
         {
             "name": "bluepsyduck/laminas-autowire-factory",
@@ -1041,16 +1041,16 @@
         },
         {
             "name": "factorio-item-browser/api-database",
-            "version": "dev-project-phoenix",
+            "version": "3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/api-database.git",
-                "reference": "4792fd3bcacb94ac2e0dbeefede87c998e63c8cf"
+                "reference": "fbc5ba2f33e8335e48203dcb23155ea78ec968df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/api-database/zipball/4792fd3bcacb94ac2e0dbeefede87c998e63c8cf",
-                "reference": "4792fd3bcacb94ac2e0dbeefede87c998e63c8cf",
+                "url": "https://api.github.com/repos/factorio-item-browser/api-database/zipball/fbc5ba2f33e8335e48203dcb23155ea78ec968df",
+                "reference": "fbc5ba2f33e8335e48203dcb23155ea78ec968df",
                 "shasum": ""
             },
             "require": {
@@ -1098,7 +1098,7 @@
                 "api",
                 "database"
             ],
-            "time": "2020-04-08T12:01:07+00:00"
+            "time": "2020-04-15T14:32:23+00:00"
         },
         {
             "name": "factorio-item-browser/common",
@@ -1150,16 +1150,16 @@
         },
         {
             "name": "factorio-item-browser/export-data",
-            "version": "dev-project-phoenix",
+            "version": "3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/export-data.git",
-                "reference": "61709e6eadd9e481e17dc684bb3f817a547b9355"
+                "reference": "3e0ab417fe48835439a203713ebaa30fd74e61e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/export-data/zipball/61709e6eadd9e481e17dc684bb3f817a547b9355",
-                "reference": "61709e6eadd9e481e17dc684bb3f817a547b9355",
+                "url": "https://api.github.com/repos/factorio-item-browser/export-data/zipball/3e0ab417fe48835439a203713ebaa30fd74e61e9",
+                "reference": "3e0ab417fe48835439a203713ebaa30fd74e61e9",
                 "shasum": ""
             },
             "require": {
@@ -1182,11 +1182,6 @@
                 "squizlabs/php_codesniffer": "^3.4"
             },
             "type": "library",
-            "extra": {
-                "zf": {
-                    "config-provider": "FactorioItemBrowser\\ExportData\\ConfigProvider"
-                }
-            },
             "autoload": {
                 "psr-4": {
                     "FactorioItemBrowser\\ExportData\\": "src/"
@@ -1210,20 +1205,20 @@
                 "Factorio Item Browser",
                 "export"
             ],
-            "time": "2020-02-22T12:43:00+00:00"
+            "time": "2020-04-15T18:46:51+00:00"
         },
         {
             "name": "factorio-item-browser/export-queue-client",
-            "version": "dev-project-phoenix",
+            "version": "1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/export-queue-client.git",
-                "reference": "8fc7bb835a6b8c08f605b77c18af313057151500"
+                "reference": "a81dac264a6facf552f1f92a91b8b88e5b73c4e4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/export-queue-client/zipball/8fc7bb835a6b8c08f605b77c18af313057151500",
-                "reference": "8fc7bb835a6b8c08f605b77c18af313057151500",
+                "url": "https://api.github.com/repos/factorio-item-browser/export-queue-client/zipball/a81dac264a6facf552f1f92a91b8b88e5b73c4e4",
+                "reference": "a81dac264a6facf552f1f92a91b8b88e5b73c4e4",
                 "shasum": ""
             },
             "require": {
@@ -1269,7 +1264,7 @@
                 "export",
                 "queue"
             ],
-            "time": "2020-03-26T09:21:07+00:00"
+            "time": "2020-03-26T17:44:02+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -5145,11 +5140,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "factorio-item-browser/api-database": 20,
-        "factorio-item-browser/export-data": 20,
-        "factorio-item-browser/export-queue-client": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

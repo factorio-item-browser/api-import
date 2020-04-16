@@ -16,6 +16,6 @@ use Laminas\ConfigAggregator\ConfigAggregator;
 return [
     ConfigAggregator::ENABLE_CACHE => true,
     'debug' => false,
-    'name' => 'Factorio Item Browser Api Import',
-    'version' => 'project-phoenix'
+    'name' => 'Factorio Item Browser - Api Import',
+    'version' => '1.0.0'
 ];
