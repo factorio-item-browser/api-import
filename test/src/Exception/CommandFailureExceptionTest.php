@@ -59,7 +59,7 @@ class CommandFailureExceptionTest extends TestCase
         $commandOutput1 = <<<EOT
 Some messages.
 Some more messages.
-\e[1;31m! Actual error message.
+\e[31;1m! Actual error message.\e[39;22m
 ------------------------
 Some final messages.
 EOT;
@@ -67,14 +67,15 @@ EOT;
         $commandOutput2 = <<<EOT
 Some messages.
 Some more messages.
-\e[1;31m! Actual error message.\x1b[22;39m\x1b[0;49m
+\e[31;1m! Actual multi-line
+error message.\e[39;22m
 ------------------------
 Some final messages.
 EOT;
 
         return [
             [$commandOutput1, 'Actual error message.'],
-            [$commandOutput2, 'Actual error message.'],
+            [$commandOutput2, "Actual multi-line\nerror message."],
             ['Some useless text-', ''],
         ];
     }
