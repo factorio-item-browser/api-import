@@ -17,12 +17,12 @@ class CommandFailureException extends ImportException
     /**
      * The prefix of the actual error message.
      */
-    protected const PREFIX = "\e[1;31m! ";
+    protected const PREFIX = "\e[31;1m! ";
 
     /**
      * The suffix of the actual error message.
      */
-    protected const SUFFIX = "\x1b[22;39m\x1b[0;49m";
+    protected const SUFFIX = "\e[39;22m";
 
     /**
      * Initializes the exception.
@@ -41,15 +41,24 @@ class CommandFailureException extends ImportException
      */
     protected function extractExceptionMessage(string $commandOutput): string
     {
+        $catchingMessage = false;
+        $lines = [];
         foreach (explode(PHP_EOL, $commandOutput) as $line) {
             if (substr($line, 0, strlen(self::PREFIX)) === self::PREFIX) {
-                $message = substr($line, strlen(self::PREFIX));
-                if (substr($message, -strlen(self::SUFFIX)) === self::SUFFIX) {
-                    $message = substr($message, 0, -strlen(self::SUFFIX));
+                $line = substr($line, strlen(self::PREFIX));
+                $catchingMessage = true;
+            }
+
+            if ($catchingMessage) {
+                if (substr($line, -strlen(self::SUFFIX)) === self::SUFFIX) {
+                    $line = substr($line, 0, -strlen(self::SUFFIX));
+                    $lines[] = $line;
+                    break;
                 }
-                return $message;
+                $lines[] = $line;
             }
         }
-        return '';
+
+        return implode(PHP_EOL, $lines);
     }
 }

@@ -30,7 +30,9 @@ class ImportCommandProcessTest extends TestCase
         $combination = new Combination();
         $combination->setId(Uuid::fromString('4ab1d86a-0151-4420-aca1-a491e8f44703'));
 
-        $expectedCommandLine = "'php' '{$_SERVER['SCRIPT_FILENAME']}' 'abc' '4ab1d86a-0151-4420-aca1-a491e8f44703'";
+        $command = $_SERVER['_'] ?? 'php';
+        $expectedCommandLine
+            = "'{$command}' '{$_SERVER['SCRIPT_FILENAME']}' 'abc' '4ab1d86a-0151-4420-aca1-a491e8f44703'";
 
         $process = new ImportCommandProcess($commandName, $combination);
 
