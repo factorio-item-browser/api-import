@@ -203,31 +203,25 @@ class ValidatorTest extends TestCase
     public function testValidateMod(): void
     {
         $mod = new Mod();
-        $mod->setName('abc')
-            ->setAuthor('def')
+        $mod->setAuthor('abc')
             ->setVersion('1.2.3');
 
         $expectedMod = new Mod();
-        $expectedMod->setName('cba')
-                    ->setAuthor('fed')
+        $expectedMod->setAuthor('cba')
                     ->setVersion('3.2.1');
 
         /* @var Validator&MockObject $validator */
         $validator = $this->getMockBuilder(Validator::class)
-                          ->onlyMethods(['validateName', 'limitString'])
+                          ->onlyMethods(['limitString'])
                           ->getMock();
-        $validator->expects($this->once())
-                  ->method('validateName')
-                  ->with($this->identicalTo('abc'))
-                  ->willReturn('cba');
         $validator->expects($this->exactly(2))
                   ->method('limitString')
                   ->withConsecutive(
-                      [$this->identicalTo('def'), $this->identicalTo(255)],
+                      [$this->identicalTo('abc'), $this->identicalTo(255)],
                       [$this->identicalTo('1.2.3'), $this->identicalTo(16)]
                   )
                   ->willReturnOnConsecutiveCalls(
-                      'fed',
+                      'cba',
                       '3.2.1'
                   );
 

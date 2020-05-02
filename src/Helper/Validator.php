@@ -79,8 +79,7 @@ class Validator
      */
     public function validateMod(Mod $mod): void
     {
-        $mod->setName($this->validateName($mod->getName()))
-            ->setAuthor($this->limitString($mod->getAuthor(), 255))
+        $mod->setAuthor($this->limitString($mod->getAuthor(), 255))
             ->setVersion($this->limitString($mod->getVersion(), 16));
     }
 
