@@ -17,5 +17,5 @@ return [
     ConfigAggregator::ENABLE_CACHE => true,
     'debug' => false,
     'name' => 'Factorio Item Browser - Api Import',
-    'version' => '1.0.0'
+    'version' => '1.0.1'
 ];
