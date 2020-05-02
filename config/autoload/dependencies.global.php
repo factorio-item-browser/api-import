@@ -28,6 +28,7 @@ return [
             Console\Console::class => AutoWireFactory::class,
 
             Helper\IdCalculator::class => AutoWireFactory::class,
+            Helper\Validator::class => AutoWireFactory::class,
 
             Importer\CraftingCategoryImporter::class => AutoWireFactory::class,
             Importer\IconImageImporter::class => AutoWireFactory::class,

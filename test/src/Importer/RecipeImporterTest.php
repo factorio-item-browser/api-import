@@ -16,6 +16,7 @@ use FactorioItemBrowser\Api\Database\Entity\RecipeProduct as DatabaseProduct;
 use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter;
 use FactorioItemBrowser\Api\Import\Importer\ItemImporter;
 use FactorioItemBrowser\Api\Import\Importer\RecipeImporter;
@@ -66,6 +67,12 @@ class RecipeImporterTest extends TestCase
     protected $recipeRepository;
 
     /**
+     * The mocked validator.
+     * @var Validator&MockObject
+     */
+    protected $validator;
+
+    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -76,6 +83,7 @@ class RecipeImporterTest extends TestCase
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->itemImporter = $this->createMock(ItemImporter::class);
         $this->recipeRepository = $this->createMock(RecipeRepository::class);
+        $this->validator = $this->createMock(Validator::class);
     }
 
     /**
@@ -89,7 +97,8 @@ class RecipeImporterTest extends TestCase
             $this->craftingCategoryImporter,
             $this->idCalculator,
             $this->itemImporter,
-            $this->recipeRepository
+            $this->recipeRepository,
+            $this->validator
         );
 
         $this->assertSame(
@@ -99,6 +108,7 @@ class RecipeImporterTest extends TestCase
         $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
         $this->assertSame($this->itemImporter, $this->extractProperty($importer, 'itemImporter'));
         $this->assertSame($this->recipeRepository, $this->extractProperty($importer, 'recipeRepository'));
+        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
     }
 
     /**
@@ -115,7 +125,8 @@ class RecipeImporterTest extends TestCase
             $this->craftingCategoryImporter,
             $this->idCalculator,
             $this->itemImporter,
-            $this->recipeRepository
+            $this->recipeRepository,
+            $this->validator
         );
         $importer->prepare($exportData);
 
@@ -177,7 +188,8 @@ class RecipeImporterTest extends TestCase
                              $this->craftingCategoryImporter,
                              $this->idCalculator,
                              $this->itemImporter,
-                             $this->recipeRepository
+                             $this->recipeRepository,
+                             $this->validator,
                          ])
                          ->getMock();
         $importer->expects($this->exactly(2))
@@ -243,6 +255,10 @@ class RecipeImporterTest extends TestCase
                            ->with($this->equalTo($expectedDatabaseRecipe))
                            ->willReturn($recipeId);
 
+        $this->validator->expects($this->once())
+                        ->method('validateRecipe')
+                        ->with($this->equalTo($expectedDatabaseRecipe));
+
         /* @var RecipeImporter&MockObject $importer */
         $importer = $this->getMockBuilder(RecipeImporter::class)
                          ->onlyMethods(['mapIngredients', 'mapProducts'])
@@ -250,7 +266,8 @@ class RecipeImporterTest extends TestCase
                              $this->craftingCategoryImporter,
                              $this->idCalculator,
                              $this->itemImporter,
-                             $this->recipeRepository
+                             $this->recipeRepository,
+                             $this->validator,
                          ])
                          ->getMock();
         $importer->expects($this->once())
@@ -325,7 +342,8 @@ class RecipeImporterTest extends TestCase
                              $this->craftingCategoryImporter,
                              $this->idCalculator,
                              $this->itemImporter,
-                             $this->recipeRepository
+                             $this->recipeRepository,
+                             $this->validator,
                          ])
                          ->getMock();
         $importer->expects($this->exactly(2))
@@ -370,7 +388,8 @@ class RecipeImporterTest extends TestCase
             $this->craftingCategoryImporter,
             $this->idCalculator,
             $this->itemImporter,
-            $this->recipeRepository
+            $this->recipeRepository,
+            $this->validator
         );
         $result = $this->invokeMethod($importer, 'mapIngredient', $exportIngredient);
 
@@ -437,7 +456,8 @@ class RecipeImporterTest extends TestCase
                              $this->craftingCategoryImporter,
                              $this->idCalculator,
                              $this->itemImporter,
-                             $this->recipeRepository
+                             $this->recipeRepository,
+                             $this->validator,
                          ])
                          ->getMock();
         $importer->expects($this->exactly(2))
@@ -486,7 +506,8 @@ class RecipeImporterTest extends TestCase
             $this->craftingCategoryImporter,
             $this->idCalculator,
             $this->itemImporter,
-            $this->recipeRepository
+            $this->recipeRepository,
+            $this->validator
         );
         $result = $this->invokeMethod($importer, 'mapProduct', $exportProduct);
 
@@ -513,7 +534,8 @@ class RecipeImporterTest extends TestCase
             $this->craftingCategoryImporter,
             $this->idCalculator,
             $this->itemImporter,
-            $this->recipeRepository
+            $this->recipeRepository,
+            $this->validator
         );
         $this->invokeMethod($importer, 'add', $recipe);
 
@@ -563,7 +585,8 @@ class RecipeImporterTest extends TestCase
             $this->craftingCategoryImporter,
             $this->idCalculator,
             $this->itemImporter,
-            $this->recipeRepository
+            $this->recipeRepository,
+            $this->validator
         );
         $this->injectProperty($importer, 'recipes', $recipes);
 
@@ -590,7 +613,8 @@ class RecipeImporterTest extends TestCase
             $this->craftingCategoryImporter,
             $this->idCalculator,
             $this->itemImporter,
-            $this->recipeRepository
+            $this->recipeRepository,
+            $this->validator
         );
         $importer->cleanup();
     }

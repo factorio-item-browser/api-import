@@ -12,6 +12,7 @@ use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\MissingCraftingCategoryException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Machine;
@@ -46,6 +47,12 @@ class CraftingCategoryImporterTest extends TestCase
     protected $idCalculator;
 
     /**
+     * The mocked validator.
+     * @var Validator&MockObject
+     */
+    protected $validator;
+
+    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -54,6 +61,7 @@ class CraftingCategoryImporterTest extends TestCase
 
         $this->craftingCategoryRepository = $this->createMock(CraftingCategoryRepository::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
+        $this->validator = $this->createMock(Validator::class);
     }
 
     /**
@@ -63,7 +71,11 @@ class CraftingCategoryImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $importer = new CraftingCategoryImporter($this->craftingCategoryRepository, $this->idCalculator);
+        $importer = new CraftingCategoryImporter(
+            $this->craftingCategoryRepository,
+            $this->idCalculator,
+            $this->validator
+        );
 
         $this->assertSame(
             $this->craftingCategoryRepository,
@@ -134,7 +146,11 @@ class CraftingCategoryImporterTest extends TestCase
         /* @var CraftingCategoryImporter&MockObject $importer */
         $importer = $this->getMockBuilder(CraftingCategoryImporter::class)
                          ->onlyMethods(['create', 'add'])
-                         ->setConstructorArgs([$this->craftingCategoryRepository, $this->idCalculator])
+                         ->setConstructorArgs([
+                             $this->craftingCategoryRepository,
+                             $this->idCalculator,
+                             $this->validator,
+                         ])
                          ->getMock();
         $importer->expects($this->exactly(5))
                  ->method('create')
@@ -191,7 +207,15 @@ class CraftingCategoryImporterTest extends TestCase
                            ->with($this->equalTo($expectedCraftingCategory))
                            ->willReturn($id);
 
-        $importer = new CraftingCategoryImporter($this->craftingCategoryRepository, $this->idCalculator);
+        $this->validator->expects($this->once())
+                        ->method('validateCraftingCategory')
+                        ->with($this->equalTo($expectedCraftingCategory));
+
+        $importer = new CraftingCategoryImporter(
+            $this->craftingCategoryRepository,
+            $this->idCalculator,
+            $this->validator
+        );
         $result = $this->invokeMethod($importer, 'create', $name);
 
         $this->assertEquals($expectedResult, $result);
@@ -211,7 +235,11 @@ class CraftingCategoryImporterTest extends TestCase
             'abc' => $craftingCategory,
         ];
 
-        $importer = new CraftingCategoryImporter($this->craftingCategoryRepository, $this->idCalculator);
+        $importer = new CraftingCategoryImporter(
+            $this->craftingCategoryRepository,
+            $this->idCalculator,
+            $this->validator
+        );
         $this->invokeMethod($importer, 'add', $craftingCategory);
 
         $this->assertSame($expectedCraftingCategories, $this->extractProperty($importer, 'craftingCategories'));
@@ -234,7 +262,11 @@ class CraftingCategoryImporterTest extends TestCase
             'abc' => $craftingCategory,
         ];
 
-        $importer = new CraftingCategoryImporter($this->craftingCategoryRepository, $this->idCalculator);
+        $importer = new CraftingCategoryImporter(
+            $this->craftingCategoryRepository,
+            $this->idCalculator,
+            $this->validator
+        );
         $this->injectProperty($importer, 'craftingCategories', $craftingCategories);
 
         $result = $importer->getByName($name);
@@ -253,7 +285,11 @@ class CraftingCategoryImporterTest extends TestCase
 
         $this->expectException(MissingCraftingCategoryException::class);
 
-        $importer = new CraftingCategoryImporter($this->craftingCategoryRepository, $this->idCalculator);
+        $importer = new CraftingCategoryImporter(
+            $this->craftingCategoryRepository,
+            $this->idCalculator,
+            $this->validator
+        );
         $importer->getByName($name);
     }
 
@@ -266,7 +302,11 @@ class CraftingCategoryImporterTest extends TestCase
         /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
 
-        $importer = new CraftingCategoryImporter($this->craftingCategoryRepository, $this->idCalculator);
+        $importer = new CraftingCategoryImporter(
+            $this->craftingCategoryRepository,
+            $this->idCalculator,
+            $this->validator
+        );
         $importer->parse($exportData);
 
         $this->addToAssertionCount(1);
@@ -298,7 +338,11 @@ class CraftingCategoryImporterTest extends TestCase
                           [$this->identicalTo($craftingCategory2)]
                       );
 
-        $importer = new CraftingCategoryImporter($this->craftingCategoryRepository, $this->idCalculator);
+        $importer = new CraftingCategoryImporter(
+            $this->craftingCategoryRepository,
+            $this->idCalculator,
+            $this->validator
+        );
         $this->injectProperty($importer, 'craftingCategories', $craftingCategories);
 
         $importer->persist($entityManager, $combination);
@@ -313,7 +357,11 @@ class CraftingCategoryImporterTest extends TestCase
         $this->craftingCategoryRepository->expects($this->once())
                                          ->method('removeOrphans');
 
-        $importer = new CraftingCategoryImporter($this->craftingCategoryRepository, $this->idCalculator);
+        $importer = new CraftingCategoryImporter(
+            $this->craftingCategoryRepository,
+            $this->idCalculator,
+            $this->validator
+        );
         $importer->cleanup();
     }
 }

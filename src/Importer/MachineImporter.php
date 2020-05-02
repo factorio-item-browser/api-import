@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\ExportData;
 
@@ -40,6 +41,12 @@ class MachineImporter implements ImporterInterface
     protected $machineRepository;
 
     /**
+     * The validator.
+     * @var Validator
+     */
+    protected $validator;
+
+    /**
      * The parsed machines.
      * @var array|DatabaseMachine[]
      */
@@ -50,15 +57,18 @@ class MachineImporter implements ImporterInterface
      * @param CraftingCategoryImporter $craftingCategoryImporter
      * @param IdCalculator $idCalculator
      * @param MachineRepository $machineRepository
+     * @param Validator $validator
      */
     public function __construct(
         CraftingCategoryImporter $craftingCategoryImporter,
         IdCalculator $idCalculator,
-        MachineRepository $machineRepository
+        MachineRepository $machineRepository,
+        Validator $validator
     ) {
         $this->craftingCategoryImporter = $craftingCategoryImporter;
         $this->idCalculator = $idCalculator;
         $this->machineRepository = $machineRepository;
+        $this->validator = $validator;
     }
 
     /**
@@ -114,6 +124,7 @@ class MachineImporter implements ImporterInterface
             );
         }
 
+        $this->validator->validateMachine($databaseMachine);
         $databaseMachine->setId($this->idCalculator->calculateIdOfMachine($databaseMachine));
         return $databaseMachine;
     }

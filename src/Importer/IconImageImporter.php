@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Database\Entity\IconImage;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\MissingIconImageException;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\ExportData;
 use Ramsey\Uuid\Uuid;
@@ -29,6 +30,12 @@ class IconImageImporter implements ImporterInterface
     protected $iconImageRepository;
 
     /**
+     * The validator.
+     * @var Validator
+     */
+    protected $validator;
+
+    /**
      * The parsed icon images.
      * @var array|IconImage[]
      */
@@ -37,10 +44,12 @@ class IconImageImporter implements ImporterInterface
     /**
      * Initializes the importer.
      * @param IconImageRepository $iconImageRepository
+     * @param Validator $validator
      */
-    public function __construct(IconImageRepository $iconImageRepository)
+    public function __construct(IconImageRepository $iconImageRepository, Validator $validator)
     {
         $this->iconImageRepository = $iconImageRepository;
+        $this->validator = $validator;
     }
 
     /**
@@ -75,6 +84,7 @@ class IconImageImporter implements ImporterInterface
         $image->setId(Uuid::fromString($icon->getId()))
               ->setSize($icon->getSize());
 
+        $this->validator->validateIconImage($image);
         return $image;
     }
 
