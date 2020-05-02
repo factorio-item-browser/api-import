@@ -9,6 +9,7 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Icon;
 use FactorioItemBrowser\Api\Database\Repository\IconRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
@@ -37,6 +38,12 @@ class IconImporter implements ImporterInterface
     protected $iconRepository;
 
     /**
+     * The validator.
+     * @var Validator
+     */
+    protected $validator;
+
+    /**
      * The parsed icons.
      * @var Icon[][]
      */
@@ -46,11 +53,16 @@ class IconImporter implements ImporterInterface
      * Initializes the importer.
      * @param IconImageImporter $iconImageImporter
      * @param IconRepository $iconRepository
+     * @param Validator $validator
      */
-    public function __construct(IconImageImporter $iconImageImporter, IconRepository $iconRepository)
-    {
+    public function __construct(
+        IconImageImporter $iconImageImporter,
+        IconRepository $iconRepository,
+        Validator $validator
+    ) {
         $this->iconImageImporter = $iconImageImporter;
         $this->iconRepository = $iconRepository;
+        $this->validator = $validator;
     }
 
     /**
@@ -146,6 +158,7 @@ class IconImporter implements ImporterInterface
              ->setName($name)
              ->setImage($this->iconImageImporter->getById($imageId));
 
+        $this->validator->validateIcon($icon);
         return $icon;
     }
 

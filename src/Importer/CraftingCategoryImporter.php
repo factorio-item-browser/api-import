@@ -11,6 +11,7 @@ use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\MissingCraftingCategoryException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\ExportData;
 
 /**
@@ -34,6 +35,12 @@ class CraftingCategoryImporter implements ImporterInterface
     protected $idCalculator;
 
     /**
+     * The validator.
+     * @var Validator
+     */
+    protected $validator;
+
+    /**
      * The crafting categories by their name.
      * @var array|CraftingCategory[]
      */
@@ -44,10 +51,14 @@ class CraftingCategoryImporter implements ImporterInterface
      * @param CraftingCategoryRepository $craftingCategoryRepository
      * @param IdCalculator $idCalculator
      */
-    public function __construct(CraftingCategoryRepository $craftingCategoryRepository, IdCalculator $idCalculator)
-    {
+    public function __construct(
+        CraftingCategoryRepository $craftingCategoryRepository,
+        IdCalculator $idCalculator,
+        Validator $validator
+    ) {
         $this->craftingCategoryRepository = $craftingCategoryRepository;
         $this->idCalculator = $idCalculator;
+        $this->validator = $validator;
     }
 
     /**
@@ -89,6 +100,7 @@ class CraftingCategoryImporter implements ImporterInterface
         $craftingCategory = new CraftingCategory();
         $craftingCategory->setName($name);
 
+        $this->validator->validateCraftingCategory($craftingCategory);
         $craftingCategory->setId($this->idCalculator->calculateIdOfCraftingCategory($craftingCategory));
         return $craftingCategory;
     }

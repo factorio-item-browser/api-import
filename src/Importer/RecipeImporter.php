@@ -12,6 +12,7 @@ use FactorioItemBrowser\Api\Database\Entity\RecipeProduct as DatabaseProduct;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient as ExportIngredient;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Product as ExportProduct;
@@ -50,6 +51,12 @@ class RecipeImporter implements ImporterInterface
     protected $recipeRepository;
 
     /**
+     * The validator.
+     * @var Validator
+     */
+    protected $validator;
+
+    /**
      * The recipes.
      * @var array|DatabaseRecipe[]
      */
@@ -61,17 +68,20 @@ class RecipeImporter implements ImporterInterface
      * @param IdCalculator $idCalculator
      * @param ItemImporter $itemImporter
      * @param RecipeRepository $recipeRepository
+     * @param Validator $validator
      */
     public function __construct(
         CraftingCategoryImporter $craftingCategoryImporter,
         IdCalculator $idCalculator,
         ItemImporter $itemImporter,
-        RecipeRepository $recipeRepository
+        RecipeRepository $recipeRepository,
+        Validator $validator
     ) {
         $this->craftingCategoryImporter = $craftingCategoryImporter;
         $this->idCalculator = $idCalculator;
         $this->itemImporter = $itemImporter;
         $this->recipeRepository = $recipeRepository;
+        $this->validator = $validator;
     }
 
     /**
@@ -122,6 +132,7 @@ class RecipeImporter implements ImporterInterface
         $this->mapIngredients($exportRecipe, $databaseRecipe);
         $this->mapProducts($exportRecipe, $databaseRecipe);
 
+        $this->validator->validateRecipe($databaseRecipe);
         $databaseRecipe->setId($this->idCalculator->calculateIdOfRecipe($databaseRecipe));
         return $databaseRecipe;
     }

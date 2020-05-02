@@ -11,6 +11,7 @@ use FactorioItemBrowser\Api\Database\Entity\IconImage;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\MissingIconImageException;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\IconImageImporter;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Icon;
@@ -39,6 +40,12 @@ class IconImageImporterTest extends TestCase
     protected $iconImageRepository;
 
     /**
+     * The mocked validator.
+     * @var Validator&MockObject
+     */
+    protected $validator;
+
+    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -46,6 +53,7 @@ class IconImageImporterTest extends TestCase
         parent::setUp();
 
         $this->iconImageRepository = $this->createMock(IconImageRepository::class);
+        $this->validator = $this->createMock(Validator::class);
     }
 
     /**
@@ -55,9 +63,10 @@ class IconImageImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $importer = new IconImageImporter($this->iconImageRepository);
+        $importer = new IconImageImporter($this->iconImageRepository, $this->validator);
 
         $this->assertSame($this->iconImageRepository, $this->extractProperty($importer, 'iconImageRepository'));
+        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
     }
 
     /**
@@ -103,7 +112,7 @@ class IconImageImporterTest extends TestCase
         /* @var IconImageImporter&MockObject $importer */
         $importer = $this->getMockBuilder(IconImageImporter::class)
                          ->onlyMethods(['create', 'add'])
-                         ->setConstructorArgs([$this->iconImageRepository])
+                         ->setConstructorArgs([$this->iconImageRepository, $this->validator])
                          ->getMock();
         $importer->expects($this->exactly(2))
                  ->method('create')
@@ -142,7 +151,11 @@ class IconImageImporterTest extends TestCase
         $expectedResult->setId(Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3'))
                        ->setSize(42);
 
-        $importer = new IconImageImporter($this->iconImageRepository);
+        $this->validator->expects($this->once())
+                        ->method('validateIconImage')
+                        ->with($this->equalTo($expectedResult));
+
+        $importer = new IconImageImporter($this->iconImageRepository, $this->validator);
         $result = $this->invokeMethod($importer, 'create', $icon);
 
         $this->assertEquals($expectedResult, $result);
@@ -164,7 +177,7 @@ class IconImageImporterTest extends TestCase
             '70acdb0f-36ca-4b30-9687-2baaade94cd3' => $image,
         ];
 
-        $importer = new IconImageImporter($this->iconImageRepository);
+        $importer = new IconImageImporter($this->iconImageRepository, $this->validator);
         $this->invokeMethod($importer, 'add', $image);
 
         $this->assertSame($expectedImages, $this->extractProperty($importer, 'images'));
@@ -187,7 +200,7 @@ class IconImageImporterTest extends TestCase
             'abc' => $image,
         ];
 
-        $importer = new IconImageImporter($this->iconImageRepository);
+        $importer = new IconImageImporter($this->iconImageRepository, $this->validator);
         $this->injectProperty($importer, 'images', $images);
 
         $result = $importer->getById($id);
@@ -206,7 +219,7 @@ class IconImageImporterTest extends TestCase
 
         $this->expectException(MissingIconImageException::class);
 
-        $importer = new IconImageImporter($this->iconImageRepository);
+        $importer = new IconImageImporter($this->iconImageRepository, $this->validator);
         $importer->getById($id);
     }
 
@@ -219,7 +232,7 @@ class IconImageImporterTest extends TestCase
         /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
 
-        $importer = new IconImageImporter($this->iconImageRepository);
+        $importer = new IconImageImporter($this->iconImageRepository, $this->validator);
         $importer->parse($exportData);
 
         $this->addToAssertionCount(1);
@@ -251,7 +264,7 @@ class IconImageImporterTest extends TestCase
                           [$this->identicalTo($image2)]
                       );
 
-        $importer = new IconImageImporter($this->iconImageRepository);
+        $importer = new IconImageImporter($this->iconImageRepository, $this->validator);
         $this->injectProperty($importer, 'images', $images);
 
         $importer->persist($entityManager, $combination);
@@ -266,7 +279,7 @@ class IconImageImporterTest extends TestCase
         $this->iconImageRepository->expects($this->once())
                                   ->method('removeOrphans');
 
-        $importer = new IconImageImporter($this->iconImageRepository);
+        $importer = new IconImageImporter($this->iconImageRepository, $this->validator);
         $importer->cleanup();
     }
 }

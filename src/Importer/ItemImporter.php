@@ -11,6 +11,7 @@ use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\MissingItemException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\ExportData;
 
@@ -35,6 +36,12 @@ class ItemImporter implements ImporterInterface
     protected $itemRepository;
 
     /**
+     * The validator.
+     * @var Validator
+     */
+    protected $validator;
+
+    /**
      * The items by their type and name.
      * @var array|DatabaseItem[][]
      */
@@ -44,11 +51,13 @@ class ItemImporter implements ImporterInterface
      * Initializes the importer.
      * @param IdCalculator $idCalculator
      * @param ItemRepository $itemRepository
+     * @param Validator $validator
      */
-    public function __construct(IdCalculator $idCalculator, ItemRepository $itemRepository)
+    public function __construct(IdCalculator $idCalculator, ItemRepository $itemRepository, Validator $validator)
     {
         $this->idCalculator = $idCalculator;
         $this->itemRepository = $itemRepository;
+        $this->validator = $validator;
     }
 
     /**
@@ -92,6 +101,7 @@ class ItemImporter implements ImporterInterface
         $databaseItem->setType($exportItem->getType())
                      ->setName($exportItem->getName());
 
+        $this->validator->validateItem($databaseItem);
         $databaseItem->setId($this->idCalculator->calculateIdOfItem($databaseItem));
         return $databaseItem;
     }

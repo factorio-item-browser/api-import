@@ -13,6 +13,7 @@ use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Exception\MissingItemException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\ItemImporter;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
@@ -46,6 +47,12 @@ class ItemImporterTest extends TestCase
     protected $itemRepository;
 
     /**
+     * The mocked validator.
+     * @var Validator&MockObject
+     */
+    protected $validator;
+
+    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -54,6 +61,7 @@ class ItemImporterTest extends TestCase
 
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->itemRepository = $this->createMock(ItemRepository::class);
+        $this->validator = $this->createMock(Validator::class);
     }
 
     /**
@@ -63,7 +71,7 @@ class ItemImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository);
+        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
 
         $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
         $this->assertSame($this->itemRepository, $this->extractProperty($importer, 'itemRepository'));
@@ -122,7 +130,7 @@ class ItemImporterTest extends TestCase
         /* @var ItemImporter&MockObject $importer */
         $importer = $this->getMockBuilder(ItemImporter::class)
                          ->onlyMethods(['map', 'add'])
-                         ->setConstructorArgs([$this->idCalculator, $this->itemRepository])
+                         ->setConstructorArgs([$this->idCalculator, $this->itemRepository, $this->validator])
                          ->getMock();
         $importer->expects($this->exactly(2))
                  ->method('map')
@@ -155,7 +163,7 @@ class ItemImporterTest extends TestCase
         /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
 
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository);
+        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
         $importer->parse($exportData);
 
         $this->addToAssertionCount(1);
@@ -189,7 +197,11 @@ class ItemImporterTest extends TestCase
                            ->with($this->equalTo($expectedDatabaseItem))
                            ->willReturn($itemId);
 
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository);
+        $this->validator->expects($this->once())
+                        ->method('validateItem')
+                        ->with($this->equalTo($expectedDatabaseItem));
+
+        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
         $result = $this->invokeMethod($importer, 'map', $exportItem);
 
         $this->assertEquals($expectedResult, $result);
@@ -212,7 +224,7 @@ class ItemImporterTest extends TestCase
             ],
         ];
 
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository);
+        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
         $this->invokeMethod($importer, 'add', $item);
 
         $this->assertSame($expectedItems, $this->extractProperty($importer, 'items'));
@@ -238,7 +250,7 @@ class ItemImporterTest extends TestCase
             ],
         ];
 
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository);
+        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
         $this->injectProperty($importer, 'items', $items);
 
         $result = $importer->getByTypeAndName($type, $name);
@@ -258,7 +270,7 @@ class ItemImporterTest extends TestCase
 
         $this->expectException(MissingItemException::class);
 
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository);
+        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
         $importer->getByTypeAndName($type, $name);
     }
 
@@ -314,7 +326,7 @@ class ItemImporterTest extends TestCase
                           [$this->identicalTo($item3)]
                       );
 
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository);
+        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
         $this->injectProperty($importer, 'items', $items);
 
         $importer->persist($entityManager, $combination);
@@ -329,7 +341,7 @@ class ItemImporterTest extends TestCase
         $this->itemRepository->expects($this->once())
                              ->method('removeOrphans');
 
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository);
+        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
         $importer->cleanup();
     }
 }

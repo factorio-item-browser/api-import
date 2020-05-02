@@ -9,6 +9,7 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Mod as ExportMod;
 use FactorioItemBrowser\ExportData\ExportData;
 
@@ -31,7 +32,13 @@ class ModImporter implements ImporterInterface
      * @var ModRepository
      */
     protected $modRepository;
-    
+
+    /**
+     * The validator.
+     * @var Validator
+     */
+    protected $validator;
+
     /**
      * The parsed mods.
      * @var array|DatabaseMod[]
@@ -42,11 +49,13 @@ class ModImporter implements ImporterInterface
      * Initializes the importer.
      * @param IdCalculator $idCalculator
      * @param ModRepository $modRepository
+     * @param Validator $validator
      */
-    public function __construct(IdCalculator $idCalculator, ModRepository $modRepository)
+    public function __construct(IdCalculator $idCalculator, ModRepository $modRepository, Validator $validator)
     {
         $this->idCalculator = $idCalculator;
         $this->modRepository = $modRepository;
+        $this->validator = $validator;
     }
 
     /**
@@ -89,6 +98,7 @@ class ModImporter implements ImporterInterface
                     ->setVersion($exportMod->getVersion())
                     ->setAuthor($exportMod->getAuthor());
 
+        $this->validator->validateMod($databaseMod);
         $databaseMod->setId($this->idCalculator->calculateIdOfMod($databaseMod));
         return $databaseMod;
     }

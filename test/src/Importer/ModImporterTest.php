@@ -11,6 +11,7 @@ use FactorioItemBrowser\Api\Database\Entity\Combination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\ModImporter;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Mod as ExportMod;
@@ -45,6 +46,12 @@ class ModImporterTest extends TestCase
     protected $modRepository;
 
     /**
+     * The mocked validator.
+     * @var Validator&MockObject
+     */
+    protected $validator;
+
+    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -53,6 +60,7 @@ class ModImporterTest extends TestCase
 
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->modRepository = $this->createMock(ModRepository::class);
+        $this->validator = $this->createMock(Validator::class);
     }
 
     /**
@@ -62,10 +70,11 @@ class ModImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $importer = new ModImporter($this->idCalculator, $this->modRepository);
+        $importer = new ModImporter($this->idCalculator, $this->modRepository, $this->validator);
 
         $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
         $this->assertSame($this->modRepository, $this->extractProperty($importer, 'modRepository'));
+        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
     }
 
     /**
@@ -78,7 +87,7 @@ class ModImporterTest extends TestCase
         /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
 
-        $importer = new ModImporter($this->idCalculator, $this->modRepository);
+        $importer = new ModImporter($this->idCalculator, $this->modRepository, $this->validator);
         $importer->prepare($exportData);
 
         $this->assertSame([], $this->extractProperty($importer, 'mods'));
@@ -134,7 +143,7 @@ class ModImporterTest extends TestCase
         /* @var ModImporter&MockObject $importer */
         $importer = $this->getMockBuilder(ModImporter::class)
                          ->onlyMethods(['map', 'add'])
-                         ->setConstructorArgs([$this->idCalculator, $this->modRepository])
+                         ->setConstructorArgs([$this->idCalculator, $this->modRepository, $this->validator])
                          ->getMock();
         $importer->expects($this->exactly(2))
                  ->method('map')
@@ -189,7 +198,11 @@ class ModImporterTest extends TestCase
                            ->with($this->equalTo($expectedDatabaseMod))
                            ->willReturn($modId);
 
-        $importer = new ModImporter($this->idCalculator, $this->modRepository);
+        $this->validator->expects($this->once())
+                        ->method('validateMod')
+                        ->with($this->equalTo($expectedDatabaseMod));
+
+        $importer = new ModImporter($this->idCalculator, $this->modRepository, $this->validator);
         $result = $this->invokeMethod($importer, 'map', $exportMod);
 
         $this->assertEquals($expectedResult, $result);
@@ -211,7 +224,7 @@ class ModImporterTest extends TestCase
             '70acdb0f-36ca-4b30-9687-2baaade94cd3' => $mod,
         ];
 
-        $importer = new ModImporter($this->idCalculator, $this->modRepository);
+        $importer = new ModImporter($this->idCalculator, $this->modRepository, $this->validator);
         $this->invokeMethod($importer, 'add', $mod);
 
         $this->assertSame($expectedMods, $this->extractProperty($importer, 'mods'));
@@ -256,7 +269,7 @@ class ModImporterTest extends TestCase
                           [$this->identicalTo($mod2)]
                       );
 
-        $importer = new ModImporter($this->idCalculator, $this->modRepository);
+        $importer = new ModImporter($this->idCalculator, $this->modRepository, $this->validator);
         $this->injectProperty($importer, 'mods', $mods);
 
         $importer->persist($entityManager, $combination);
@@ -271,7 +284,7 @@ class ModImporterTest extends TestCase
         $this->modRepository->expects($this->once())
                             ->method('removeOrphans');
 
-        $importer = new ModImporter($this->idCalculator, $this->modRepository);
+        $importer = new ModImporter($this->idCalculator, $this->modRepository, $this->validator);
         $importer->cleanup();
     }
 }

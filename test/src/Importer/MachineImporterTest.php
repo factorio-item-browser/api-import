@@ -13,6 +13,7 @@ use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter;
 use FactorioItemBrowser\Api\Import\Importer\MachineImporter;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
@@ -54,6 +55,12 @@ class MachineImporterTest extends TestCase
     protected $machineRepository;
 
     /**
+     * The mocked validator.
+     * @var Validator&MockObject
+     */
+    protected $validator;
+
+    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -63,6 +70,7 @@ class MachineImporterTest extends TestCase
         $this->craftingCategoryImporter = $this->createMock(CraftingCategoryImporter::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->machineRepository = $this->createMock(MachineRepository::class);
+        $this->validator = $this->createMock(Validator::class);
     }
 
     /**
@@ -72,7 +80,12 @@ class MachineImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $importer = new MachineImporter($this->craftingCategoryImporter, $this->idCalculator, $this->machineRepository);
+        $importer = new MachineImporter(
+            $this->craftingCategoryImporter,
+            $this->idCalculator,
+            $this->machineRepository,
+            $this->validator
+        );
 
         $this->assertSame(
             $this->craftingCategoryImporter,
@@ -80,6 +93,7 @@ class MachineImporterTest extends TestCase
         );
         $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
         $this->assertSame($this->machineRepository, $this->extractProperty($importer, 'machineRepository'));
+        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
     }
 
     /**
@@ -92,7 +106,12 @@ class MachineImporterTest extends TestCase
         /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
 
-        $importer = new MachineImporter($this->craftingCategoryImporter, $this->idCalculator, $this->machineRepository);
+        $importer = new MachineImporter(
+            $this->craftingCategoryImporter,
+            $this->idCalculator,
+            $this->machineRepository,
+            $this->validator
+        );
         $importer->prepare($exportData);
 
         $this->assertSame([], $this->extractProperty($importer, 'machines'));
@@ -153,6 +172,7 @@ class MachineImporterTest extends TestCase
                              $this->craftingCategoryImporter,
                              $this->idCalculator,
                              $this->machineRepository,
+                             $this->validator,
                          ])
                          ->getMock();
         $importer->expects($this->exactly(2))
@@ -244,7 +264,16 @@ class MachineImporterTest extends TestCase
                            ->with($this->equalTo($expectedDatabaseMachine))
                            ->willReturn($machineId);
 
-        $importer = new MachineImporter($this->craftingCategoryImporter, $this->idCalculator, $this->machineRepository);
+        $this->validator->expects($this->once())
+                        ->method('validateMachine')
+                        ->with($this->equalTo($expectedDatabaseMachine));
+
+        $importer = new MachineImporter(
+            $this->craftingCategoryImporter,
+            $this->idCalculator,
+            $this->machineRepository,
+            $this->validator
+        );
         $result = $this->invokeMethod($importer, 'map', $exportMachine);
 
         $this->assertEquals($expectedResult, $result);
@@ -266,7 +295,12 @@ class MachineImporterTest extends TestCase
             '70acdb0f-36ca-4b30-9687-2baaade94cd3' => $machine,
         ];
 
-        $importer = new MachineImporter($this->craftingCategoryImporter, $this->idCalculator, $this->machineRepository);
+        $importer = new MachineImporter(
+            $this->craftingCategoryImporter,
+            $this->idCalculator,
+            $this->machineRepository,
+            $this->validator
+        );
         $this->invokeMethod($importer, 'add', $machine);
 
         $this->assertSame($expectedMachines, $this->extractProperty($importer, 'machines'));
@@ -311,12 +345,16 @@ class MachineImporterTest extends TestCase
                           [$this->identicalTo($machine2)]
                       );
 
-        $importer = new MachineImporter($this->craftingCategoryImporter, $this->idCalculator, $this->machineRepository);
+        $importer = new MachineImporter(
+            $this->craftingCategoryImporter,
+            $this->idCalculator,
+            $this->machineRepository,
+            $this->validator
+        );
         $this->injectProperty($importer, 'machines', $machines);
 
         $importer->persist($entityManager, $combination);
     }
-
 
     /**
      * Tests the cleanup method.
@@ -330,7 +368,12 @@ class MachineImporterTest extends TestCase
         $this->craftingCategoryImporter->expects($this->once())
                                        ->method('cleanup');
 
-        $importer = new MachineImporter($this->craftingCategoryImporter, $this->idCalculator, $this->machineRepository);
+        $importer = new MachineImporter(
+            $this->craftingCategoryImporter,
+            $this->idCalculator,
+            $this->machineRepository,
+            $this->validator
+        );
         $importer->cleanup();
     }
 }
