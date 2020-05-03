@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Missing icons for some mods because of normalizing the icon names.
+
 ## 1.0.1 - 2020-05-02
 
 ### Fixed

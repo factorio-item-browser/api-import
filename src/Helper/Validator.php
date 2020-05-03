@@ -13,6 +13,7 @@ use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Entity\Recipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
+use FactorioItemBrowser\Common\Constant\EntityType;
 
 /**
  * The validator for the database entities.
@@ -37,7 +38,9 @@ class Validator
      */
     public function validateIcon(Icon $icon): void
     {
-        $icon->setName($this->validateName($icon->getName()));
+        if ($icon->getType() !== EntityType::MOD) {
+            $icon->setName($this->validateName($icon->getName()));
+        }
     }
 
     /**
