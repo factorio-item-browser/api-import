@@ -15,6 +15,7 @@ use FactorioItemBrowser\Api\Database\Entity\Recipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
+use FactorioItemBrowser\Common\Constant\EntityType;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -79,6 +80,32 @@ class ValidatorTest extends TestCase
         
         $validator->validateIcon($icon);
         
+        $this->assertEquals($expectedIcon, $icon);
+    }
+
+    /**
+     * Tests the validateIcon method.
+     * @covers ::validateIcon
+     */
+    public function testValidateIconWithMod(): void
+    {
+        $icon = new Icon();
+        $icon->setType(EntityType::MOD)
+             ->setName('abc');
+
+        $expectedIcon = new Icon();
+        $expectedIcon->setType(EntityType::MOD)
+                     ->setName('abc');
+
+        /* @var Validator&MockObject $validator */
+        $validator = $this->getMockBuilder(Validator::class)
+                          ->onlyMethods(['validateName'])
+                          ->getMock();
+        $validator->expects($this->never())
+                  ->method('validateName');
+
+        $validator->validateIcon($icon);
+
         $this->assertEquals($expectedIcon, $icon);
     }
     
