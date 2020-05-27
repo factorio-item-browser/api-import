@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6b90ce6625c2551dceb7f40803cf5883",
+    "content-hash": "eef4e39b03dbb1289fab0b5110b419b8",
     "packages": [
         {
             "name": "bluepsyduck/laminas-autowire-factory",
@@ -5649,7 +5649,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^7.3",
+        "php": "^7.4",
         "ext-json": "*",
         "ext-pdo": "*"
     },
