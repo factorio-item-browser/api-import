@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Dependency `factorio-item-browser/export-queue-client` to version 1.2.
+- Using ordering `priority` to fetch the next job to process.
+
+### Removed
+
+- Support for PHP 7.3. The project must now run with at least PHP 7.4.
+
 ## 1.0.2 - 2020-05-03
 
 ### Fixed

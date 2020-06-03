@@ -13,7 +13,6 @@ use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Entity\Recipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
-use FactorioItemBrowser\Common\Constant\EntityType;
 
 /**
  * The validator for the database entities.
@@ -29,7 +28,7 @@ class Validator
      */
     public function validateCraftingCategory(CraftingCategory $craftingCategory): void
     {
-        $craftingCategory->setName($this->validateName($craftingCategory->getName()));
+        $craftingCategory->setName($this->limitString($craftingCategory->getName(), 255));
     }
 
     /**
@@ -38,9 +37,7 @@ class Validator
      */
     public function validateIcon(Icon $icon): void
     {
-        if ($icon->getType() !== EntityType::MOD) {
-            $icon->setName($this->validateName($icon->getName()));
-        }
+        $icon->setName($this->limitString($icon->getName(), 255));
     }
 
     /**
@@ -58,7 +55,7 @@ class Validator
      */
     public function validateItem(Item $item): void
     {
-        $item->setName($this->validateName($item->getName()));
+        $item->setName($this->limitString($item->getName(), 255));
     }
 
     /**
@@ -67,7 +64,7 @@ class Validator
      */
     public function validateMachine(Machine $machine): void
     {
-        $machine->setName($this->validateName($machine->getName()))
+        $machine->setName($this->limitString($machine->getName(), 255))
                 ->setCraftingSpeed($this->limitFloat($machine->getCraftingSpeed()))
                 ->setNumberOfItemSlots($this->limitInteger($machine->getNumberOfItemSlots(), 0, 255))
                 ->setNumberOfFluidInputSlots($this->limitInteger($machine->getNumberOfFluidInputSlots(), 0, 255))
@@ -92,7 +89,7 @@ class Validator
      */
     public function validateRecipe(Recipe $recipe): void
     {
-        $recipe->setName($this->validateName($recipe->getName()))
+        $recipe->setName($this->limitString($recipe->getName(), 255))
                ->setCraftingTime($this->limitFloat($recipe->getCraftingTime()));
 
         foreach ($recipe->getIngredients() as $ingredient) {
@@ -123,16 +120,6 @@ class Validator
                 ->setAmountMin($this->limitFloat($product->getAmountMin()))
                 ->setAmountMax($this->limitFloat($product->getAmountMax()))
                 ->setProbability($this->limitFloat($product->getProbability()));
-    }
-
-    /**
-     * Validates a name.
-     * @param string $name
-     * @return string
-     */
-    protected function validateName(string $name): string
-    {
-        return strtolower($this->limitString($name, 255));
     }
 
     /**

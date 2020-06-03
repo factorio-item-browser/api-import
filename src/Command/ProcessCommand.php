@@ -16,6 +16,7 @@ use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
 use FactorioItemBrowser\ExportQueue\Client\Client\Facade;
 use FactorioItemBrowser\ExportQueue\Client\Constant\JobStatus;
+use FactorioItemBrowser\ExportQueue\Client\Constant\ListOrder;
 use FactorioItemBrowser\ExportQueue\Client\Entity\Job;
 use FactorioItemBrowser\ExportQueue\Client\Exception\ClientException;
 use FactorioItemBrowser\ExportQueue\Client\Request\Job\ListRequest;
@@ -129,6 +130,7 @@ class ProcessCommand extends Command
     {
         $request = new ListRequest();
         $request->setStatus(JobStatus::UPLOADED)
+                ->setOrder(ListOrder::PRIORITY)
                 ->setLimit(1);
 
         $response = $this->exportQueueFacade->getJobList($request);
