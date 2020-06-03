@@ -15,7 +15,6 @@ use FactorioItemBrowser\Api\Database\Entity\Recipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
-use FactorioItemBrowser\Common\Constant\EntityType;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -45,11 +44,11 @@ class ValidatorTest extends TestCase
 
         /* @var Validator&MockObject $validator */
         $validator = $this->getMockBuilder(Validator::class)
-                          ->onlyMethods(['validateName'])
+                          ->onlyMethods(['limitString'])
                           ->getMock();
         $validator->expects($this->once())
-                  ->method('validateName')
-                  ->with($this->identicalTo('abc'))
+                  ->method('limitString')
+                  ->with($this->identicalTo('abc'), $this->identicalTo(255))
                   ->willReturn('cba');
         
         $validator->validateCraftingCategory($craftingCategory);
@@ -71,11 +70,11 @@ class ValidatorTest extends TestCase
 
         /* @var Validator&MockObject $validator */
         $validator = $this->getMockBuilder(Validator::class)
-                          ->onlyMethods(['validateName'])
+                          ->onlyMethods(['limitString'])
                           ->getMock();
         $validator->expects($this->once())
-                  ->method('validateName')
-                  ->with($this->identicalTo('abc'))
+                  ->method('limitString')
+                  ->with($this->identicalTo('abc'), $this->identicalTo(255))
                   ->willReturn('cba');
         
         $validator->validateIcon($icon);
@@ -83,32 +82,6 @@ class ValidatorTest extends TestCase
         $this->assertEquals($expectedIcon, $icon);
     }
 
-    /**
-     * Tests the validateIcon method.
-     * @covers ::validateIcon
-     */
-    public function testValidateIconWithMod(): void
-    {
-        $icon = new Icon();
-        $icon->setType(EntityType::MOD)
-             ->setName('abc');
-
-        $expectedIcon = new Icon();
-        $expectedIcon->setType(EntityType::MOD)
-                     ->setName('abc');
-
-        /* @var Validator&MockObject $validator */
-        $validator = $this->getMockBuilder(Validator::class)
-                          ->onlyMethods(['validateName'])
-                          ->getMock();
-        $validator->expects($this->never())
-                  ->method('validateName');
-
-        $validator->validateIcon($icon);
-
-        $this->assertEquals($expectedIcon, $icon);
-    }
-    
     /**
      * Tests the validateIconImage method.
      * @covers ::validateIconImage
@@ -149,11 +122,11 @@ class ValidatorTest extends TestCase
         
         /* @var Validator&MockObject $validator */
         $validator = $this->getMockBuilder(Validator::class)
-                          ->onlyMethods(['validateName'])
+                          ->onlyMethods(['limitString'])
                           ->getMock();
         $validator->expects($this->once())
-                  ->method('validateName')
-                  ->with($this->identicalTo('abc'))
+                  ->method('limitString')
+                  ->with($this->identicalTo('abc'), $this->identicalTo(255))
                   ->willReturn('cba');
         
         $validator->validateItem($item);
@@ -187,11 +160,11 @@ class ValidatorTest extends TestCase
 
         /* @var Validator&MockObject $validator */
         $validator = $this->getMockBuilder(Validator::class)
-                          ->onlyMethods(['validateName', 'limitFloat', 'limitInteger'])
+                          ->onlyMethods(['limitString', 'limitFloat', 'limitInteger'])
                           ->getMock();
         $validator->expects($this->once())
-                  ->method('validateName')
-                  ->with($this->identicalTo('abc'))
+                  ->method('limitString')
+                  ->with($this->identicalTo('abc'), $this->identicalTo(255))
                   ->willReturn('cba');
         $validator->expects($this->exactly(2))
                   ->method('limitFloat')
@@ -290,11 +263,11 @@ class ValidatorTest extends TestCase
 
         /* @var Validator&MockObject $validator */
         $validator = $this->getMockBuilder(Validator::class)
-                          ->onlyMethods(['validateName', 'limitFloat', 'validateIngredient', 'validateProduct'])
+                          ->onlyMethods(['limitString', 'limitFloat', 'validateIngredient', 'validateProduct'])
                           ->getMock();
         $validator->expects($this->once())
-                  ->method('validateName')
-                  ->with($this->identicalTo('abc'))
+                  ->method('limitString')
+                  ->with($this->identicalTo('abc'), $this->identicalTo(255))
                   ->willReturn('cba');
         $validator->expects($this->once())
                   ->method('limitFloat')
@@ -394,31 +367,6 @@ class ValidatorTest extends TestCase
         $this->invokeMethod($validator, 'validateProduct', $product);
 
         $this->assertEquals($expectedProduct, $product);
-    }
-
-    /**
-     * Tests the validateName method.
-     * @throws ReflectionException
-     * @covers ::validateName
-     */
-    public function testValidateName(): void
-    {
-        $name = 'Abc';
-        $limitedName = 'Def';
-        $expectedResult = 'def';
-
-        /* @var Validator&MockObject $validator */
-        $validator = $this->getMockBuilder(Validator::class)
-                          ->onlyMethods(['limitString'])
-                          ->getMock();
-        $validator->expects($this->once())
-                  ->method('limitString')
-                  ->with($this->identicalTo($name))
-                  ->willReturn($limitedName);
-
-        $result = $this->invokeMethod($validator, 'validateName', $name);
-
-        $this->assertSame($expectedResult, $result);
     }
 
     /**
