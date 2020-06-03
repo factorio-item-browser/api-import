@@ -1,11 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.0.3 - 2020-06-03
 
 ### Changed
 
 - Dependency `factorio-item-browser/export-queue-client` to version 1.2.
+- Dependency `factorio-item-browser/api-database` to version 3.2.
 - Using ordering `priority` to fetch the next job to process.
+- Validation no longer modifies case of identifiers, as the game is case-sensitive not as well.
 
 ### Removed
 
