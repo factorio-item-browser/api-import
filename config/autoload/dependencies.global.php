@@ -22,6 +22,7 @@ return [
         'factories'  => [
             Command\ImportCommand::class => AutoWireFactory::class,
             Command\ImportImagesCommand::class => AutoWireFactory::class,
+            Command\ImportPartCommand::class => AutoWireFactory::class,
             Command\ImportTranslationsCommand::class => AutoWireFactory::class,
             Command\ProcessCommand::class => AutoWireFactory::class,
 
@@ -38,10 +39,17 @@ return [
             Importer\ModImporter::class => AutoWireFactory::class,
             Importer\RecipeImporter::class => AutoWireFactory::class,
 
+            NewImporter\CraftingCategoryImporter::class => AutoWireFactory::class,
+            NewImporter\ItemImporter::class => AutoWireFactory::class,
+            NewImporter\MachineImporter::class => AutoWireFactory::class,
+
             // Auto-wire helpers
             'array $importers' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORTERS),
+            'array $newImporters' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, 'new-importers'),
 
             'bool $isDebug' => readConfig('debug'),
+
+            'int $importChunkSize' => readConfig(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORT_CHUNK_SIZE),
         ],
     ],
 ];

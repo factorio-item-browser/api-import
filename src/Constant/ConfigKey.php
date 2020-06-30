@@ -23,6 +23,11 @@ interface ConfigKey
     public const API_IMPORT = 'api-import';
 
     /**
+     * The chunk size to use for the imports.
+     */
+    public const IMPORT_CHUNK_SIZE = 'import-chunk-size';
+
+    /**
      * The key holding the importer aliases.
      */
     public const IMPORTERS = 'importers';

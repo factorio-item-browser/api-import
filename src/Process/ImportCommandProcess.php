@@ -15,18 +15,14 @@ use Symfony\Component\Process\Process;
  */
 class ImportCommandProcess extends Process
 {
-    /**
-     * The combination of the process.
-     * @var Combination
-     */
-    protected $combination;
+    protected Combination $combination;
 
     /**
-     * Initializes the process.
      * @param string $commandName
      * @param Combination $combination
+     * @param array<string> $additionalAgruments
      */
-    public function __construct(string $commandName, Combination $combination)
+    public function __construct(string $commandName, Combination $combination, array $additionalAgruments = [])
     {
         $this->combination = $combination;
 
@@ -35,15 +31,12 @@ class ImportCommandProcess extends Process
             $_SERVER['SCRIPT_FILENAME'],
             $commandName,
             $combination->getId()->toString(),
+            ...$additionalAgruments,
         ]);
 
         $this->setTimeout(null);
     }
 
-    /**
-     * Returns the combination of the process.
-     * @return Combination
-     */
     public function getCombination(): Combination
     {
         return $this->combination;

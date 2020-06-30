@@ -12,10 +12,12 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import;
 
 use FactorioItemBrowser\Api\Import\Constant\ConfigKey;
+use FactorioItemBrowser\Api\Import\Constant\ImporterName;
 
 return [
     ConfigKey::PROJECT => [
         ConfigKey::API_IMPORT => [
+            ConfigKey::IMPORT_CHUNK_SIZE => 256,
             ConfigKey::IMPORTERS => [
                 Importer\CraftingCategoryImporter::class,
                 Importer\IconImageImporter::class,
@@ -24,6 +26,11 @@ return [
                 Importer\MachineImporter::class,
                 Importer\ModImporter::class,
                 Importer\RecipeImporter::class,
+            ],
+            'new-importers' => [
+                ImporterName::CRAFTING_CATEGORY => NewImporter\CraftingCategoryImporter::class,
+                ImporterName::ITEM => NewImporter\ItemImporter::class,
+                ImporterName::MACHINE => NewImporter\MachineImporter::class,
             ],
         ],
     ],
