@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
@@ -25,14 +26,18 @@ use Generator;
 class ItemImporter extends AbstractEntityImporter
 {
     protected IdCalculator $idCalculator;
+    protected Validator $validator;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         IdCalculator $idCalculator,
-        ItemRepository $repository
+        ItemRepository $repository,
+        Validator $validator
     ) {
         parent::__construct($entityManager, $repository);
+
         $this->idCalculator = $idCalculator;
+        $this->validator = $validator;
     }
 
     protected function getCollectionFromCombination(Combination $combination): Collection
@@ -53,8 +58,9 @@ class ItemImporter extends AbstractEntityImporter
     {
         $databaseItem = new DatabaseItem();
         $databaseItem->setType($entity->getType())
-                     ->setName(substr(trim($entity->getName()), 0, 255));
+                     ->setName($entity->getName());
 
+        $this->validator->validateItem($databaseItem);
         $databaseItem->setId($this->idCalculator->calculateIdOfItem($databaseItem));
         return $databaseItem;
     }

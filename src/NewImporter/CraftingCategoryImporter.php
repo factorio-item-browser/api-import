@@ -11,6 +11,7 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
 
@@ -25,14 +26,18 @@ use Generator;
 class CraftingCategoryImporter extends AbstractEntityImporter
 {
     protected IdCalculator $idCalculator;
+    protected Validator $validator;
 
     public function __construct(
         CraftingCategoryRepository $repository,
         EntityManagerInterface $entityManager,
-        IdCalculator $idCalculator
+        IdCalculator $idCalculator,
+        Validator $validator
     ) {
         parent::__construct($entityManager, $repository);
+
         $this->idCalculator = $idCalculator;
+        $this->validator = $validator;
     }
 
     protected function getCollectionFromCombination(Combination $combination): Collection
@@ -70,8 +75,9 @@ class CraftingCategoryImporter extends AbstractEntityImporter
     protected function createDatabaseEntity($name): CraftingCategory
     {
         $craftingCategory = new CraftingCategory();
-        $craftingCategory->setName(substr(trim($name), 0, 255));
+        $craftingCategory->setName($name);
 
+        $this->validator->validateCraftingCategory($craftingCategory);
         $craftingCategory->setId($this->idCalculator->calculateIdOfCraftingCategory($craftingCategory));
         return $craftingCategory;
     }

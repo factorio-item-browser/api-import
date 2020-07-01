@@ -16,4 +16,5 @@ interface ImporterName
     public const ITEM = 'item';
     public const MACHINE = 'machine';
     public const MOD = 'mod';
+    public const RECIPE = 'recipe';
 }

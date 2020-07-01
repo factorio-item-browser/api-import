@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Command;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
@@ -29,6 +30,8 @@ class ImportCommand extends AbstractImportCommand
     protected array $importers;
     protected int $chunkSize;
 
+    protected EntityManagerInterface $em;
+
     /**
      * @param CombinationRepository $combinationRepository
      * @param Console $console
@@ -41,12 +44,15 @@ class ImportCommand extends AbstractImportCommand
         Console $console,
         ExportDataService $exportDataService,
         array $newImporters,
-        int $importChunkSize
+        int $importChunkSize,
+    EntityManagerInterface $em
     ) {
         parent::__construct($combinationRepository, $console, $exportDataService);
 
         $this->importers = $newImporters;
         $this->chunkSize = $importChunkSize;
+
+        $this->em = $em;
     }
 
     protected function configure(): void

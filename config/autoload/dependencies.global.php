@@ -28,6 +28,7 @@ return [
 
             Console\Console::class => AutoWireFactory::class,
 
+            Helper\DataCollector::class => AutoWireFactory::class,
             Helper\IdCalculator::class => AutoWireFactory::class,
             Helper\Validator::class => AutoWireFactory::class,
 
@@ -43,6 +44,7 @@ return [
             NewImporter\ItemImporter::class => AutoWireFactory::class,
             NewImporter\MachineImporter::class => AutoWireFactory::class,
             NewImporter\ModImporter::class => AutoWireFactory::class,
+            NewImporter\RecipeImporter::class => AutoWireFactory::class,
 
             // Auto-wire helpers
             'array $importers' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORTERS),

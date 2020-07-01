@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
 use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
+use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Mod as ExportMod;
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
@@ -25,14 +26,18 @@ use Generator;
 class ModImporter extends AbstractEntityImporter
 {
     protected IdCalculator $idCalculator;
+    protected Validator $validator;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         IdCalculator $idCalculator,
-        ModRepository $repository
+        ModRepository $repository,
+        Validator $validator
     ) {
         parent::__construct($entityManager, $repository);
+
         $this->idCalculator = $idCalculator;
+        $this->validator = $validator;
     }
 
     protected function getCollectionFromCombination(Combination $combination): Collection
@@ -53,9 +58,10 @@ class ModImporter extends AbstractEntityImporter
     {
         $databaseMod = new DatabaseMod();
         $databaseMod->setName($exportMod->getName())
-                    ->setVersion(substr(trim($exportMod->getVersion()), 0, 16))
-                    ->setAuthor(substr(trim($exportMod->getAuthor()), 0, 255));
+                    ->setVersion($exportMod->getVersion())
+                    ->setAuthor($exportMod->getAuthor());
 
+        $this->validator->validateMod($databaseMod);
         $databaseMod->setId($this->idCalculator->calculateIdOfMod($databaseMod));
         return $databaseMod;
     }
