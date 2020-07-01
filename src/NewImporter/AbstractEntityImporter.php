@@ -7,6 +7,7 @@ namespace FactorioItemBrowser\Api\Import\NewImporter;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
+use FactorioItemBrowser\Api\Database\Repository\AbstractIdRepository;
 use FactorioItemBrowser\Api\Database\Repository\AbstractIdRepositoryWithOrphans;
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
@@ -19,22 +20,22 @@ use LimitIterator;
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  *
  * @template TExport
- * @template TDatabase
+ * @template TDatabase of \FactorioItemBrowser\Api\Database\Entity\EntityWithId
  */
-abstract class AbstractImporter implements ImporterInterface
+abstract class AbstractEntityImporter implements ImporterInterface
 {
     protected EntityManagerInterface $entityManager;
 
     /**
-     * @var AbstractIdRepositoryWithOrphans<TDatabase>
+     * @var AbstractIdRepository<TDatabase>
      */
-    protected AbstractIdRepositoryWithOrphans $repository;
+    protected AbstractIdRepository $repository;
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param AbstractIdRepositoryWithOrphans<TDatabase> $repository
+     * @param AbstractIdRepository<TDatabase> $repository
      */
-    public function __construct(EntityManagerInterface $entityManager, AbstractIdRepositoryWithOrphans $repository)
+    public function __construct(EntityManagerInterface $entityManager, AbstractIdRepository $repository)
     {
         $this->entityManager = $entityManager;
         $this->repository = $repository;
@@ -112,7 +113,7 @@ abstract class AbstractImporter implements ImporterInterface
      * @param TExport $entity
      * @return TDatabase
      */
-    abstract protected function createDatabaseEntity($entity): object;
+    abstract protected function createDatabaseEntity($entity);
 
     /**
      * Fetches already existing entities from the database.
@@ -141,6 +142,8 @@ abstract class AbstractImporter implements ImporterInterface
      */
     public function cleanup(): void
     {
-        $this->repository->removeOrphans();
+        if ($this->repository instanceof AbstractIdRepositoryWithOrphans) {
+            $this->repository->removeOrphans();
+        }
     }
 }

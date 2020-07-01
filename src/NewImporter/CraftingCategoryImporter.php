@@ -20,16 +20,16 @@ use Generator;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  *
- * @extends AbstractImporter<string, CraftingCategory>
+ * @extends AbstractEntityImporter<string, CraftingCategory>
  */
-class CraftingCategoryImporter extends AbstractImporter
+class CraftingCategoryImporter extends AbstractEntityImporter
 {
     protected IdCalculator $idCalculator;
 
     public function __construct(
+        CraftingCategoryRepository $repository,
         EntityManagerInterface $entityManager,
-        IdCalculator $idCalculator,
-        CraftingCategoryRepository $repository
+        IdCalculator $idCalculator
     ) {
         parent::__construct($entityManager, $repository);
         $this->idCalculator = $idCalculator;
@@ -37,7 +37,7 @@ class CraftingCategoryImporter extends AbstractImporter
 
     protected function getCollectionFromCombination(Combination $combination): Collection
     {
-        // Crafting category do not get assigned directly to the combination.
+        // Crafting categories do not get assigned directly to the combination.
         return new ArrayCollection();
     }
 

@@ -7,29 +7,29 @@ namespace FactorioItemBrowser\Api\Import\NewImporter;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
-use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
-use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
+use FactorioItemBrowser\Api\Database\Entity\Mod as DatabaseMod;
+use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
-use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
+use FactorioItemBrowser\ExportData\Entity\Mod as ExportMod;
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
 
 /**
- * The importer for the items.
+ * The importer for the mods.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  *
- * @extends AbstractEntityImporter<ExportItem, DatabaseItem>
+ * @extends AbstractEntityImporter<ExportMod, DatabaseMod>
  */
-class ItemImporter extends AbstractEntityImporter
+class ModImporter extends AbstractEntityImporter
 {
     protected IdCalculator $idCalculator;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         IdCalculator $idCalculator,
-        ItemRepository $repository
+        ModRepository $repository
     ) {
         parent::__construct($entityManager, $repository);
         $this->idCalculator = $idCalculator;
@@ -37,25 +37,26 @@ class ItemImporter extends AbstractEntityImporter
 
     protected function getCollectionFromCombination(Combination $combination): Collection
     {
-        return $combination->getItems();
+        return $combination->getMods();
     }
 
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        yield from $exportData->getCombination()->getItems();
+        yield from $exportData->getCombination()->getMods();
     }
 
     /**
-     * @param ExportItem $entity
-     * @return DatabaseItem
+     * @param ExportMod $exportMod
+     * @return DatabaseMod
      */
-    protected function createDatabaseEntity($entity): DatabaseItem
+    protected function createDatabaseEntity($exportMod): object
     {
-        $databaseItem = new DatabaseItem();
-        $databaseItem->setType($entity->getType())
-                     ->setName(substr(trim($entity->getName()), 0, 255));
+        $databaseMod = new DatabaseMod();
+        $databaseMod->setName($exportMod->getName())
+                    ->setVersion(substr(trim($exportMod->getVersion()), 0, 16))
+                    ->setAuthor(substr(trim($exportMod->getAuthor()), 0, 255));
 
-        $databaseItem->setId($this->idCalculator->calculateIdOfItem($databaseItem));
-        return $databaseItem;
+        $databaseMod->setId($this->idCalculator->calculateIdOfMod($databaseMod));
+        return $databaseMod;
     }
 }

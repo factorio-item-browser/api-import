@@ -19,14 +19,14 @@ use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
 
 /**
- *
+ * The importer for the machines.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  *
- * @extends AbstractImporter<ExportMachine, DatabaseMachine>
+ * @extends AbstractEntityImporter<ExportMachine, DatabaseMachine>
  */
-class MachineImporter extends AbstractImporter
+class MachineImporter extends AbstractEntityImporter
 {
     protected CraftingCategoryRepository $craftingCategoryRepository;
     protected IdCalculator $idCalculator;

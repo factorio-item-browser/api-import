@@ -30,6 +30,8 @@ return [
             'new-importers' => [
                 ImporterName::CRAFTING_CATEGORY => NewImporter\CraftingCategoryImporter::class,
                 ImporterName::ITEM => NewImporter\ItemImporter::class,
+                ImporterName::MOD => NewImporter\ModImporter::class,
+
                 ImporterName::MACHINE => NewImporter\MachineImporter::class,
             ],
         ],

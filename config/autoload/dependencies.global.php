@@ -42,6 +42,7 @@ return [
             NewImporter\CraftingCategoryImporter::class => AutoWireFactory::class,
             NewImporter\ItemImporter::class => AutoWireFactory::class,
             NewImporter\MachineImporter::class => AutoWireFactory::class,
+            NewImporter\ModImporter::class => AutoWireFactory::class,
 
             // Auto-wire helpers
             'array $importers' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORTERS),
