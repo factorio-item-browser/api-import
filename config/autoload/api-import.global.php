@@ -17,7 +17,7 @@ use FactorioItemBrowser\Api\Import\Constant\ImporterName;
 return [
     ConfigKey::PROJECT => [
         ConfigKey::API_IMPORT => [
-            ConfigKey::IMPORT_CHUNK_SIZE => 128,
+            ConfigKey::IMPORT_CHUNK_SIZE => 256,
             ConfigKey::IMPORTERS => [
                 Importer\CraftingCategoryImporter::class,
                 Importer\IconImageImporter::class,
@@ -34,6 +34,11 @@ return [
 
                 ImporterName::MACHINE => NewImporter\MachineImporter::class,
                 ImporterName::RECIPE => NewImporter\RecipeImporter::class,
+
+                ImporterName::MOD_TRANSLATION => NewImporter\ModTranslationImporter::class,
+                ImporterName::ITEM_TRANSLATION => NewImporter\ItemTranslationImporter::class,
+                ImporterName::MACHINE_TRANSLATION => NewImporter\MachineTranslationImporter::class,
+                ImporterName::RECIPE_TRANSLATION => NewImporter\RecipeTranslationImporter::class,
             ],
         ],
     ],

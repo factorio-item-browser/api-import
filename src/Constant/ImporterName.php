@@ -14,7 +14,11 @@ interface ImporterName
 {
     public const CRAFTING_CATEGORY = 'crafting-category';
     public const ITEM = 'item';
+    public const ITEM_TRANSLATION = 'item-translation';
     public const MACHINE = 'machine';
+    public const MACHINE_TRANSLATION = 'machine-translation';
     public const MOD = 'mod';
+    public const MOD_TRANSLATION = 'mod-translation';
     public const RECIPE = 'recipe';
+    public const RECIPE_TRANSLATION = 'recipe-translation';
 }

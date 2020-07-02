@@ -26,6 +26,8 @@ use Generator;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ *
+ * @extends AbstractEntityImporter<ExportRecipe, DatabaseRecipe>
  */
 class RecipeImporter extends AbstractEntityImporter
 {
