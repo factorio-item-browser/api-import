@@ -14,8 +14,6 @@ use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\LocalisedString;
 use FactorioItemBrowser\ExportData\ExportData;
-use Generator;
-use LimitIterator;
 
 /**
  * The abstract importer handling translations.
@@ -24,8 +22,9 @@ use LimitIterator;
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  *
  * @template TExport
+ * @extends AbstractImporter<TExport>
  */
-abstract class AbstractTranslationImporter implements ImporterInterface
+abstract class AbstractTranslationImporter extends AbstractImporter
 {
     protected EntityManagerInterface $entityManager;
     protected IdCalculator $idCalculator;
@@ -43,17 +42,6 @@ abstract class AbstractTranslationImporter implements ImporterInterface
         $this->translationRepository = $translationRepository;
         $this->validator = $validator;
     }
-
-    public function count(ExportData $exportData): int
-    {
-        return count(iterator_to_array($this->getExportEntities($exportData)));
-    }
-
-    /**
-     * @param ExportData $exportData
-     * @return Generator<int, TExport, mixed, mixed>
-     */
-    abstract protected function getExportEntities(ExportData $exportData): Generator;
 
     public function prepare(Combination $combination): void
     {
@@ -82,8 +70,7 @@ abstract class AbstractTranslationImporter implements ImporterInterface
     protected function createTranslations(ExportData $exportData, int $offset, int $limit): array
     {
         $results = [];
-        $iterator = new LimitIterator($this->getExportEntities($exportData), $offset, $limit);
-        foreach (iterator_to_array($iterator) as $entity) {
+        foreach ($this->getChunkedExportEntities($exportData, $offset, $limit) as $entity) {
             $translations = $this->createTranslationsForEntity($exportData, $entity);
             foreach ($translations as $translation) {
                 $this->validator->validateTranslation($translation);

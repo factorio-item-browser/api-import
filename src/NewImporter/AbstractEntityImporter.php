@@ -10,8 +10,6 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\AbstractIdRepository;
 use FactorioItemBrowser\Api\Database\Repository\AbstractIdRepositoryWithOrphans;
 use FactorioItemBrowser\ExportData\ExportData;
-use Generator;
-use LimitIterator;
 
 /**
  * The abstract importer working with an id repository.
@@ -21,8 +19,9 @@ use LimitIterator;
  *
  * @template TExport
  * @template TDatabase of \FactorioItemBrowser\Api\Database\Entity\EntityWithId
+ * @extends AbstractImporter<TExport>
  */
-abstract class AbstractEntityImporter implements ImporterInterface
+abstract class AbstractEntityImporter extends AbstractImporter
 {
     protected EntityManagerInterface $entityManager;
 
@@ -39,16 +38,6 @@ abstract class AbstractEntityImporter implements ImporterInterface
     {
         $this->entityManager = $entityManager;
         $this->repository = $repository;
-    }
-
-    /**
-     * Counts the entities the importer has to process.
-     * @param ExportData $exportData
-     * @return int
-     */
-    public function count(ExportData $exportData): int
-    {
-        return count(iterator_to_array($this->getExportEntities($exportData)));
     }
 
     /**
@@ -97,16 +86,9 @@ abstract class AbstractEntityImporter implements ImporterInterface
      */
     protected function getDatabaseEntities(ExportData $exportData, int $offset, int $limit): array
     {
-        $iterator = new LimitIterator($this->getExportEntities($exportData), $offset, $limit);
-        return array_map([$this, 'createDatabaseEntity'], iterator_to_array($iterator));
+        $entities = $this->getChunkedExportEntities($exportData, $offset, $limit);
+        return array_map([$this, 'createDatabaseEntity'], $entities);
     }
-
-    /**
-     * Returns the entities from the export data as generator.
-     * @param ExportData $exportData
-     * @return Generator<int, TExport, mixed, mixed>
-     */
-    abstract protected function getExportEntities(ExportData $exportData): Generator;
 
     /**
      * Creates the database entity from the specified export entity.

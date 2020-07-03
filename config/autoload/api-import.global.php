@@ -39,6 +39,9 @@ return [
                 ImporterName::ITEM_TRANSLATION => NewImporter\ItemTranslationImporter::class,
                 ImporterName::MACHINE_TRANSLATION => NewImporter\MachineTranslationImporter::class,
                 ImporterName::RECIPE_TRANSLATION => NewImporter\RecipeTranslationImporter::class,
+
+                ImporterName::ICON_IMAGE => NewImporter\IconImageImporter::class,
+                ImporterName::ICON => NewImporter\IconImporter::class,
             ],
         ],
     ],

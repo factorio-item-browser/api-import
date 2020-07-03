@@ -13,6 +13,8 @@ namespace FactorioItemBrowser\Api\Import\Constant;
 interface ImporterName
 {
     public const CRAFTING_CATEGORY = 'crafting-category';
+    public const ICON_IMAGE = 'icon-image';
+    public const ICON = 'icon';
     public const ITEM = 'item';
     public const ITEM_TRANSLATION = 'item-translation';
     public const MACHINE = 'machine';

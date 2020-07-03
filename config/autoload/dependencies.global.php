@@ -41,6 +41,8 @@ return [
             Importer\RecipeImporter::class => AutoWireFactory::class,
 
             NewImporter\CraftingCategoryImporter::class => AutoWireFactory::class,
+            NewImporter\IconImageImporter::class => AutoWireFactory::class,
+            NewImporter\IconImporter::class => AutoWireFactory::class,
             NewImporter\ItemImporter::class => AutoWireFactory::class,
             NewImporter\ItemTranslationImporter::class => AutoWireFactory::class,
             NewImporter\MachineImporter::class => AutoWireFactory::class,
