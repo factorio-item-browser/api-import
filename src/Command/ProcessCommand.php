@@ -35,37 +35,11 @@ use Symfony\Component\Process\Process;
  */
 class ProcessCommand extends Command
 {
-    /**
-     * The console.
-     * @var Console
-     */
-    protected $console;
+    protected Console $console;
+    protected CombinationRepository $combinationRepository;
+    protected EntityManagerInterface $entityManager;
+    protected Facade $exportQueueFacade;
 
-    /**
-     * The combination repository.
-     * @var CombinationRepository
-     */
-    protected $combinationRepository;
-
-    /**
-     * The entity manager.
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
-    /**
-     * The export queue facade.
-     * @var Facade
-     */
-    protected $exportQueueFacade;
-
-    /**
-     * Initializes the command.
-     * @param CombinationRepository $combinationRepository
-     * @param Console $console
-     * @param EntityManagerInterface $entityManager
-     * @param Facade $exportQueueFacade
-     */
     public function __construct(
         CombinationRepository $combinationRepository,
         Console $console,
@@ -80,9 +54,6 @@ class ProcessCommand extends Command
         $this->exportQueueFacade = $exportQueueFacade;
     }
 
-    /**
-     * Configures the command.
-     */
     protected function configure(): void
     {
         parent::configure();
@@ -145,14 +116,10 @@ class ProcessCommand extends Command
      */
     protected function processJob(Job $job): void
     {
-        $this->console->writeHeadline(sprintf('Importing combination %s', $job->getCombinationId()));
-
         $job = $this->updateJobStatus($job, JobStatus::IMPORTING);
         $combination = $this->fetchCombination($job);
 
         $this->runImportCommand(CommandName::IMPORT, $combination);
-        $this->runImportCommand(CommandName::IMPORT_IMAGES, $combination);
-        $this->runImportCommand(CommandName::IMPORT_TRANSLATIONS, $combination);
 
         $this->updateJobStatus($job, JobStatus::DONE);
         $this->console->writeStep('Done.');

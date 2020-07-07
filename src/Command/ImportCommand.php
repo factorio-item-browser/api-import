@@ -10,7 +10,7 @@ use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
 use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\Api\Import\Exception\CommandFailureException;
-use FactorioItemBrowser\Api\Import\NewImporter\ImporterInterface;
+use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
 use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
@@ -33,19 +33,19 @@ class ImportCommand extends AbstractImportCommand
      * @param CombinationRepository $combinationRepository
      * @param Console $console
      * @param ExportDataService $exportDataService
-     * @param array<ImporterInterface> $newImporters
+     * @param array<ImporterInterface> $importers
      * @param int $importChunkSize
      */
     public function __construct(
         CombinationRepository $combinationRepository,
         Console $console,
         ExportDataService $exportDataService,
-        array $newImporters,
+        array $importers,
         int $importChunkSize
     ) {
         parent::__construct($combinationRepository, $console, $exportDataService);
 
-        $this->importers = $newImporters;
+        $this->importers = $importers;
         $this->chunkSize = $importChunkSize;
     }
 

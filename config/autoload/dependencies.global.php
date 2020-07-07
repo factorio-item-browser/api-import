@@ -21,9 +21,7 @@ return [
     'dependencies' => [
         'factories'  => [
             Command\ImportCommand::class => AutoWireFactory::class,
-            Command\ImportImagesCommand::class => AutoWireFactory::class,
             Command\ImportPartCommand::class => AutoWireFactory::class,
-            Command\ImportTranslationsCommand::class => AutoWireFactory::class,
             Command\ProcessCommand::class => AutoWireFactory::class,
 
             Console\Console::class => AutoWireFactory::class,
@@ -36,25 +34,16 @@ return [
             Importer\IconImageImporter::class => AutoWireFactory::class,
             Importer\IconImporter::class => AutoWireFactory::class,
             Importer\ItemImporter::class => AutoWireFactory::class,
+            Importer\ItemTranslationImporter::class => AutoWireFactory::class,
             Importer\MachineImporter::class => AutoWireFactory::class,
+            Importer\MachineTranslationImporter::class => AutoWireFactory::class,
             Importer\ModImporter::class => AutoWireFactory::class,
+            Importer\ModTranslationImporter::class => AutoWireFactory::class,
             Importer\RecipeImporter::class => AutoWireFactory::class,
-
-            NewImporter\CraftingCategoryImporter::class => AutoWireFactory::class,
-            NewImporter\IconImageImporter::class => AutoWireFactory::class,
-            NewImporter\IconImporter::class => AutoWireFactory::class,
-            NewImporter\ItemImporter::class => AutoWireFactory::class,
-            NewImporter\ItemTranslationImporter::class => AutoWireFactory::class,
-            NewImporter\MachineImporter::class => AutoWireFactory::class,
-            NewImporter\MachineTranslationImporter::class => AutoWireFactory::class,
-            NewImporter\ModImporter::class => AutoWireFactory::class,
-            NewImporter\ModTranslationImporter::class => AutoWireFactory::class,
-            NewImporter\RecipeImporter::class => AutoWireFactory::class,
-            NewImporter\RecipeTranslationImporter::class => AutoWireFactory::class,
+            Importer\RecipeTranslationImporter::class => AutoWireFactory::class,
 
             // Auto-wire helpers
             'array $importers' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORTERS),
-            'array $newImporters' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, 'new-importers'),
 
             'bool $isDebug' => readConfig('debug'),
 

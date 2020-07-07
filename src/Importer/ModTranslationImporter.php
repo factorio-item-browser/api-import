@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\Api\Import\NewImporter;
+namespace FactorioItemBrowser\Api\Import\Importer;
 
 use Doctrine\DBAL\DBALException;
 use FactorioItemBrowser\Api\Database\Entity\Combination;

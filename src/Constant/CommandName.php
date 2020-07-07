@@ -15,7 +15,5 @@ interface CommandName
     public const IMPORT = 'import';
     public const IMPORT_PART = 'import-part';
 
-    public const IMPORT_IMAGES = 'import-images';
-    public const IMPORT_TRANSLATIONS = 'import-translations';
     public const PROCESS = 'process';
 }

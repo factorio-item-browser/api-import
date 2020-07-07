@@ -9,7 +9,7 @@ use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
 use FactorioItemBrowser\Api\Import\Constant\CommandName;
-use FactorioItemBrowser\Api\Import\NewImporter\ImporterInterface;
+use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
 use Symfony\Component\Console\Input\InputArgument;
@@ -36,16 +36,16 @@ class ImportPartCommand extends AbstractImportCommand
      * @param CombinationRepository $combinationRepository
      * @param Console $console
      * @param ExportDataService $exportDataService
-     * @param array<ImporterInterface> $newImporters
+     * @param array<ImporterInterface> $importers
      */
     public function __construct(
         CombinationRepository $combinationRepository,
         Console $console,
         ExportDataService $exportDataService,
-        array $newImporters
+        array $importers
     ) {
         parent::__construct($combinationRepository, $console, $exportDataService);
-        $this->importers = $newImporters;
+        $this->importers = $importers;
     }
 
     protected function configure(): void

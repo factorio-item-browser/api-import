@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\Api\Import\NewImporter;
+namespace FactorioItemBrowser\Api\Import\Importer;
 
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
