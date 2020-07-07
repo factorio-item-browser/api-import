@@ -71,7 +71,7 @@ class ItemTranslationImporter extends AbstractTranslationImporter
             $description = $recipe->getDescriptions()->getTranslations()[$translation->getLocale()] ?? '';
 
             if (
-                ($label === '' || $label === $translation->getValue())
+                ($label === $translation->getValue())
                 && ($description === '' || $description === $translation->getDescription())
             ) {
                 $translation->setIsDuplicatedByRecipe(true);
@@ -105,7 +105,7 @@ class ItemTranslationImporter extends AbstractTranslationImporter
             $description = $machine->getDescriptions()->getTranslations()[$locale] ?? '';
 
             if (
-                ($label === '' || $label === $translation->getValue())
+                ($label === $translation->getValue())
                 && ($description === '' || $description === $translation->getDescription())
             ) {
                 $translation->setIsDuplicatedByMachine(true);

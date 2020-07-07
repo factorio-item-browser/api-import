@@ -10,14 +10,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
-use FactorioItemBrowser\Api\Import\Exception\ImportException;
-use FactorioItemBrowser\Api\Import\Exception\MissingItemException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\ItemImporter;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\ExportData;
+use FactorioItemBrowser\ExportData\Storage\StorageInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\UuidInterface;
@@ -35,16 +34,22 @@ class ItemImporterTest extends TestCase
     use ReflectionTrait;
 
     /**
+     * The mocked entity manager.
+     * @var EntityManagerInterface&MockObject
+     */
+    protected $entityManager;
+
+    /**
      * The mocked id calculator.
      * @var IdCalculator&MockObject
      */
     protected $idCalculator;
 
     /**
-     * The mocked item repository.
+     * The mocked repository.
      * @var ItemRepository&MockObject
      */
-    protected $itemRepository;
+    protected $repository;
 
     /**
      * The mocked validator.
@@ -59,8 +64,9 @@ class ItemImporterTest extends TestCase
     {
         parent::setUp();
 
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
-        $this->itemRepository = $this->createMock(ItemRepository::class);
+        $this->repository = $this->createMock(ItemRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
@@ -71,112 +77,61 @@ class ItemImporterTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
+        $importer = new ItemImporter($this->entityManager, $this->idCalculator, $this->repository, $this->validator);
 
         $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
-        $this->assertSame($this->itemRepository, $this->extractProperty($importer, 'itemRepository'));
+        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
     }
 
     /**
-     * Tests the prepare method.
-     * @covers ::prepare
+     * Tests the getCollectionFromCombination method.
+     * @throws ReflectionException
+     * @covers ::getCollectionFromCombination
      */
-    public function testPrepare(): void
+    public function testGetCollectionFromCombination(): void
     {
-        /* @var UuidInterface&MockObject $itemId1 */
-        $itemId1 = $this->createMock(UuidInterface::class);
-        /* @var UuidInterface&MockObject $itemId2 */
-        $itemId2 = $this->createMock(UuidInterface::class);
+        $items = $this->createMock(Collection::class);
 
-        /* @var ExportItem&MockObject $exportItem1 */
-        $exportItem1 = $this->createMock(ExportItem::class);
-        /* @var ExportItem&MockObject $exportItem2 */
-        $exportItem2 = $this->createMock(ExportItem::class);
-
-        /* @var ExportCombination&MockObject $combination */
-        $combination = $this->createMock(ExportCombination::class);
+        $combination = $this->createMock(DatabaseCombination::class);
         $combination->expects($this->once())
                     ->method('getItems')
-                    ->willReturn([$exportItem1, $exportItem2]);
+                    ->willReturn($items);
 
-        /* @var ExportData&MockObject $exportData */
-        $exportData = $this->createMock(ExportData::class);
-        $exportData->expects($this->once())
-                   ->method('getCombination')
-                   ->willReturn($combination);
+        $importer = new ItemImporter($this->entityManager, $this->idCalculator, $this->repository, $this->validator);
+        $result = $this->invokeMethod($importer, 'getCollectionFromCombination', $combination);
 
-        /* @var DatabaseItem&MockObject $databaseItem1 */
-        $databaseItem1 = $this->createMock(DatabaseItem::class);
-        $databaseItem1->expects($this->any())
-                      ->method('getId')
-                      ->willReturn($itemId1);
-
-        /* @var DatabaseItem&MockObject $databaseItem2 */
-        $databaseItem2 = $this->createMock(DatabaseItem::class);
-        $databaseItem2->expects($this->any())
-                      ->method('getId')
-                      ->willReturn($itemId2);
-
-        /* @var DatabaseItem&MockObject $existingDatabaseItem1 */
-        $existingDatabaseItem1 = $this->createMock(DatabaseItem::class);
-        /* @var DatabaseItem&MockObject $existingDatabaseItem2 */
-        $existingDatabaseItem2 = $this->createMock(DatabaseItem::class);
-
-        $this->itemRepository->expects($this->once())
-                             ->method('findByIds')
-                             ->with($this->identicalTo([$itemId1, $itemId2]))
-                             ->willReturn([$existingDatabaseItem1, $existingDatabaseItem2]);
-
-        /* @var ItemImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(ItemImporter::class)
-                         ->onlyMethods(['map', 'add'])
-                         ->setConstructorArgs([$this->idCalculator, $this->itemRepository, $this->validator])
-                         ->getMock();
-        $importer->expects($this->exactly(2))
-                 ->method('map')
-                 ->withConsecutive(
-                     [$this->identicalTo($exportItem1)],
-                     [$this->identicalTo($exportItem2)]
-                 )
-                 ->willReturnOnConsecutiveCalls(
-                     $databaseItem1,
-                     $databaseItem2
-                 );
-        $importer->expects($this->exactly(4))
-                 ->method('add')
-                 ->withConsecutive(
-                     [$databaseItem1],
-                     [$databaseItem2],
-                     [$existingDatabaseItem1],
-                     [$existingDatabaseItem2]
-                 );
-
-        $importer->prepare($exportData);
+        $this->assertSame($items, $result);
     }
 
     /**
-     * Tests the parse method.
-     * @covers ::parse
-     */
-    public function testParse(): void
-    {
-        /* @var ExportData&MockObject $exportData */
-        $exportData = $this->createMock(ExportData::class);
-
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
-        $importer->parse($exportData);
-
-        $this->addToAssertionCount(1);
-    }
-
-    /**
-     * Tests the map method.
+     * Tests the getExportEntities method.
      * @throws ReflectionException
-     * @covers ::map
+     * @covers ::getExportEntities
      */
-    public function testMap(): void
+    public function testGetExportEntities(): void
     {
-        /* @var UuidInterface&MockObject $itemId */
+        $item1 = $this->createMock(ExportItem::class);
+        $item2 = $this->createMock(ExportItem::class);
+        $item3 = $this->createMock(ExportItem::class);
+
+        $combination = new ExportCombination();
+        $combination->setItems([$item1, $item2, $item3]);
+
+        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
+
+        $importer = new ItemImporter($this->entityManager, $this->idCalculator, $this->repository, $this->validator);
+        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+
+        $this->assertEquals([$item1, $item2, $item3], iterator_to_array($result));
+    }
+
+    /**
+     * Tests the createDatabaseEntity method.
+     * @throws ReflectionException
+     * @covers ::createDatabaseEntity
+     */
+    public function testCreateDatabaseEntity(): void
+    {
         $itemId = $this->createMock(UuidInterface::class);
 
         $exportItem = new ExportItem();
@@ -201,147 +156,9 @@ class ItemImporterTest extends TestCase
                         ->method('validateItem')
                         ->with($this->equalTo($expectedDatabaseItem));
 
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
-        $result = $this->invokeMethod($importer, 'map', $exportItem);
+        $importer = new ItemImporter($this->entityManager, $this->idCalculator, $this->repository, $this->validator);
+        $result = $this->invokeMethod($importer, 'createDatabaseEntity', $exportItem);
 
         $this->assertEquals($expectedResult, $result);
-    }
-
-    /**
-     * Tests the add method.
-     * @throws ReflectionException
-     * @covers ::add
-     */
-    public function testAdd(): void
-    {
-        $item = new DatabaseItem();
-        $item->setName('abc')
-             ->setType('def');
-
-        $expectedItems = [
-            'def' => [
-                'abc' => $item,
-            ],
-        ];
-
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
-        $this->invokeMethod($importer, 'add', $item);
-
-        $this->assertSame($expectedItems, $this->extractProperty($importer, 'items'));
-    }
-
-    /**
-     * Tests the getByTypeAndName method.
-     * @throws ImportException
-     * @throws ReflectionException
-     * @covers ::getByTypeAndName
-     */
-    public function testGetByTypeAndName(): void
-    {
-        $type = 'abc';
-        $name = 'def';
-
-        /* @var DatabaseItem&MockObject $item */
-        $item = $this->createMock(DatabaseItem::class);
-
-        $items = [
-            'abc' => [
-                'def' => $item,
-            ],
-        ];
-
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
-        $this->injectProperty($importer, 'items', $items);
-
-        $result = $importer->getByTypeAndName($type, $name);
-
-        $this->assertSame($item, $result);
-    }
-
-    /**
-     * Tests the getByTypeAndName method.
-     * @throws ImportException
-     * @covers ::getByTypeAndName
-     */
-    public function testGetByTypeAndNameWithoutMatch(): void
-    {
-        $type = 'abc';
-        $name = 'def';
-
-        $this->expectException(MissingItemException::class);
-
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
-        $importer->getByTypeAndName($type, $name);
-    }
-
-    /**
-     * Tests the persist method.
-     * @throws ReflectionException
-     * @covers ::persist
-     */
-    public function testPersist(): void
-    {
-        /* @var DatabaseItem&MockObject $item1 */
-        $item1 = $this->createMock(DatabaseItem::class);
-        /* @var DatabaseItem&MockObject $item2 */
-        $item2 = $this->createMock(DatabaseItem::class);
-        /* @var DatabaseItem&MockObject $item3 */
-        $item3 = $this->createMock(DatabaseItem::class);
-
-        $items = [
-            'abc' => [
-                'def' => $item1,
-                'ghi' => $item2,
-            ],
-            'jkl' => [
-                'mno' => $item3,
-            ],
-        ];
-
-        /* @var Collection&MockObject $itemCollection */
-        $itemCollection = $this->createMock(Collection::class);
-        $itemCollection->expects($this->once())
-                       ->method('clear');
-        $itemCollection->expects($this->exactly(3))
-                       ->method('add')
-                       ->withConsecutive(
-                           [$this->identicalTo($item1)],
-                           [$this->identicalTo($item2)],
-                           [$this->identicalTo($item3)]
-                       );
-
-        /* @var DatabaseCombination&MockObject $combination */
-        $combination = $this->createMock(DatabaseCombination::class);
-        $combination->expects($this->any())
-                    ->method('getItems')
-                    ->willReturn($itemCollection);
-
-        /* @var EntityManagerInterface&MockObject $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects($this->exactly(3))
-                      ->method('persist')
-                      ->withConsecutive(
-                          [$this->identicalTo($item1)],
-                          [$this->identicalTo($item2)],
-                          [$this->identicalTo($item3)]
-                      );
-
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
-        $this->injectProperty($importer, 'items', $items);
-
-        $importer->persist($entityManager, $combination);
-    }
-
-    /**
-     * Tests the cleanup method.
-     * @covers ::cleanup
-     */
-    public function testCleanup(): void
-    {
-        $this->itemRepository->expects($this->once())
-                             ->method('removeOrphans');
-
-        $importer = new ItemImporter($this->idCalculator, $this->itemRepository, $this->validator);
-        $importer->cleanup();
     }
 }

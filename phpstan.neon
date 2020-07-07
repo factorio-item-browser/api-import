@@ -6,7 +6,7 @@ parameters:
 
   ignoreErrors:
     - '#Dynamic call to static method PHPUnit\\Framework\\.*#'
-    - '#Parameter \#2 \$repository of method FactorioItemBrowser\\Api\\Import\\NewImporter\\AbstractEntityImporter<mixed,FactorioItemBrowser\\Api\\Database\\Entity\\EntityWithId>::__construct\(\) expects FactorioItemBrowser\\Api\\Database\\Repository\\AbstractIdRepository<FactorioItemBrowser\\Api\\Database\\Entity\\EntityWithId>.*#'
+    - '#Parameter \#2 \$repository of method FactorioItemBrowser\\Api\\Import\\Importer\\AbstractEntityImporter<mixed,FactorioItemBrowser\\Api\\Database\\Entity\\EntityWithId>::__construct\(\) expects FactorioItemBrowser\\Api\\Database\\Repository\\AbstractIdRepository<FactorioItemBrowser\\Api\\Database\\Entity\\EntityWithId>.*#'
 
 includes:
   - vendor/phpstan/phpstan-phpunit/extension.neon

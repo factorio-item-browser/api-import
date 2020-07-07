@@ -54,10 +54,9 @@ class RecipeImporter extends AbstractEntityImporter
         return $combination->getRecipes();
     }
 
-    public function import(Combination $combination, ExportData $exportData, int $offset, int $limit): void
+    protected function prepareImport(Combination $combination, ExportData $exportData, int $offset, int $limit): void
     {
         $this->dataCollector->setCombination($combination);
-        parent::import($combination, $exportData, $offset, $limit);
     }
 
     protected function getExportEntities(ExportData $exportData): Generator

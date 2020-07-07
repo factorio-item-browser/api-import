@@ -38,13 +38,13 @@ abstract class AbstractImporter implements ImporterInterface
     protected function getChunkedExportEntities(ExportData $exportData, int $offset, int $limit): array
     {
         $iterator = new LimitIterator($this->getExportEntities($exportData), $offset, $limit);
-        return iterator_to_array($iterator);
+        return array_values(iterator_to_array($iterator));
     }
 
     /**
      * Returns all the entities from the export data as generator.
      * @param ExportData $exportData
-     * @return Generator<int, TExport, null, null>
+     * @return Generator<int, TExport, mixed, mixed>
      */
     abstract protected function getExportEntities(ExportData $exportData): Generator;
 }

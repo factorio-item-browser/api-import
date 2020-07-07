@@ -66,6 +66,8 @@ abstract class AbstractEntityImporter extends AbstractImporter
      */
     public function import(Combination $combination, ExportData $exportData, int $offset, int $limit): void
     {
+        $this->prepareImport($combination, $exportData, $offset, $limit);
+
         $entities = $this->getDatabaseEntities($exportData, $offset, $limit);
         $entities = $this->fetchExistingEntities($entities);
 
@@ -75,6 +77,17 @@ abstract class AbstractEntityImporter extends AbstractImporter
             $this->entityManager->persist($entity);
         }
         $this->entityManager->flush();
+    }
+
+    /**
+     * Prepares the importer for the actual import.
+     * @param Combination $combination
+     * @param ExportData $exportData
+     * @param int $offset
+     * @param int $limit
+     */
+    protected function prepareImport(Combination $combination, ExportData $exportData, int $offset, int $limit): void
+    {
     }
 
     /**

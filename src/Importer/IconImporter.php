@@ -22,30 +22,30 @@ use Generator;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  *
- * @extends AbstractImporter<Icon>
+ * @extends AbstractImporter<array<{string, string, string}>>
  */
 class IconImporter extends AbstractImporter
 {
     protected DataCollector $dataCollector;
     protected EntityManagerInterface $entityManager;
-    protected IconRepository $iconRepository;
+    protected IconRepository $repository;
     protected Validator $validator;
 
     public function __construct(
         DataCollector $dataCollector,
         EntityManagerInterface $entityManager,
-        IconRepository $iconRepository,
+        IconRepository $repository,
         Validator $validator
     ) {
         $this->dataCollector = $dataCollector;
         $this->entityManager = $entityManager;
-        $this->iconRepository = $iconRepository;
+        $this->repository = $repository;
         $this->validator = $validator;
     }
 
     public function prepare(Combination $combination): void
     {
-        $this->iconRepository->clearCombination($combination->getId());
+        $this->repository->clearCombination($combination->getId());
     }
 
     protected function getExportEntities(ExportData $exportData): Generator
@@ -98,12 +98,12 @@ class IconImporter extends AbstractImporter
     }
 
     /**
-     * @param array<{string, string, string}|string[] $data
+     * @param array<{string, string, string}>|string[] $data
      * @param Combination $combination
      * @return Icon
      * @throws ImportException
      */
-    protected function createIcon($data, Combination $combination)
+    protected function createIcon(array $data, Combination $combination)
     {
         [$type, $name, $iconId] = $data;
         $icon = new Icon();
