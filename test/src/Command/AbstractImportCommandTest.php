@@ -68,7 +68,6 @@ class AbstractImportCommandTest extends TestCase
      */
     public function testConstruct(): void
     {
-        /* @var AbstractImportCommand&MockObject $command */
         $command = $this->getMockBuilder(AbstractImportCommand::class)
                         ->setConstructorArgs([$this->combinationRepository, $this->console, $this->exportDataService])
                         ->getMockForAbstractClass();
@@ -85,7 +84,6 @@ class AbstractImportCommandTest extends TestCase
      */
     public function testConfigure(): void
     {
-        /* @var AbstractImportCommand&MockObject $command */
         $command = $this->getMockBuilder(AbstractImportCommand::class)
                         ->onlyMethods(['addArgument'])
                         ->setConstructorArgs([$this->combinationRepository, $this->console, $this->exportDataService])
@@ -111,28 +109,17 @@ class AbstractImportCommandTest extends TestCase
         $combinationIdString = '70acdb0f-36ca-4b30-9687-2baaade94cd3';
         $expectedCombinationId = Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3');
 
-        $label = 'abc';
         $expectedResult = 0;
 
-        /* @var OutputInterface&MockObject $output */
         $output = $this->createMock(OutputInterface::class);
-        /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
-        /* @var InputInterface&MockObject $input */
         $input = $this->createMock(InputInterface::class);
         $input->expects($this->once())
               ->method('getArgument')
               ->with($this->identicalTo('combination'))
               ->willReturn($combinationIdString);
-
-        $this->console->expects($this->once())
-                      ->method('writeStep')
-                      ->with($this->identicalTo($label));
-        $this->console->expects($this->never())
-                      ->method('writeException');
 
         $this->exportDataService->expects($this->once())
                                 ->method('loadExport')
@@ -144,14 +131,10 @@ class AbstractImportCommandTest extends TestCase
                                     ->with($this->equalTo($expectedCombinationId))
                                     ->willReturn($combination);
 
-        /* @var AbstractImportCommand&MockObject $command */
         $command = $this->getMockBuilder(AbstractImportCommand::class)
-                        ->onlyMethods(['getLabel', 'import'])
+                        ->onlyMethods(['import'])
                         ->setConstructorArgs([$this->combinationRepository, $this->console, $this->exportDataService])
                         ->getMockForAbstractClass();
-        $command->expects($this->once())
-                ->method('getLabel')
-                ->willReturn($label);
         $command->expects($this->once())
                 ->method('import')
                 ->with($this->identicalTo($exportData), $this->identicalTo($combination));
@@ -171,25 +154,17 @@ class AbstractImportCommandTest extends TestCase
         $combinationIdString = '70acdb0f-36ca-4b30-9687-2baaade94cd3';
         $expectedCombinationId = Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3');
 
-        $label = 'abc';
         $expectedResult = 1;
 
-
-        /* @var OutputInterface&MockObject $output */
         $output = $this->createMock(OutputInterface::class);
-        /* @var ExportData&MockObject $exportData */
         $exportData = $this->createMock(ExportData::class);
 
-        /* @var InputInterface&MockObject $input */
         $input = $this->createMock(InputInterface::class);
         $input->expects($this->once())
               ->method('getArgument')
               ->with($this->identicalTo('combination'))
               ->willReturn($combinationIdString);
 
-        $this->console->expects($this->once())
-                      ->method('writeStep')
-                      ->with($this->identicalTo($label));
         $this->console->expects($this->once())
                       ->method('writeException')
                       ->with($this->isInstanceOf(MissingCombinationException::class));
@@ -204,19 +179,33 @@ class AbstractImportCommandTest extends TestCase
                                     ->with($this->equalTo($expectedCombinationId))
                                     ->willReturn(null);
 
-        /* @var AbstractImportCommand&MockObject $command */
         $command = $this->getMockBuilder(AbstractImportCommand::class)
-                        ->onlyMethods(['getLabel', 'import'])
+                        ->onlyMethods(['import'])
                         ->setConstructorArgs([$this->combinationRepository, $this->console, $this->exportDataService])
                         ->getMockForAbstractClass();
-        $command->expects($this->once())
-                ->method('getLabel')
-                ->willReturn($label);
         $command->expects($this->never())
                 ->method('import');
 
         $result = $this->invokeMethod($command, 'execute', $input, $output);
 
         $this->assertSame($expectedResult, $result);
+    }
+
+    /**
+     * Tests the processInput method.
+     * @throws ReflectionException
+     * @covers ::processInput
+     */
+    public function testProcessInput(): void
+    {
+        $input = $this->createMock(InputInterface::class);
+
+        $command = $this->getMockBuilder(AbstractImportCommand::class)
+                        ->onlyMethods(['import'])
+                        ->setConstructorArgs([$this->combinationRepository, $this->console, $this->exportDataService])
+                        ->getMockForAbstractClass();
+        $this->invokeMethod($command, 'processInput', $input);
+
+        $this->addToAssertionCount(1);
     }
 }

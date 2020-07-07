@@ -105,7 +105,6 @@ class ProcessCommandTest extends TestCase
      */
     public function testConfigure(): void
     {
-        /* @var ProcessCommand&MockObject $command */
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['setName', 'setDescription'])
                         ->setConstructorArgs([
@@ -134,11 +133,8 @@ class ProcessCommandTest extends TestCase
     {
         $expectedResult = 0;
 
-        /* @var Job&MockObject $job */
         $job = $this->createMock(Job::class);
-        /* @var InputInterface&MockObject $input */
         $input = $this->createMock(InputInterface::class);
-        /* @var OutputInterface&MockObject $output */
         $output = $this->createMock(OutputInterface::class);
 
         $this->console->expects($this->never())
@@ -146,7 +142,6 @@ class ProcessCommandTest extends TestCase
         $this->console->expects($this->never())
                       ->method('writeException');
 
-        /* @var ProcessCommand&MockObject $command */
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['fetchNextJob', 'processJob', 'updateJobStatus'])
                         ->setConstructorArgs([
@@ -179,9 +174,7 @@ class ProcessCommandTest extends TestCase
     {
         $expectedResult = 0;
 
-        /* @var InputInterface&MockObject $input */
         $input = $this->createMock(InputInterface::class);
-        /* @var OutputInterface&MockObject $output */
         $output = $this->createMock(OutputInterface::class);
 
         $this->console->expects($this->once())
@@ -190,7 +183,6 @@ class ProcessCommandTest extends TestCase
         $this->console->expects($this->never())
                       ->method('writeException');
 
-        /* @var ProcessCommand&MockObject $command */
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['fetchNextJob', 'processJob', 'updateJobStatus'])
                         ->setConstructorArgs([
@@ -222,11 +214,8 @@ class ProcessCommandTest extends TestCase
     {
         $expectedResult = 1;
 
-        /* @var Job&MockObject $job */
         $job = $this->createMock(Job::class);
-        /* @var InputInterface&MockObject $input */
         $input = $this->createMock(InputInterface::class);
-        /* @var OutputInterface&MockObject $output */
         $output = $this->createMock(OutputInterface::class);
 
         $this->console->expects($this->never())
@@ -234,7 +223,6 @@ class ProcessCommandTest extends TestCase
         $this->console->expects($this->never())
                       ->method('writeException');
 
-        /* @var ProcessCommand&MockObject $command */
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['fetchNextJob', 'processJob', 'updateJobStatus'])
                         ->setConstructorArgs([
@@ -269,13 +257,9 @@ class ProcessCommandTest extends TestCase
     {
         $expectedResult = 1;
 
-        /* @var Exception&MockObject $exception */
         $exception = $this->createMock(Exception::class);
-        /* @var Job&MockObject $job */
         $job = $this->createMock(Job::class);
-        /* @var InputInterface&MockObject $input */
         $input = $this->createMock(InputInterface::class);
-        /* @var OutputInterface&MockObject $output */
         $output = $this->createMock(OutputInterface::class);
 
         $this->console->expects($this->never())
@@ -284,7 +268,6 @@ class ProcessCommandTest extends TestCase
                       ->method('writeException')
                       ->with($this->identicalTo($exception));
 
-        /* @var ProcessCommand&MockObject $command */
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['fetchNextJob', 'processJob', 'updateJobStatus'])
                         ->setConstructorArgs([
@@ -316,7 +299,6 @@ class ProcessCommandTest extends TestCase
      */
     public function testFetchNextJob(): void
     {
-        /* @var Job&MockObject $job */
         $job = $this->createMock(Job::class);
 
         $expectedRequest = new ListRequest();
@@ -380,29 +362,15 @@ class ProcessCommandTest extends TestCase
      */
     public function testProcessJob(): void
     {
-        $combinationId = 'abc';
-
-        /* @var Job&MockObject $job1 */
         $job1 = $this->createMock(Job::class);
-        $job1->expects($this->once())
-             ->method('getCombinationId')
-             ->willReturn($combinationId);
-
-        /* @var Job&MockObject $job2 */
         $job2 = $this->createMock(Job::class);
-        /* @var Job&MockObject $job3 */
         $job3 = $this->createMock(Job::class);
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
-        $this->console->expects($this->once())
-                      ->method('writeHeadline')
-                      ->with($this->identicalTo('Importing combination abc'));
         $this->console->expects($this->once())
                       ->method('writeStep')
                       ->with($this->identicalTo('Done.'));
 
-        /* @var ProcessCommand&MockObject $command */
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['updateJobStatus', 'fetchCombination', 'runImportCommand'])
                         ->setConstructorArgs([
@@ -426,13 +394,9 @@ class ProcessCommandTest extends TestCase
                 ->method('fetchCombination')
                 ->with($this->identicalTo($job2))
                 ->willReturn($combination);
-        $command->expects($this->exactly(3))
+        $command->expects($this->once())
                 ->method('runImportCommand')
-                ->withConsecutive(
-                    [$this->identicalTo('import'), $this->identicalTo($combination)],
-                    [$this->identicalTo('import-images'), $this->identicalTo($combination)],
-                    [$this->identicalTo('import-translations'), $this->identicalTo($combination)]
-                );
+                ->with($this->identicalTo(CommandName::IMPORT), $this->identicalTo($combination));
 
         $this->invokeMethod($command, 'processJob', $job1);
     }
@@ -455,7 +419,6 @@ class ProcessCommandTest extends TestCase
                         ->setStatus('def')
                         ->setErrorMessage('ghi');
 
-        /* @var DetailsResponse&MockObject $response */
         $response = $this->createMock(DetailsResponse::class);
 
         $this->exportQueueFacade->expects($this->once())
@@ -484,7 +447,6 @@ class ProcessCommandTest extends TestCase
         $combinationIdString = '70acdb0f-36ca-4b30-9687-2baaade94cd3';
         $combinationId = Uuid::fromString($combinationIdString);
 
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
         $job = new Job();
@@ -559,10 +521,8 @@ class ProcessCommandTest extends TestCase
         $commandName = 'abc';
         $outputData = 'def';
 
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
-        /* @var ImportCommandProcess&MockObject $process */
         $process = $this->createMock(ImportCommandProcess::class);
         $process->expects($this->once())
                 ->method('run')
@@ -579,7 +539,6 @@ class ProcessCommandTest extends TestCase
                       ->method('writeData')
                       ->with($this->identicalTo($outputData));
 
-        /* @var ProcessCommand&MockObject $command */
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['createImportCommandProcess'])
                         ->setConstructorArgs([
@@ -607,10 +566,8 @@ class ProcessCommandTest extends TestCase
         $commandName = 'abc';
         $outputData = 'def';
 
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
-        /* @var ImportCommandProcess&MockObject $process */
         $process = $this->createMock(ImportCommandProcess::class);
         $process->expects($this->once())
                 ->method('run')
@@ -632,7 +589,6 @@ class ProcessCommandTest extends TestCase
 
         $this->expectException(CommandFailureException::class);
 
-        /* @var ProcessCommand&MockObject $command */
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['createImportCommandProcess'])
                         ->setConstructorArgs([
@@ -659,7 +615,6 @@ class ProcessCommandTest extends TestCase
     {
         $commandName = 'abc';
 
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
         $expectedResult = new ImportCommandProcess($commandName, $combination);

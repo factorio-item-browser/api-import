@@ -24,7 +24,7 @@ use FactorioItemBrowser\ExportData\ExportDataService;
 class ImportCommand extends AbstractImportCommand
 {
     /**
-     * @var array<ImporterInterface>|ImporterInterface[]
+     * @var array<string, ImporterInterface>|ImporterInterface[]
      */
     protected array $importers;
     protected int $chunkSize;
@@ -33,7 +33,7 @@ class ImportCommand extends AbstractImportCommand
      * @param CombinationRepository $combinationRepository
      * @param Console $console
      * @param ExportDataService $exportDataService
-     * @param array<ImporterInterface> $importers
+     * @param array<string, ImporterInterface> $importers
      * @param int $importChunkSize
      */
     public function __construct(

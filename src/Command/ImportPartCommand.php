@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Command;
 
-use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
 use FactorioItemBrowser\Api\Import\Constant\CommandName;
+use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Exception\UnknownImportPartException;
 use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
@@ -62,13 +63,13 @@ class ImportPartCommand extends AbstractImportCommand
 
     /**
      * @param InputInterface $input
-     * @throws Exception
+     * @throws ImportException
      */
     protected function processInput(InputInterface $input): void
     {
         $part = strval($input->getArgument('part'));
         if (!isset($this->importers[$part])) {
-            throw new Exception('Unknown part: ' . $part);
+            throw new UnknownImportPartException($part);
         }
 
         $this->importer = $this->importers[$part];
