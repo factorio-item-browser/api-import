@@ -46,10 +46,10 @@ class RecipeTranslationImporterTest extends TestCase
     protected $idCalculator;
 
     /**
-     * The mocked translation repository.
+     * The mocked repository.
      * @var TranslationRepository&MockObject
      */
-    protected $translationRepository;
+    protected $repository;
 
     /**
      * The mocked validator.
@@ -66,7 +66,7 @@ class RecipeTranslationImporterTest extends TestCase
 
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
-        $this->translationRepository = $this->createMock(TranslationRepository::class);
+        $this->repository = $this->createMock(TranslationRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
@@ -94,7 +94,7 @@ class RecipeTranslationImporterTest extends TestCase
         $importer = new RecipeTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
@@ -137,7 +137,7 @@ class RecipeTranslationImporterTest extends TestCase
                          ->setConstructorArgs([
                              $this->entityManager,
                              $this->idCalculator,
-                             $this->translationRepository,
+                             $this->repository,
                              $this->validator,
                          ])
                          ->getMock();

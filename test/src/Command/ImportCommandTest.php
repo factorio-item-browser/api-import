@@ -71,6 +71,7 @@ class ImportCommandTest extends TestCase
             $this->createMock(ImporterInterface::class),
         ];
         $chunkSize = 42;
+        $numberOfParallelProcesses = 21;
 
         $command = new ImportCommand(
             $this->combinationRepository,
@@ -78,6 +79,7 @@ class ImportCommandTest extends TestCase
             $this->exportDataService,
             $importers,
             $chunkSize,
+            $numberOfParallelProcesses,
         );
 
         $this->assertSame($this->combinationRepository, $this->extractProperty($command, 'combinationRepository'));
@@ -85,6 +87,7 @@ class ImportCommandTest extends TestCase
         $this->assertSame($this->exportDataService, $this->extractProperty($command, 'exportDataService'));
         $this->assertSame($importers, $this->extractProperty($command, 'importers'));
         $this->assertSame($chunkSize, $this->extractProperty($command, 'chunkSize'));
+        $this->assertSame($numberOfParallelProcesses, $this->extractProperty($command, 'numberOfParallelProcesses'));
     }
 
     /**
@@ -102,6 +105,7 @@ class ImportCommandTest extends TestCase
                             $this->exportDataService,
                             [],
                             42,
+                            21,
                         ])
                         ->getMock();
         $command->expects($this->once())
@@ -147,6 +151,7 @@ class ImportCommandTest extends TestCase
                             $this->exportDataService,
                             $importers,
                             42,
+                            21,
                         ])
                         ->getMock();
         $command->expects($this->exactly(2))

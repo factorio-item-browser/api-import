@@ -28,7 +28,7 @@ class ModTranslationImporter extends AbstractTranslationImporter
      */
     public function prepare(Combination $combination): void
     {
-        $this->translationRepository->clearCrossTable($combination->getId());
+        $this->repository->clearCrossTable($combination->getId());
     }
 
     protected function getExportEntities(ExportData $exportData): Generator
@@ -53,6 +53,6 @@ class ModTranslationImporter extends AbstractTranslationImporter
 
     public function cleanup(): void
     {
-        $this->translationRepository->removeOrphans();
+        $this->repository->removeOrphans();
     }
 }

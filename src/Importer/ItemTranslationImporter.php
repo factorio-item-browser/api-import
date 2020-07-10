@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\Api\Import\Importer;
 
 use FactorioItemBrowser\Api\Database\Entity\Translation;
+use FactorioItemBrowser\Common\Constant\RecipeMode;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
@@ -49,7 +50,7 @@ class ItemTranslationImporter extends AbstractTranslationImporter
     protected function findRecipe(ExportData $exportData, string $name): ?Recipe
     {
         foreach ($exportData->getCombination()->getRecipes() as $recipe) {
-            if ($recipe->getName() === $name) {
+            if ($recipe->getName() === $name && $recipe->getMode() === RecipeMode::NORMAL) {
                 return $recipe;
             }
         }

@@ -17,7 +17,8 @@ use FactorioItemBrowser\Api\Import\Constant\ImporterName;
 return [
     ConfigKey::PROJECT => [
         ConfigKey::API_IMPORT => [
-            ConfigKey::IMPORT_CHUNK_SIZE => 256,
+            ConfigKey::IMPORT_CHUNK_SIZE => 2048,
+            ConfigKey::IMPORT_PARALLEL_PROCESSES => 8,
             ConfigKey::IMPORTERS => [
                 ImporterName::CRAFTING_CATEGORY => Importer\CraftingCategoryImporter::class,
                 ImporterName::ITEM => Importer\ItemImporter::class,

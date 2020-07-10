@@ -48,6 +48,7 @@ return [
             'bool $isDebug' => readConfig('debug'),
 
             'int $importChunkSize' => readConfig(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORT_CHUNK_SIZE),
+            'int $numberOfParallelProcesses' => readConfig(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORT_PARALLEL_PROCESSES),
         ],
     ],
 ];

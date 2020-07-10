@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Command;
 
+use BluePsyduck\SymfonyProcessManager\ProcessManager;
+use BluePsyduck\SymfonyProcessManager\ProcessManagerInterface;
 use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
@@ -14,6 +16,7 @@ use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
 use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
+use Symfony\Component\Process\Process;
 
 /**
  * The command to import all non-critical data.
@@ -28,6 +31,7 @@ class ImportCommand extends AbstractImportCommand
      */
     protected array $importers;
     protected int $chunkSize;
+    protected int $numberOfParallelProcesses;
 
     /**
      * @param CombinationRepository $combinationRepository
@@ -35,18 +39,21 @@ class ImportCommand extends AbstractImportCommand
      * @param ExportDataService $exportDataService
      * @param array<string, ImporterInterface> $importers
      * @param int $importChunkSize
+     * @param int $numberOfParallelProcesses
      */
     public function __construct(
         CombinationRepository $combinationRepository,
         Console $console,
         ExportDataService $exportDataService,
         array $importers,
-        int $importChunkSize
+        int $importChunkSize,
+        int $numberOfParallelProcesses
     ) {
         parent::__construct($combinationRepository, $console, $exportDataService);
 
         $this->importers = $importers;
         $this->chunkSize = $importChunkSize;
+        $this->numberOfParallelProcesses = $numberOfParallelProcesses;
     }
 
     protected function configure(): void
@@ -79,7 +86,6 @@ class ImportCommand extends AbstractImportCommand
      * @param ImporterInterface $importer
      * @param ExportData $exportData
      * @param Combination $combination
-     * @throws CommandFailureException
      */
     protected function executeImporter(
         string $name,
@@ -96,11 +102,29 @@ class ImportCommand extends AbstractImportCommand
         $this->console->writeAction('Preparing importer');
         $importer->prepare($combination);
 
+        $processManager = $this->createProcessManager();
         for ($i = 0; $i < $numberOfChunks; ++$i) {
-            $this->console->writeAction("Processing batch {$i}");
-            $process = $this->createSubProcess($combination, $name, $i);
-            $this->runSubProcess($process);
+            $processManager->addProcess($this->createSubProcess($combination, $name, $i));
         }
+        $processManager->waitForAllProcesses();
+    }
+
+    protected function createProcessManager(): ProcessManagerInterface
+    {
+        $processManager = new ProcessManager($this->numberOfParallelProcesses);
+        $processManager->setProcessStartCallback(function (ImportCommandProcess $process): void {
+            static $index = 0;
+            ++$index;
+            $this->console->writeAction("Processing batch {$index}");
+        });
+        $processManager->setProcessFinishCallback(function (Process $process): void {
+            if ($process->isSuccessful()) {
+                $this->console->writeData($process->getOutput());
+            } else {
+                throw new CommandFailureException($process->getOutput());
+            }
+        });
+        return $processManager;
     }
 
     /**
@@ -116,21 +140,6 @@ class ImportCommand extends AbstractImportCommand
             (string) ($chunk * $this->chunkSize),
             (string) $this->chunkSize,
         ]);
-    }
-
-    /**
-     * @param ImportCommandProcess<string> $process
-     * @throws CommandFailureException
-     */
-    protected function runSubProcess(ImportCommandProcess $process): void
-    {
-        $process->run(function ($type, $data): void {
-            $this->console->writeData($data);
-        });
-
-        if (!$process->isSuccessful()) {
-            throw new CommandFailureException($process->getOutput());
-        }
     }
 
     protected function cleanup(): void

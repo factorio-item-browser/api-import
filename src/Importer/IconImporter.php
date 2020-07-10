@@ -103,7 +103,7 @@ class IconImporter extends AbstractImporter
      * @return Icon
      * @throws ImportException
      */
-    protected function createIcon(array $data, Combination $combination)
+    protected function createIcon(array $data, Combination $combination): Icon
     {
         [$type, $name, $iconId] = $data;
         $icon = new Icon();

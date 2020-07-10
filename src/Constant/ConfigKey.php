@@ -28,6 +28,11 @@ interface ConfigKey
     public const IMPORT_CHUNK_SIZE = 'import-chunk-size';
 
     /**
+     * The number of parallel processes to use on the import.
+     */
+    public const IMPORT_PARALLEL_PROCESSES = 'import-parallel-processes';
+
+    /**
      * The key holding the importer aliases.
      */
     public const IMPORTERS = 'importers';

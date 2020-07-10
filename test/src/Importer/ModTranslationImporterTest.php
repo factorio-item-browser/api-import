@@ -47,10 +47,10 @@ class ModTranslationImporterTest extends TestCase
     protected $idCalculator;
 
     /**
-     * The mocked translation repository.
+     * The mocked repository.
      * @var TranslationRepository&MockObject
      */
-    protected $translationRepository;
+    protected $repository;
 
     /**
      * The mocked validator.
@@ -67,7 +67,7 @@ class ModTranslationImporterTest extends TestCase
 
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
-        $this->translationRepository = $this->createMock(TranslationRepository::class);
+        $this->repository = $this->createMock(TranslationRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
@@ -83,14 +83,14 @@ class ModTranslationImporterTest extends TestCase
         $combination = new DatabaseCombination();
         $combination->setId($combinationId);
 
-        $this->translationRepository->expects($this->once())
-                                    ->method('clearCrossTable')
-                                    ->with($this->identicalTo($combinationId));
+        $this->repository->expects($this->once())
+                         ->method('clearCrossTable')
+                         ->with($this->identicalTo($combinationId));
 
         $importer = new ModTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $importer->prepare($combination);
@@ -116,7 +116,7 @@ class ModTranslationImporterTest extends TestCase
         $importer = new ModTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
@@ -147,7 +147,7 @@ class ModTranslationImporterTest extends TestCase
                          ->setConstructorArgs([
                              $this->entityManager,
                              $this->idCalculator,
-                             $this->translationRepository,
+                             $this->repository,
                              $this->validator,
                          ])
                          ->getMock();
@@ -172,13 +172,13 @@ class ModTranslationImporterTest extends TestCase
      */
     public function testCleanup(): void
     {
-        $this->translationRepository->expects($this->once())
-                                    ->method('removeOrphans');
+        $this->repository->expects($this->once())
+                         ->method('removeOrphans');
 
         $importer = new ModTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $importer->cleanup();

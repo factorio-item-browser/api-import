@@ -11,6 +11,7 @@ use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\ItemTranslationImporter;
+use FactorioItemBrowser\Common\Constant\RecipeMode;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\Entity\Machine;
@@ -45,10 +46,10 @@ class ItemTranslationImporterTest extends TestCase
     protected $idCalculator;
 
     /**
-     * The mocked translation repository.
+     * The mocked repository.
      * @var TranslationRepository&MockObject
      */
-    protected $translationRepository;
+    protected $repository;
 
     /**
      * The mocked validator.
@@ -65,7 +66,7 @@ class ItemTranslationImporterTest extends TestCase
 
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
-        $this->translationRepository = $this->createMock(TranslationRepository::class);
+        $this->repository = $this->createMock(TranslationRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
@@ -88,7 +89,7 @@ class ItemTranslationImporterTest extends TestCase
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
@@ -129,7 +130,7 @@ class ItemTranslationImporterTest extends TestCase
                          ->setConstructorArgs([
                              $this->entityManager,
                              $this->idCalculator,
-                             $this->translationRepository,
+                             $this->repository,
                              $this->validator,
                          ])
                          ->getMock();
@@ -172,25 +173,31 @@ class ItemTranslationImporterTest extends TestCase
         $name = 'def';
 
         $recipe1 = new Recipe();
-        $recipe1->setName('abc');
+        $recipe1->setName('abc')
+                ->setMode(RecipeMode::NORMAL);
 
         $recipe2 = new Recipe();
-        $recipe2->setName('def');
+        $recipe2->setName('def')
+                ->setMode(RecipeMode::EXPENSIVE);
+
+        $recipe3 = new Recipe();
+        $recipe3->setName('def')
+                ->setMode(RecipeMode::NORMAL);
 
         $combination = new ExportCombination();
-        $combination->setRecipes([$recipe1, $recipe2]);
+        $combination->setRecipes([$recipe1, $recipe2, $recipe3]);
 
         $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
 
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $result = $this->invokeMethod($importer, 'findRecipe', $exportData, $name);
         
-        $this->assertSame($recipe2, $result);
+        $this->assertSame($recipe3, $result);
     }
     
     /**
@@ -216,7 +223,7 @@ class ItemTranslationImporterTest extends TestCase
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $result = $this->invokeMethod($importer, 'findRecipe', $exportData, $name);
@@ -257,7 +264,7 @@ class ItemTranslationImporterTest extends TestCase
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $this->invokeMethod($importer, 'checkRecipeDuplication', $translations, $recipe);
@@ -294,7 +301,7 @@ class ItemTranslationImporterTest extends TestCase
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $this->invokeMethod($importer, 'checkRecipeDuplication', $translations, null);
@@ -327,7 +334,7 @@ class ItemTranslationImporterTest extends TestCase
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $result = $this->invokeMethod($importer, 'findMachine', $exportData, $name);
@@ -358,7 +365,7 @@ class ItemTranslationImporterTest extends TestCase
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $result = $this->invokeMethod($importer, 'findMachine', $exportData, $name);
@@ -392,14 +399,14 @@ class ItemTranslationImporterTest extends TestCase
 
         $machine = new Machine();
         $machine->getLabels()->addTranslation('abc', 'def')
-                            ->addTranslation('jkl', 'mno');
+                             ->addTranslation('jkl', 'mno');
         $machine->getDescriptions()->addTranslation('abc', 'ghi')
-                                  ->addTranslation('jkl', 'foo');
+                                   ->addTranslation('jkl', 'foo');
 
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $this->invokeMethod($importer, 'checkMachineDuplication', $translations, $machine);
@@ -436,7 +443,7 @@ class ItemTranslationImporterTest extends TestCase
         $importer = new ItemTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $this->invokeMethod($importer, 'checkMachineDuplication', $translations, null);

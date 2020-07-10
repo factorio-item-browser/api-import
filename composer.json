@@ -17,6 +17,7 @@
     "ext-json": "*",
     "ext-pdo": "*",
     "bluepsyduck/laminas-autowire-factory": "^1.0",
+    "bluepsyduck/symfony-process-manager": "^1.3",
     "factorio-item-browser/api-database": "dev-feature/chunked-import as 3.3.0",
     "factorio-item-browser/common": "^1.0",
     "factorio-item-browser/export-data": "^3.0",

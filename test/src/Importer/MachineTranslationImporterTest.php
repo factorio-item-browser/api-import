@@ -45,10 +45,10 @@ use ReflectionTrait;
     protected $idCalculator;
 
     /**
-     * The mocked translation repository.
+     * The mocked repository.
      * @var TranslationRepository&MockObject
      */
-    protected $translationRepository;
+    protected $repository;
 
     /**
      * The mocked validator.
@@ -65,7 +65,7 @@ use ReflectionTrait;
 
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
-        $this->translationRepository = $this->createMock(TranslationRepository::class);
+        $this->repository = $this->createMock(TranslationRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
@@ -88,7 +88,7 @@ use ReflectionTrait;
         $importer = new MachineTranslationImporter(
             $this->entityManager,
             $this->idCalculator,
-            $this->translationRepository,
+            $this->repository,
             $this->validator,
         );
         $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
@@ -131,7 +131,7 @@ use ReflectionTrait;
                          ->setConstructorArgs([
                              $this->entityManager,
                              $this->idCalculator,
-                             $this->translationRepository,
+                             $this->repository,
                              $this->validator,
                          ])
                          ->getMock();

@@ -28,7 +28,7 @@ abstract class AbstractTranslationImporter extends AbstractImporter
 {
     protected EntityManagerInterface $entityManager;
     protected IdCalculator $idCalculator;
-    protected TranslationRepository $translationRepository;
+    protected TranslationRepository $repository;
     protected Validator $validator;
 
     public function __construct(
@@ -39,7 +39,7 @@ abstract class AbstractTranslationImporter extends AbstractImporter
     ) {
         $this->entityManager = $entityManager;
         $this->idCalculator = $idCalculator;
-        $this->translationRepository = $translationRepository;
+        $this->repository = $translationRepository;
         $this->validator = $validator;
     }
 
@@ -57,8 +57,7 @@ abstract class AbstractTranslationImporter extends AbstractImporter
     public function import(Combination $combination, ExportData $exportData, int $offset, int $limit): void
     {
         $entities = $this->createTranslations($exportData, $offset, $limit);
-
-        $this->translationRepository->persistTranslationsToCombination($combination->getId(), $entities);
+        $this->repository->persistTranslationsToCombination($combination->getId(), $entities);
     }
 
     /**
@@ -172,14 +171,13 @@ abstract class AbstractTranslationImporter extends AbstractImporter
                 $description = $item->getDescriptions()->getTranslations()[$translation->getLocale()] ?? '';
 
                 if (
-                    ($translation->getValue() === '' || $translation->getValue() === $label)
+                    ($translation->getValue() === $label)
                     && ($translation->getDescription() === '' || $translation->getDescription() === $description)
                 ) {
-                    continue;
+                    unset($translations[$key]);
                 }
-                unset($translations[$key]);
             }
         }
-        return $translations;
+        return array_values($translations);
     }
 }
