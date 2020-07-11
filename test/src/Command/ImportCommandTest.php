@@ -72,8 +72,8 @@ class ImportCommandTest extends TestCase
     public function testConstruct(): void
     {
         $importers = [
-            $this->createMock(ImporterInterface::class),
-            $this->createMock(ImporterInterface::class),
+            'abc' => $this->createMock(ImporterInterface::class),
+            'def' => $this->createMock(ImporterInterface::class),
         ];
         $chunkSize = 42;
         $numberOfParallelProcesses = 21;
@@ -428,8 +428,10 @@ class ImportCommandTest extends TestCase
         $importer2->expects($this->once())
                   ->method('cleanup');
 
-        $importers = [$importer1, $importer2];
-
+        $importers = [
+            'abc' => $importer1,
+            'def' => $importer2,
+        ];
 
         $command = new ImportCommand(
             $this->combinationRepository,

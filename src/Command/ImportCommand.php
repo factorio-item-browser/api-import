@@ -120,6 +120,9 @@ class ImportCommand extends AbstractImportCommand
         return $processManager;
     }
 
+    /**
+     * @param ImportCommandProcess<string> $process
+     */
     protected function handleProcessStart(ImportCommandProcess $process): void
     {
         static $index = 0;

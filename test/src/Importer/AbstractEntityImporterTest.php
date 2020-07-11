@@ -38,7 +38,7 @@ class AbstractEntityImporterTest extends TestCase
 
     /**
      * The mocked repository.
-     * @var AbstractIdRepository&MockObject
+     * @var AbstractIdRepository<stdClass>&MockObject
      */
     protected $repository;
 
