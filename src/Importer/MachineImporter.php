@@ -59,7 +59,7 @@ class MachineImporter extends AbstractEntityImporter
     {
         foreach ($exportData->getCombination()->getMachines() as $machine) {
             foreach ($machine->getCraftingCategories() as $craftingCategory) {
-                $this->dataCollector->addCraftingCategory($craftingCategory);
+                $this->dataCollector->addCraftingCategoryName($craftingCategory);
             }
 
             yield $machine;

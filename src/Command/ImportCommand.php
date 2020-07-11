@@ -16,7 +16,6 @@ use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
 use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
-use Symfony\Component\Process\Process;
 
 /**
  * The command to import all non-critical data.
@@ -113,18 +112,32 @@ class ImportCommand extends AbstractImportCommand
     {
         $processManager = new ProcessManager($this->numberOfParallelProcesses);
         $processManager->setProcessStartCallback(function (ImportCommandProcess $process): void {
-            static $index = 0;
-            ++$index;
-            $this->console->writeAction("Processing batch {$index}");
+            $this->handleProcessStart($process);
         });
-        $processManager->setProcessFinishCallback(function (Process $process): void {
-            if ($process->isSuccessful()) {
-                $this->console->writeData($process->getOutput());
-            } else {
-                throw new CommandFailureException($process->getOutput());
-            }
+        $processManager->setProcessFinishCallback(function (ImportCommandProcess $process): void {
+            $this->handleProcessFinish($process);
         });
         return $processManager;
+    }
+
+    protected function handleProcessStart(ImportCommandProcess $process): void
+    {
+        static $index = 0;
+        ++$index;
+        $this->console->writeAction("Processing batch {$index}");
+    }
+
+    /**
+     * @param ImportCommandProcess<string> $process
+     * @throws CommandFailureException
+     */
+    protected function handleProcessFinish(ImportCommandProcess $process): void
+    {
+        if ($process->isSuccessful()) {
+            $this->console->writeData($process->getOutput());
+        } else {
+            throw new CommandFailureException($process->getOutput());
+        }
     }
 
     /**

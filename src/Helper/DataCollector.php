@@ -39,7 +39,7 @@ class DataCollector
     /**
      * @var array<string, CraftingCategory>
      */
-    protected array $craftingCategories;
+    protected array $craftingCategories = [];
 
     /**
      * @var array<string, UuidInterface>
@@ -76,7 +76,7 @@ class DataCollector
         return $this;
     }
 
-    public function addCraftingCategory(string $name): self
+    public function addCraftingCategoryName(string $name): self
     {
         $this->craftingCategoryNames[$name] = true;
         return $this;

@@ -173,7 +173,7 @@ class MachineImporterTest extends TestCase
         $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
 
         $this->dataCollector->expects($this->exactly(5))
-                            ->method('addCraftingCategory')
+                            ->method('addCraftingCategoryName')
                             ->withConsecutive(
                                 [$this->identicalTo('abc')],
                                 [$this->identicalTo('def')],

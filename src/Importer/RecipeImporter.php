@@ -62,7 +62,7 @@ class RecipeImporter extends AbstractEntityImporter
     protected function getExportEntities(ExportData $exportData): Generator
     {
         foreach ($exportData->getCombination()->getRecipes() as $recipe) {
-            $this->dataCollector->addCraftingCategory($recipe->getCraftingCategory());
+            $this->dataCollector->addCraftingCategoryName($recipe->getCraftingCategory());
             foreach ($recipe->getIngredients() as $ingredient) {
                 $this->dataCollector->addItem($ingredient->getType(), $ingredient->getName());
             }
