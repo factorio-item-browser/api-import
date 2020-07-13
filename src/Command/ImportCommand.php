@@ -112,22 +112,14 @@ class ImportCommand extends AbstractImportCommand
     {
         $processManager = new ProcessManager($this->numberOfParallelProcesses);
         $processManager->setProcessStartCallback(function (ImportCommandProcess $process): void {
-            $this->handleProcessStart($process);
+            static $index = 0;
+            ++$index;
+            $this->console->writeAction("Processing chunk {$index}");
         });
         $processManager->setProcessFinishCallback(function (ImportCommandProcess $process): void {
             $this->handleProcessFinish($process);
         });
         return $processManager;
-    }
-
-    /**
-     * @param ImportCommandProcess<string> $process
-     */
-    protected function handleProcessStart(ImportCommandProcess $process): void
-    {
-        static $index = 0;
-        ++$index;
-        $this->console->writeAction("Processing batch {$index}");
     }
 
     /**

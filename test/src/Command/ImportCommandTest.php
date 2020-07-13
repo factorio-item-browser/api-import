@@ -257,8 +257,15 @@ class ImportCommandTest extends TestCase
         $parallelProcesses = 42;
         $process = $this->createMock(ImportCommandProcess::class);
 
+        $this->console->expects($this->exactly(2))
+                      ->method('writeAction')
+                      ->withConsecutive(
+                          [$this->identicalTo('Processing chunk 1')],
+                          [$this->identicalTo('Processing chunk 2')],
+                      );
+
         $command = $this->getMockBuilder(ImportCommand::class)
-                        ->onlyMethods(['handleProcessStart', 'handleProcessFinish'])
+                        ->onlyMethods(['handleProcessFinish'])
                         ->setConstructorArgs([
                             $this->combinationRepository,
                             $this->console,
@@ -268,9 +275,6 @@ class ImportCommandTest extends TestCase
                             $parallelProcesses,
                         ])
                         ->getMock();
-        $command->expects($this->once())
-                ->method('handleProcessStart')
-                ->with($this->identicalTo($process));
         $command->expects($this->once())
                 ->method('handleProcessFinish')
                 ->with($this->identicalTo($process));
@@ -282,39 +286,11 @@ class ImportCommandTest extends TestCase
         $startCallback = $this->extractProperty($result, 'processStartCallback');
         $this->assertIsCallable($startCallback);
         $startCallback($process);
+        $startCallback($process);
 
         $finishCallback = $this->extractProperty($result, 'processFinishCallback');
         $this->assertIsCallable($finishCallback);
         $finishCallback($process);
-    }
-
-    /**
-     * Tests the handleProcessStart method.
-     * @throws ReflectionException
-     * @covers ::handleProcessStart
-     */
-    public function testHandleProcessStart(): void
-    {
-        $process = $this->createMock(ImportCommandProcess::class);
-
-        $this->console->expects($this->exactly(2))
-                      ->method('writeAction')
-                      ->withConsecutive(
-                          [$this->identicalTo('Processing batch 1')],
-                          [$this->identicalTo('Processing batch 2')],
-                      );
-
-        $command = new ImportCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->exportDataService,
-            [],
-            42,
-            21,
-        );
-
-        $this->invokeMethod($command, 'handleProcessStart', $process);
-        $this->invokeMethod($command, 'handleProcessStart', $process);
     }
 
     /**
