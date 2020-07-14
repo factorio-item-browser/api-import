@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer;
 
-use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\ExportData\ExportData;
 
@@ -17,23 +16,26 @@ use FactorioItemBrowser\ExportData\ExportData;
 interface ImporterInterface
 {
     /**
-     * Prepares the data provided for the other importers.
+     * Counts the entities the importer has to process.
      * @param ExportData $exportData
+     * @return int
      */
-    public function prepare(ExportData $exportData): void;
+    public function count(ExportData $exportData): int;
 
     /**
-     * Actually parses the data, having access to data provided by other importers.
-     * @param ExportData $exportData
-     */
-    public function parse(ExportData $exportData): void;
-
-    /**
-     * Persists the parsed data to the combination.
-     * @param EntityManagerInterface $entityManager
+     * Prepares the combination for the import.
      * @param Combination $combination
      */
-    public function persist(EntityManagerInterface $entityManager, Combination $combination): void;
+    public function prepare(Combination $combination): void;
+
+    /**
+     * Imports the specified chunk of the data from the export data.
+     * @param Combination $combination
+     * @param ExportData $exportData
+     * @param int $offset
+     * @param int $limit
+     */
+    public function import(Combination $combination, ExportData $exportData, int $offset, int $limit): void;
 
     /**
      * Cleans up any left-over data.

@@ -18,6 +18,7 @@ use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
 chdir(dirname(__DIR__));
 require(__DIR__ . '/../vendor/autoload.php');
+ini_set('memory_limit', '-1');
 
 (function () {
     /* @var ContainerInterface $container */

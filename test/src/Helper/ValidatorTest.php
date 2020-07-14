@@ -14,6 +14,7 @@ use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Entity\Recipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
+use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -367,6 +368,47 @@ class ValidatorTest extends TestCase
         $this->invokeMethod($validator, 'validateProduct', $product);
 
         $this->assertEquals($expectedProduct, $product);
+    }
+
+    /**
+     * Tests the validateTranslation method.
+     * @covers ::validateTranslation
+     */
+    public function testValidateTranslation(): void
+    {
+        $translation = new Translation();
+        $translation->setLocale('abc')
+                    ->setName('def')
+                    ->setValue('ghi')
+                    ->setDescription('jkl');
+
+        $expectedTranslation = new Translation();
+        $expectedTranslation->setLocale('cba')
+                            ->setName('fed')
+                            ->setValue('ihg')
+                            ->setDescription('lkj');
+
+        $validator = $this->getMockBuilder(Validator::class)
+                          ->onlyMethods(['limitString'])
+                          ->getMock();
+        $validator->expects($this->exactly(4))
+                  ->method('limitString')
+                  ->withConsecutive(
+                      [$this->identicalTo('abc'), $this->identicalTo(5)],
+                      [$this->identicalTo('def'), $this->identicalTo(255)],
+                      [$this->identicalTo('ghi'), $this->identicalTo(65535)],
+                      [$this->identicalTo('jkl'), $this->identicalTo(65535)],
+                  )
+                  ->willReturnOnConsecutiveCalls(
+                      'cba',
+                      'fed',
+                      'ihg',
+                      'lkj',
+                  );
+
+        $validator->validateTranslation($translation);
+
+        $this->assertEquals($expectedTranslation, $translation);
     }
 
     /**

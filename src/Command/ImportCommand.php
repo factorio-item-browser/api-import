@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
+use BluePsyduck\SymfonyProcessManager\ProcessManager;
+use BluePsyduck\SymfonyProcessManager\ProcessManagerInterface;
+use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
 use FactorioItemBrowser\Api\Import\Console\Console;
 use FactorioItemBrowser\Api\Import\Constant\CommandName;
+use FactorioItemBrowser\Api\Import\Exception\CommandFailureException;
 use FactorioItemBrowser\Api\Import\Importer\ImporterInterface;
+use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
 use FactorioItemBrowser\ExportData\ExportData;
 use FactorioItemBrowser\ExportData\ExportDataService;
 
@@ -22,41 +26,35 @@ use FactorioItemBrowser\ExportData\ExportDataService;
 class ImportCommand extends AbstractImportCommand
 {
     /**
-     * The entity manager.
-     * @var EntityManagerInterface
+     * @var array<string, ImporterInterface>|ImporterInterface[]
      */
-    protected $entityManager;
+    protected array $importers;
+    protected int $chunkSize;
+    protected int $numberOfParallelProcesses;
 
     /**
-     * The importers.
-     * @var ImporterInterface[]
-     */
-    protected $importers;
-
-    /**
-     * Initializes the command.
      * @param CombinationRepository $combinationRepository
      * @param Console $console
-     * @param EntityManagerInterface $entityManager
      * @param ExportDataService $exportDataService
-     * @param ImporterInterface[] $importers
+     * @param array<string, ImporterInterface> $importers
+     * @param int $importChunkSize
+     * @param int $numberOfParallelProcesses
      */
     public function __construct(
         CombinationRepository $combinationRepository,
         Console $console,
-        EntityManagerInterface $entityManager,
         ExportDataService $exportDataService,
-        array $importers
+        array $importers,
+        int $importChunkSize,
+        int $numberOfParallelProcesses
     ) {
         parent::__construct($combinationRepository, $console, $exportDataService);
 
-        $this->entityManager = $entityManager;
         $this->importers = $importers;
+        $this->chunkSize = $importChunkSize;
+        $this->numberOfParallelProcesses = $numberOfParallelProcesses;
     }
 
-    /**
-     * Configures the command.
-     */
     protected function configure(): void
     {
         parent::configure();
@@ -66,41 +64,98 @@ class ImportCommand extends AbstractImportCommand
     }
 
     /**
-     * Returns a label describing what the import is doing.
-     * @return string
-     */
-    protected function getLabel(): string
-    {
-        return 'Processing the main data of the combination';
-    }
-
-    /**
-     * Imports the export data into the combination.
      * @param ExportData $exportData
      * @param Combination $combination
+     * @throws Exception
      */
     protected function import(ExportData $exportData, Combination $combination): void
     {
-        $this->console->writeAction('Preparing importers');
-        foreach ($this->importers as $importer) {
-            $importer->prepare($exportData);
-        }
+        $this->console->writeHeadline(sprintf('Importing combination %s', $combination->getId()->toString()));
 
-        $this->console->writeAction('Parsing the export data');
-        foreach ($this->importers as $importer) {
-            $importer->parse($exportData);
+        foreach ($this->importers as $name => $importer) {
+            $this->executeImporter($name, $importer, $exportData, $combination);
         }
+        $this->cleanup();
 
-        $this->console->writeAction('Persisting the parsed data');
-        foreach ($this->importers as $importer) {
-            $importer->persist($this->entityManager, $combination);
+        $this->console->writeStep('Done.');
+    }
+
+    /**
+     * @param string $name
+     * @param ImporterInterface $importer
+     * @param ExportData $exportData
+     * @param Combination $combination
+     */
+    protected function executeImporter(
+        string $name,
+        ImporterInterface $importer,
+        ExportData $exportData,
+        Combination $combination
+    ): void {
+        $this->console->writeStep('Executing importer: ' . $name);
+
+        $count = $importer->count($exportData);
+        $numberOfChunks = ceil($count / $this->chunkSize);
+        $this->console->writeMessage("Will process {$count} datasets in {$numberOfChunks} chunks");
+
+        $this->console->writeAction('Preparing importer');
+        $importer->prepare($combination);
+
+        $processManager = $this->createProcessManager();
+        for ($i = 0; $i < $numberOfChunks; ++$i) {
+            $processManager->addProcess($this->createSubProcess($combination, $name, $i));
         }
-        $this->entityManager->flush();
+        $processManager->waitForAllProcesses();
+    }
 
-        $this->console->writeAction('Cleaning up obsolete data');
-        foreach ($this->importers as $importer) {
+    protected function createProcessManager(): ProcessManagerInterface
+    {
+        $processManager = new ProcessManager($this->numberOfParallelProcesses);
+        $processManager->setProcessStartCallback(function (ImportCommandProcess $process): void {
+            static $index = 0;
+            ++$index;
+            $this->console->writeAction("Processing chunk {$index}");
+        });
+        $processManager->setProcessFinishCallback(function (ImportCommandProcess $process): void {
+            $this->handleProcessFinish($process);
+        });
+        return $processManager;
+    }
+
+    /**
+     * @param ImportCommandProcess<string> $process
+     * @throws CommandFailureException
+     */
+    protected function handleProcessFinish(ImportCommandProcess $process): void
+    {
+        if ($process->isSuccessful()) {
+            $this->console->writeData($process->getOutput());
+        } else {
+            throw new CommandFailureException($process->getOutput());
+        }
+    }
+
+    /**
+     * @param Combination $combination
+     * @param string $part
+     * @param int $chunk
+     * @return ImportCommandProcess<string>
+     */
+    protected function createSubProcess(Combination $combination, string $part, int $chunk): ImportCommandProcess
+    {
+        return new ImportCommandProcess(CommandName::IMPORT_PART, $combination, [
+            $part,
+            (string) ($chunk * $this->chunkSize),
+            (string) $this->chunkSize,
+        ]);
+    }
+
+    protected function cleanup(): void
+    {
+        $this->console->writeStep('Cleaning up');
+        foreach (array_reverse($this->importers) as $name => $importer) {
+            $this->console->writeAction("Importer: {$name}");
             $importer->cleanup();
         }
-        $this->entityManager->flush();
     }
 }

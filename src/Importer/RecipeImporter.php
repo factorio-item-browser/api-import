@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
@@ -11,121 +12,81 @@ use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient as DatabaseIngredie
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct as DatabaseProduct;
 use FactorioItemBrowser\Api\Database\Repository\RecipeRepository;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Helper\DataCollector;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient as ExportIngredient;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Product as ExportProduct;
 use FactorioItemBrowser\ExportData\ExportData;
+use Generator;
 
 /**
- * The importer of recipes.
+ * The importer for the recipes.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ *
+ * @extends AbstractEntityImporter<ExportRecipe, DatabaseRecipe>
  */
-class RecipeImporter implements ImporterInterface
+class RecipeImporter extends AbstractEntityImporter
 {
-    /**
-     * The crafting category importer.
-     * @var CraftingCategoryImporter
-     */
-    protected $craftingCategoryImporter;
+    protected DataCollector $dataCollector;
+    protected IdCalculator $idCalculator;
+    protected Validator $validator;
 
-    /**
-     * The id calculator.
-     * @var IdCalculator
-     */
-    protected $idCalculator;
-
-    /**
-     * The item importer.
-     * @var ItemImporter
-     */
-    protected $itemImporter;
-
-    /**
-     * The recipe repository.
-     * @var RecipeRepository
-     */
-    protected $recipeRepository;
-
-    /**
-     * The validator.
-     * @var Validator
-     */
-    protected $validator;
-
-    /**
-     * The recipes.
-     * @var array|DatabaseRecipe[]
-     */
-    protected $recipes = [];
-
-    /**
-     * Initializes the importer.
-     * @param CraftingCategoryImporter $craftingCategoryImporter
-     * @param IdCalculator $idCalculator
-     * @param ItemImporter $itemImporter
-     * @param RecipeRepository $recipeRepository
-     * @param Validator $validator
-     */
     public function __construct(
-        CraftingCategoryImporter $craftingCategoryImporter,
+        DataCollector $dataCollector,
+        EntityManagerInterface $entityManager,
         IdCalculator $idCalculator,
-        ItemImporter $itemImporter,
-        RecipeRepository $recipeRepository,
+        RecipeRepository $repository,
         Validator $validator
     ) {
-        $this->craftingCategoryImporter = $craftingCategoryImporter;
+        parent::__construct($entityManager, $repository);
+
+        $this->dataCollector = $dataCollector;
         $this->idCalculator = $idCalculator;
-        $this->itemImporter = $itemImporter;
-        $this->recipeRepository = $recipeRepository;
         $this->validator = $validator;
     }
 
-    /**
-     * Prepares the data provided for the other importers.
-     * @param ExportData $exportData
-     */
-    public function prepare(ExportData $exportData): void
+    protected function getCollectionFromCombination(Combination $combination): Collection
     {
-        $this->recipes = [];
+        return $combination->getRecipes();
     }
 
-    /**
-     * Actually parses the data, having access to data provided by other importers.
-     * @param ExportData $exportData
-     * @throws ImportException
-     */
-    public function parse(ExportData $exportData): void
+    protected function prepareImport(Combination $combination, ExportData $exportData, int $offset, int $limit): void
     {
-        $ids = [];
-        foreach ($exportData->getCombination()->getRecipes() as $exportRecipe) {
-            $databaseRecipe = $this->mapRecipe($exportRecipe);
-            $ids[] = $databaseRecipe->getId();
+        $this->dataCollector->setCombination($combination);
+    }
 
-            $this->add($databaseRecipe);
-        }
+    protected function getExportEntities(ExportData $exportData): Generator
+    {
+        foreach ($exportData->getCombination()->getRecipes() as $recipe) {
+            $this->dataCollector->addCraftingCategoryName($recipe->getCraftingCategory());
+            foreach ($recipe->getIngredients() as $ingredient) {
+                $this->dataCollector->addItem($ingredient->getType(), $ingredient->getName());
+            }
+            foreach ($recipe->getProducts() as $product) {
+                $this->dataCollector->addItem($product->getType(), $product->getName());
+            }
 
-        foreach ($this->recipeRepository->findByIds($ids) as $recipe) {
-            $this->add($recipe);
+            yield $recipe;
         }
     }
 
     /**
-     * Maps the export recipe to a database one.
      * @param ExportRecipe $exportRecipe
      * @return DatabaseRecipe
      * @throws ImportException
      */
-    protected function mapRecipe(ExportRecipe $exportRecipe): DatabaseRecipe
+    protected function createDatabaseEntity($exportRecipe)
     {
         $databaseRecipe = new DatabaseRecipe();
+
         $databaseRecipe->setName($exportRecipe->getName())
                        ->setMode($exportRecipe->getMode())
                        ->setCraftingCategory(
-                           $this->craftingCategoryImporter->getByName($exportRecipe->getCraftingCategory())
+                           $this->dataCollector->getCraftingCategory($exportRecipe->getCraftingCategory()),
                        )
                        ->setCraftingTime($exportRecipe->getCraftingTime());
 
@@ -138,7 +99,6 @@ class RecipeImporter implements ImporterInterface
     }
 
     /**
-     * Maps the ingredients from the export recipe to the database one.
      * @param ExportRecipe $exportRecipe
      * @param DatabaseRecipe $databaseRecipe
      * @throws ImportException
@@ -154,17 +114,13 @@ class RecipeImporter implements ImporterInterface
     }
 
     /**
-     * Maps the export ingredient to a database one.
      * @param ExportIngredient $exportIngredient
      * @return DatabaseIngredient
      * @throws ImportException
      */
     protected function mapIngredient(ExportIngredient $exportIngredient): DatabaseIngredient
     {
-        $item = $this->itemImporter->getByTypeAndName(
-            $exportIngredient->getType(),
-            $exportIngredient->getName()
-        );
+        $item = $this->dataCollector->getItem($exportIngredient->getType(), $exportIngredient->getName());
 
         $databaseIngredient = new DatabaseIngredient();
         $databaseIngredient->setItem($item)
@@ -173,7 +129,6 @@ class RecipeImporter implements ImporterInterface
     }
 
     /**
-     * Maps the products from the export recipe to the database one.
      * @param ExportRecipe $exportRecipe
      * @param DatabaseRecipe $databaseRecipe
      * @throws ImportException
@@ -187,19 +142,15 @@ class RecipeImporter implements ImporterInterface
             $databaseRecipe->getProducts()->add($databaseProduct);
         }
     }
-    
+
     /**
-     * Maps the export product to a database one.
      * @param ExportProduct $exportProduct
      * @return DatabaseProduct
      * @throws ImportException
      */
     protected function mapProduct(ExportProduct $exportProduct): DatabaseProduct
     {
-        $item = $this->itemImporter->getByTypeAndName(
-            $exportProduct->getType(),
-            $exportProduct->getName()
-        );
+        $item = $this->dataCollector->getItem($exportProduct->getType(), $exportProduct->getName());
 
         $databaseProduct = new DatabaseProduct();
         $databaseProduct->setItem($item)
@@ -207,40 +158,5 @@ class RecipeImporter implements ImporterInterface
                         ->setAmountMax($exportProduct->getAmountMax())
                         ->setProbability($exportProduct->getProbability());
         return $databaseProduct;
-    }
-
-    /**
-     * Adds the recipe to the local properties.
-     * @param DatabaseRecipe $recipe
-     */
-    protected function add(DatabaseRecipe $recipe): void
-    {
-        $this->recipes[$recipe->getId()->toString()] = $recipe;
-    }
-
-    /**
-     * Persists the parsed data to the combination.
-     * @param EntityManagerInterface $entityManager
-     * @param Combination $combination
-     */
-    public function persist(EntityManagerInterface $entityManager, Combination $combination): void
-    {
-        $combination->getRecipes()->clear();
-        foreach ($this->recipes as $recipe) {
-            $entityManager->persist($recipe);
-            $combination->getRecipes()->add($recipe);
-        }
-    }
-
-    /**
-     * Cleans up any left-over data.
-     */
-    public function cleanup(): void
-    {
-        $this->recipeRepository->removeOrphans();
-
-        // We may have created new orphans, so better be safe and cleanup again.
-        $this->itemImporter->cleanup();
-        $this->craftingCategoryImporter->cleanup();
     }
 }

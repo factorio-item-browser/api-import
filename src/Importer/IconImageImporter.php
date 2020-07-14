@@ -8,11 +8,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\IconImage;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
-use FactorioItemBrowser\Api\Import\Exception\ImportException;
-use FactorioItemBrowser\Api\Import\Exception\MissingIconImageException;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
-use FactorioItemBrowser\ExportData\Entity\Icon;
+use FactorioItemBrowser\ExportData\Entity\Icon as ExportIcon;
 use FactorioItemBrowser\ExportData\ExportData;
+use Generator;
 use Ramsey\Uuid\Uuid;
 
 /**
@@ -20,123 +19,88 @@ use Ramsey\Uuid\Uuid;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ *
+ * @extends AbstractImporter<ExportIcon>
  */
-class IconImageImporter implements ImporterInterface
+class IconImageImporter extends AbstractImporter
 {
-    /**
-     * The icon image repository.
-     * @var IconImageRepository
-     */
-    protected $iconImageRepository;
+    protected EntityManagerInterface $entityManager;
+    protected IconImageRepository $repository;
+    protected Validator $validator;
 
-    /**
-     * The validator.
-     * @var Validator
-     */
-    protected $validator;
-
-    /**
-     * The parsed icon images.
-     * @var array|IconImage[]
-     */
-    protected $images = [];
-
-    /**
-     * Initializes the importer.
-     * @param IconImageRepository $iconImageRepository
-     * @param Validator $validator
-     */
-    public function __construct(IconImageRepository $iconImageRepository, Validator $validator)
-    {
-        $this->iconImageRepository = $iconImageRepository;
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        IconImageRepository $repository,
+        Validator $validator
+    ) {
+        $this->entityManager = $entityManager;
+        $this->repository = $repository;
         $this->validator = $validator;
     }
 
-    /**
-     * Prepares the data provided for the other importers.
-     * @param ExportData $exportData
-     */
-    public function prepare(ExportData $exportData): void
+    protected function getExportEntities(ExportData $exportData): Generator
     {
-        $this->images = [];
+        yield from $exportData->getCombination()->getIcons();
+    }
 
+    public function prepare(Combination $combination): void
+    {
+    }
+
+    public function import(Combination $combination, ExportData $exportData, int $offset, int $limit): void
+    {
+        $iconImages = [];
+        foreach ($this->getChunkedExportEntities($exportData, $offset, $limit) as $exportIcon) {
+            $iconImages[] = $this->createIconImage($exportIcon, $exportData);
+        }
+        $this->persistIconImages($iconImages);
+    }
+
+    protected function createIconImage(ExportIcon $exportIcon, ExportData $exportData): IconImage
+    {
+        $iconImage = new IconImage();
+        $iconImage->setId(Uuid::fromString($exportIcon->getId()))
+                  ->setSize($exportIcon->getSize())
+                  ->setContents($exportData->getRenderedIcon($exportIcon));
+
+        $this->validator->validateIconImage($iconImage);
+        return $iconImage;
+    }
+
+    /**
+     * @param array<IconImage>|IconImage[] $entities
+     */
+    protected function persistIconImages(array $entities): void
+    {
         $ids = [];
-        foreach ($exportData->getCombination()->getIcons() as $icon) {
-            $image = $this->create($icon);
-            $ids[] = $image->getId();
-
-            $this->add($image);
+        $mappedEntities = [];
+        foreach ($entities as $entity) {
+            $id = $entity->getId();
+            $ids[] = $id;
+            $mappedEntities[$id->toString()] = $entity;
         }
 
-        foreach ($this->iconImageRepository->findByIds($ids) as $image) {
-            $this->add($image);
-        }
-    }
-
-    /**
-     * Creates the image entity from the icon.
-     * @param Icon $icon
-     * @return IconImage
-     */
-    public function create(Icon $icon): IconImage
-    {
-        $image = new IconImage();
-        $image->setId(Uuid::fromString($icon->getId()))
-              ->setSize($icon->getSize());
-
-        $this->validator->validateIconImage($image);
-        return $image;
-    }
-
-    /**
-     * Adds an image to the local properties of the importer.
-     * @param IconImage $image
-     */
-    protected function add(IconImage $image): void
-    {
-        $this->images[$image->getId()->toString()] = $image;
-    }
-
-    /**
-     * Returns the icon image with the specified id.
-     * @param string $id
-     * @return IconImage
-     * @throws ImportException
-     */
-    public function getById(string $id): IconImage
-    {
-        if (isset($this->images[$id])) {
-            return $this->images[$id];
+        $existingEntities = $this->repository->findByIds($ids);
+        foreach ($existingEntities as $existingEntity) {
+            $id = $existingEntity->getId()->toString();
+            $this->updateIconImage($mappedEntities[$id], $existingEntity);
+            $mappedEntities[$id] = $existingEntity;
         }
 
-        throw new MissingIconImageException($id);
-    }
-
-    /**
-     * Actually parses the data, having access to data provided by other importers.
-     * @param ExportData $exportData
-     */
-    public function parse(ExportData $exportData): void
-    {
-    }
-
-    /**
-     * Persists the parsed data to the combination.
-     * @param EntityManagerInterface $entityManager
-     * @param Combination $combination
-     */
-    public function persist(EntityManagerInterface $entityManager, Combination $combination): void
-    {
-        foreach ($this->images as $image) {
-            $entityManager->persist($image);
+        foreach ($mappedEntities as $entity) {
+            $this->entityManager->persist($entity);
         }
+        $this->entityManager->flush();
     }
 
-    /**
-     * Cleans up any left-over data.
-     */
+    protected function updateIconImage(IconImage $source, IconImage $destination): void
+    {
+        $destination->setSize($source->getSize())
+                    ->setContents($source->getContents());
+    }
+
     public function cleanup(): void
     {
-        $this->iconImageRepository->removeOrphans();
+        $this->repository->removeOrphans();
     }
 }

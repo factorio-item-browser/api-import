@@ -11,17 +11,16 @@ use FactorioItemBrowser\Api\Database\Entity\Combination as DatabaseCombination;
 use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\Machine as DatabaseMachine;
 use FactorioItemBrowser\Api\Database\Repository\MachineRepository;
-use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Helper\DataCollector;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
-use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter;
 use FactorioItemBrowser\Api\Import\Importer\MachineImporter;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\ExportData;
+use FactorioItemBrowser\ExportData\Storage\StorageInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
@@ -35,13 +34,19 @@ use ReflectionException;
 class MachineImporterTest extends TestCase
 {
     use ReflectionTrait;
-
+    
     /**
-     * The mocked crafting category importer.
-     * @var CraftingCategoryImporter&MockObject
+     * The mocked data collector.
+     * @var DataCollector&MockObject
      */
-    protected $craftingCategoryImporter;
-
+    protected $dataCollector;
+    
+    /**
+     * The mocked entity manager.
+     * @var EntityManagerInterface&MockObject
+     */
+    protected $entityManager;
+    
     /**
      * The mocked id calculator.
      * @var IdCalculator&MockObject
@@ -49,10 +54,10 @@ class MachineImporterTest extends TestCase
     protected $idCalculator;
 
     /**
-     * The mocked machine repository.
+     * The mocked repository.
      * @var MachineRepository&MockObject
      */
-    protected $machineRepository;
+    protected $repository;
 
     /**
      * The mocked validator.
@@ -67,9 +72,10 @@ class MachineImporterTest extends TestCase
     {
         parent::setUp();
 
-        $this->craftingCategoryImporter = $this->createMock(CraftingCategoryImporter::class);
+        $this->dataCollector = $this->createMock(DataCollector::class);
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
-        $this->machineRepository = $this->createMock(MachineRepository::class);
+        $this->repository = $this->createMock(MachineRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
@@ -81,128 +87,119 @@ class MachineImporterTest extends TestCase
     public function testConstruct(): void
     {
         $importer = new MachineImporter(
-            $this->craftingCategoryImporter,
+            $this->dataCollector,
+            $this->entityManager,
             $this->idCalculator,
-            $this->machineRepository,
-            $this->validator
+            $this->repository,
+            $this->validator,
         );
-
-        $this->assertSame(
-            $this->craftingCategoryImporter,
-            $this->extractProperty($importer, 'craftingCategoryImporter')
-        );
+        
+        $this->assertSame($this->dataCollector, $this->extractProperty($importer, 'dataCollector'));
         $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
-        $this->assertSame($this->machineRepository, $this->extractProperty($importer, 'machineRepository'));
         $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
     }
 
     /**
-     * Tests the prepare method.
+     * Tests the getCollectionFromCombination method.
      * @throws ReflectionException
-     * @covers ::prepare
+     * @covers ::getCollectionFromCombination
      */
-    public function testPrepare(): void
+    public function testGetCollectionFromCombination(): void
     {
-        /* @var ExportData&MockObject $exportData */
-        $exportData = $this->createMock(ExportData::class);
+        $machines = $this->createMock(Collection::class);
+
+        $combination = $this->createMock(DatabaseCombination::class);
+        $combination->expects($this->once())
+                    ->method('getMachines')
+                    ->willReturn($machines);
 
         $importer = new MachineImporter(
-            $this->craftingCategoryImporter,
+            $this->dataCollector,
+            $this->entityManager,
             $this->idCalculator,
-            $this->machineRepository,
-            $this->validator
+            $this->repository,
+            $this->validator,
         );
-        $importer->prepare($exportData);
+        $result = $this->invokeMethod($importer, 'getCollectionFromCombination', $combination);
 
-        $this->assertSame([], $this->extractProperty($importer, 'machines'));
+        $this->assertSame($machines, $result);
     }
-    
-    /**
-     * Tests the parse method.
-     * @throws ImportException
-     * @covers ::parse
-     */
-    public function testParse(): void
-    {
-        /* @var UuidInterface&MockObject $machineId1 */
-        $machineId1 = $this->createMock(UuidInterface::class);
-        /* @var UuidInterface&MockObject $machineId2 */
-        $machineId2 = $this->createMock(UuidInterface::class);
 
-        /* @var ExportMachine&MockObject $exportMachine1 */
-        $exportMachine1 = $this->createMock(ExportMachine::class);
-        /* @var ExportMachine&MockObject $exportMachine2 */
-        $exportMachine2 = $this->createMock(ExportMachine::class);
+    /**
+     * Tests the prepareImport method.
+     * @throws ReflectionException
+     * @covers ::prepareImport
+     */
+    public function testPrepareImport(): void
+    {
+        $combination = $this->createMock(DatabaseCombination::class);
+        $exportData = $this->createMock(ExportData::class);
+        $offset = 1337;
+        $limit = 42;
+
+        $this->dataCollector->expects($this->once())
+                            ->method('setCombination')
+                            ->with($this->identicalTo($combination));
+
+        $importer = new MachineImporter(
+            $this->dataCollector,
+            $this->entityManager,
+            $this->idCalculator,
+            $this->repository,
+            $this->validator,
+        );
+        $this->invokeMethod($importer, 'prepareImport', $combination, $exportData, $offset, $limit);
+    }
+
+    /**
+     * Tests the getExportEntities method.
+     * @throws ReflectionException
+     * @covers ::getExportEntities
+     */
+    public function testGetExportEntities(): void
+    {
+        $machine1 = new ExportMachine();
+        $machine1->setCraftingCategories(['abc', 'def']);
+
+        $machine2 = new ExportMachine();
+        $machine2->setCraftingCategories(['ghi']);
+
+        $machine3 = new ExportMachine();
+        $machine3->setCraftingCategories(['jkl', 'abc']);
 
         $combination = new ExportCombination();
-        $combination->setMachines([$exportMachine1, $exportMachine2]);
+        $combination->setMachines([$machine1, $machine2, $machine3]);
 
-        /* @var ExportData&MockObject $exportData */
-        $exportData = $this->createMock(ExportData::class);
-        $exportData->expects($this->once())
-                   ->method('getCombination')
-                   ->willReturn($combination);
+        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
 
-        /* @var DatabaseMachine&MockObject $databaseMachine1 */
-        $databaseMachine1 = $this->createMock(DatabaseMachine::class);
-        $databaseMachine1->expects($this->any())
-                      ->method('getId')
-                      ->willReturn($machineId1);
+        $this->dataCollector->expects($this->exactly(5))
+                            ->method('addCraftingCategoryName')
+                            ->withConsecutive(
+                                [$this->identicalTo('abc')],
+                                [$this->identicalTo('def')],
+                                [$this->identicalTo('ghi')],
+                                [$this->identicalTo('jkl')],
+                                [$this->identicalTo('abc')],
+                            );
+        
+        $importer = new MachineImporter(
+            $this->dataCollector,
+            $this->entityManager,
+            $this->idCalculator,
+            $this->repository,
+            $this->validator,
+        );
+        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
 
-        /* @var DatabaseMachine&MockObject $databaseMachine2 */
-        $databaseMachine2 = $this->createMock(DatabaseMachine::class);
-        $databaseMachine2->expects($this->any())
-                         ->method('getId')
-                         ->willReturn($machineId2);
-
-        /* @var DatabaseMachine&MockObject $existingDatabaseMachine1 */
-        $existingDatabaseMachine1 = $this->createMock(DatabaseMachine::class);
-        /* @var DatabaseMachine&MockObject $existingDatabaseMachine2 */
-        $existingDatabaseMachine2 = $this->createMock(DatabaseMachine::class);
-
-        $this->machineRepository->expects($this->once())
-                                ->method('findByIds')
-                                ->with($this->identicalTo([$machineId1, $machineId2]))
-                                ->willReturn([$existingDatabaseMachine1, $existingDatabaseMachine2]);
-
-        /* @var MachineImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(MachineImporter::class)
-                         ->onlyMethods(['map', 'add'])
-                         ->setConstructorArgs([
-                             $this->craftingCategoryImporter,
-                             $this->idCalculator,
-                             $this->machineRepository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->exactly(2))
-                 ->method('map')
-                 ->withConsecutive(
-                     [$this->identicalTo($exportMachine1)],
-                     [$this->identicalTo($exportMachine2)]
-                 )
-                 ->willReturnOnConsecutiveCalls(
-                     $databaseMachine1,
-                     $databaseMachine2
-                 );
-        $importer->expects($this->exactly(4))
-                 ->method('add')
-                 ->withConsecutive(
-                     [$databaseMachine1],
-                     [$databaseMachine2],
-                     [$existingDatabaseMachine1],
-                     [$existingDatabaseMachine2]
-                 );
-
-        $importer->parse($exportData);
+        $this->assertEquals([$machine1, $machine2, $machine3], iterator_to_array($result));
     }
     
     /**
      * Tests the map method.
      * @throws ReflectionException
-     * @covers ::map
+     * @covers ::createDatabaseEntity
      */
-    public function testMap(): void
+    public function testCreateDatabaseEntity(): void
     {
         /* @var UuidInterface&MockObject $machineId */
         $machineId = $this->createMock(UuidInterface::class);
@@ -248,16 +245,16 @@ class MachineImporterTest extends TestCase
         $expectedResult->getCraftingCategories()->add($craftingCategory1);
         $expectedResult->getCraftingCategories()->add($craftingCategory2);
 
-        $this->craftingCategoryImporter->expects($this->exactly(2))
-                                       ->method('getByName')
-                                       ->withConsecutive(
-                                           [$this->identicalTo('ghi')],
-                                           [$this->identicalTo('jkl')]
-                                       )
-                                       ->willReturnOnConsecutiveCalls(
-                                           $craftingCategory1,
-                                           $craftingCategory2
-                                       );
+        $this->dataCollector->expects($this->exactly(2))
+                            ->method('getCraftingCategory')
+                            ->withConsecutive(
+                                [$this->identicalTo('ghi')],
+                                [$this->identicalTo('jkl')],
+                            )
+                            ->willReturnOnConsecutiveCalls(
+                                $craftingCategory1,
+                                $craftingCategory2,
+                            );
 
         $this->idCalculator->expects($this->once())
                            ->method('calculateIdOfMachine')
@@ -269,111 +266,14 @@ class MachineImporterTest extends TestCase
                         ->with($this->equalTo($expectedDatabaseMachine));
 
         $importer = new MachineImporter(
-            $this->craftingCategoryImporter,
+            $this->dataCollector, 
+            $this->entityManager,
             $this->idCalculator,
-            $this->machineRepository,
+            $this->repository,
             $this->validator
         );
-        $result = $this->invokeMethod($importer, 'map', $exportMachine);
+        $result = $this->invokeMethod($importer, 'createDatabaseEntity', $exportMachine);
 
         $this->assertEquals($expectedResult, $result);
-    }
-
-    /**
-     * Tests the add method.
-     * @throws ReflectionException
-     * @covers ::add
-     */
-    public function testAdd(): void
-    {
-        $machineId = Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3');
-
-        $machine = new DatabaseMachine();
-        $machine->setId($machineId);
-
-        $expectedMachines = [
-            '70acdb0f-36ca-4b30-9687-2baaade94cd3' => $machine,
-        ];
-
-        $importer = new MachineImporter(
-            $this->craftingCategoryImporter,
-            $this->idCalculator,
-            $this->machineRepository,
-            $this->validator
-        );
-        $this->invokeMethod($importer, 'add', $machine);
-
-        $this->assertSame($expectedMachines, $this->extractProperty($importer, 'machines'));
-    }
-    
-    /**
-     * Tests the persist method.
-     * @throws ReflectionException
-     * @covers ::persist
-     */
-    public function testPersist(): void
-    {
-        /* @var DatabaseMachine&MockObject $machine1 */
-        $machine1 = $this->createMock(DatabaseMachine::class);
-        /* @var DatabaseMachine&MockObject $machine2 */
-        $machine2 = $this->createMock(DatabaseMachine::class);
-        $machines = [$machine1, $machine2];
-
-        /* @var Collection&MockObject $machineCollection */
-        $machineCollection = $this->createMock(Collection::class);
-        $machineCollection->expects($this->once())
-                          ->method('clear');
-        $machineCollection->expects($this->exactly(2))
-                          ->method('add')
-                          ->withConsecutive(
-                              [$this->identicalTo($machine1)],
-                              [$this->identicalTo($machine2)]
-                          );
-
-        /* @var DatabaseCombination&MockObject $combination */
-        $combination = $this->createMock(DatabaseCombination::class);
-        $combination->expects($this->any())
-                    ->method('getMachines')
-                    ->willReturn($machineCollection);
-
-        /* @var EntityManagerInterface&MockObject $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects($this->exactly(2))
-                      ->method('persist')
-                      ->withConsecutive(
-                          [$this->identicalTo($machine1)],
-                          [$this->identicalTo($machine2)]
-                      );
-
-        $importer = new MachineImporter(
-            $this->craftingCategoryImporter,
-            $this->idCalculator,
-            $this->machineRepository,
-            $this->validator
-        );
-        $this->injectProperty($importer, 'machines', $machines);
-
-        $importer->persist($entityManager, $combination);
-    }
-
-    /**
-     * Tests the cleanup method.
-     * @covers ::cleanup
-     */
-    public function testCleanup(): void
-    {
-        $this->machineRepository->expects($this->once())
-                                ->method('removeOrphans');
-
-        $this->craftingCategoryImporter->expects($this->once())
-                                       ->method('cleanup');
-
-        $importer = new MachineImporter(
-            $this->craftingCategoryImporter,
-            $this->idCalculator,
-            $this->machineRepository,
-            $this->validator
-        );
-        $importer->cleanup();
     }
 }

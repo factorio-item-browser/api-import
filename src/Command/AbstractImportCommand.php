@@ -25,30 +25,10 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 abstract class AbstractImportCommand extends Command
 {
-    /**
-     * The combination repository.
-     * @var CombinationRepository
-     */
-    protected $combinationRepository;
+    protected CombinationRepository $combinationRepository;
+    protected Console $console;
+    protected ExportDataService $exportDataService;
 
-    /**
-     * The console.
-     * @var Console
-     */
-    protected $console;
-
-    /**
-     * The export data service.
-     * @var ExportDataService
-     */
-    protected $exportDataService;
-
-    /**
-     * Initializes the command.
-     * @param CombinationRepository $combinationRepository
-     * @param Console $console
-     * @param ExportDataService $exportDataService
-     */
     public function __construct(
         CombinationRepository $combinationRepository,
         Console $console,
@@ -61,30 +41,17 @@ abstract class AbstractImportCommand extends Command
         $this->exportDataService = $exportDataService;
     }
 
-    /**
-     * Configures the command.
-     */
     protected function configure(): void
     {
         parent::configure();
 
-        $this->addArgument(
-            'combination',
-            InputArgument::REQUIRED,
-            'The id of the combination to import.'
-        );
+        $this->addArgument('combination', InputArgument::REQUIRED, 'The id of the combination to import.');
     }
 
-    /**
-     * Invokes the command.
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->console->writeStep($this->getLabel());
+            $this->processInput($input);
 
             $combinationId = Uuid::fromString(strval($input->getArgument('combination')));
             $exportData = $this->exportDataService->loadExport($combinationId->toString());
@@ -102,10 +69,12 @@ abstract class AbstractImportCommand extends Command
     }
 
     /**
-     * Returns a label describing what the import is doing.
-     * @return string
+     * Processes additional values from the input.
+     * @param InputInterface $input
      */
-    abstract protected function getLabel(): string;
+    protected function processInput(InputInterface $input): void
+    {
+    }
 
     /**
      * Imports the export data into the combination.

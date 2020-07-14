@@ -4,154 +4,64 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import\Importer;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Entity\Item as DatabaseItem;
 use FactorioItemBrowser\Api\Database\Repository\ItemRepository;
-use FactorioItemBrowser\Api\Import\Exception\ImportException;
-use FactorioItemBrowser\Api\Import\Exception\MissingItemException;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\ExportData;
+use Generator;
 
 /**
- * The importer of the items.
+ * The importer for the items.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ *
+ * @extends AbstractEntityImporter<ExportItem, DatabaseItem>
  */
-class ItemImporter implements ImporterInterface
+class ItemImporter extends AbstractEntityImporter
 {
-    /**
-     * The id calculator.
-     * @var IdCalculator
-     */
-    protected $idCalculator;
+    protected IdCalculator $idCalculator;
+    protected Validator $validator;
 
-    /**
-     * The item repository.
-     * @var ItemRepository
-     */
-    protected $itemRepository;
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        IdCalculator $idCalculator,
+        ItemRepository $repository,
+        Validator $validator
+    ) {
+        parent::__construct($entityManager, $repository);
 
-    /**
-     * The validator.
-     * @var Validator
-     */
-    protected $validator;
-
-    /**
-     * The items by their type and name.
-     * @var array|DatabaseItem[][]
-     */
-    protected $items = [];
-
-    /**
-     * Initializes the importer.
-     * @param IdCalculator $idCalculator
-     * @param ItemRepository $itemRepository
-     * @param Validator $validator
-     */
-    public function __construct(IdCalculator $idCalculator, ItemRepository $itemRepository, Validator $validator)
-    {
         $this->idCalculator = $idCalculator;
-        $this->itemRepository = $itemRepository;
         $this->validator = $validator;
     }
 
-    /**
-     * Prepares the data provided for the other importers.
-     * @param ExportData $exportData
-     */
-    public function prepare(ExportData $exportData): void
+    protected function getCollectionFromCombination(Combination $combination): Collection
     {
-        $this->items = [];
+        return $combination->getItems();
+    }
 
-        $itemIds = [];
-        foreach ($exportData->getCombination()->getItems() as $exportItem) {
-            $databaseItem = $this->map($exportItem);
-            $itemIds[] = $databaseItem->getId();
-
-            $this->add($databaseItem);
-        }
-
-        $existingItems = $this->itemRepository->findByIds($itemIds);
-        foreach ($existingItems as $item) {
-            $this->add($item);
-        }
+    protected function getExportEntities(ExportData $exportData): Generator
+    {
+        yield from $exportData->getCombination()->getItems();
     }
 
     /**
-     * Actually parses the data, having access to data provided by other importers.
-     * @param ExportData $exportData
-     */
-    public function parse(ExportData $exportData): void
-    {
-    }
-
-    /**
-     * Maps the export item to a database one.
-     * @param ExportItem $exportItem
+     * @param ExportItem $entity
      * @return DatabaseItem
      */
-    protected function map(ExportItem $exportItem): DatabaseItem
+    protected function createDatabaseEntity($entity): DatabaseItem
     {
         $databaseItem = new DatabaseItem();
-        $databaseItem->setType($exportItem->getType())
-                     ->setName($exportItem->getName());
+        $databaseItem->setType($entity->getType())
+                     ->setName($entity->getName());
 
         $this->validator->validateItem($databaseItem);
         $databaseItem->setId($this->idCalculator->calculateIdOfItem($databaseItem));
         return $databaseItem;
-    }
-
-    /**
-     * Adds an item to the local properties of the importer.
-     * @param DatabaseItem $databaseItem
-     */
-    protected function add(DatabaseItem $databaseItem): void
-    {
-        $this->items[$databaseItem->getType()][$databaseItem->getName()] = $databaseItem;
-    }
-
-    /**
-     * Returns a parsed item from the importer.
-     * @param string $type
-     * @param string $name
-     * @return DatabaseItem
-     * @throws ImportException
-     */
-    public function getByTypeAndName(string $type, string $name): DatabaseItem
-    {
-        if (isset($this->items[$type][$name])) {
-            return $this->items[$type][$name];
-        }
-
-        throw new MissingItemException($type, $name);
-    }
-
-    /**
-     * Persists the parsed data to the combination.
-     * @param EntityManagerInterface $entityManager
-     * @param Combination $combination
-     */
-    public function persist(EntityManagerInterface $entityManager, Combination $combination): void
-    {
-        $combination->getItems()->clear();
-        foreach ($this->items as $type => $items) {
-            foreach ($items as $item) {
-                $entityManager->persist($item);
-                $combination->getItems()->add($item);
-            }
-        }
-    }
-
-    /**
-     * Cleans up any left-over data.
-     */
-    public function cleanup(): void
-    {
-        $this->itemRepository->removeOrphans();
     }
 }

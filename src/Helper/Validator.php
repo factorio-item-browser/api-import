@@ -13,6 +13,7 @@ use FactorioItemBrowser\Api\Database\Entity\Mod;
 use FactorioItemBrowser\Api\Database\Entity\Recipe;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct;
+use FactorioItemBrowser\Api\Database\Entity\Translation;
 
 /**
  * The validator for the database entities.
@@ -120,6 +121,18 @@ class Validator
                 ->setAmountMin($this->limitFloat($product->getAmountMin()))
                 ->setAmountMax($this->limitFloat($product->getAmountMax()))
                 ->setProbability($this->limitFloat($product->getProbability()));
+    }
+
+    /**
+     * Validates the translation.
+     * @param Translation $translation
+     */
+    public function validateTranslation(Translation $translation): void
+    {
+        $translation->setLocale($this->limitString($translation->getLocale(), 5))
+                    ->setName($this->limitString($translation->getName(), 255))
+                    ->setValue($this->limitString($translation->getValue(), 65535))
+                    ->setDescription($this->limitString($translation->getDescription(), 65535));
     }
 
     /**

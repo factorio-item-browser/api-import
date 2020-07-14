@@ -16,8 +16,7 @@ use FactorioItemBrowser\Api\Import\Constant\CommandName;
 return [
     'commands' => [
         CommandName::IMPORT => Command\ImportCommand::class,
-        CommandName::IMPORT_IMAGES => Command\ImportImagesCommand::class,
-        CommandName::IMPORT_TRANSLATIONS => Command\ImportTranslationsCommand::class,
+        CommandName::IMPORT_PART => Command\ImportPartCommand::class,
         CommandName::PROCESS => Command\ProcessCommand::class,
     ],
 ];

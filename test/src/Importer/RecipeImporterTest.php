@@ -14,20 +14,18 @@ use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Entity\RecipeIngredient as DatabaseIngredient;
 use FactorioItemBrowser\Api\Database\Entity\RecipeProduct as DatabaseProduct;
 use FactorioItemBrowser\Api\Database\Entity\Recipe as DatabaseRecipe;
-use FactorioItemBrowser\Api\Import\Exception\ImportException;
+use FactorioItemBrowser\Api\Import\Helper\DataCollector;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
-use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter;
-use FactorioItemBrowser\Api\Import\Importer\ItemImporter;
 use FactorioItemBrowser\Api\Import\Importer\RecipeImporter;
 use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient as ExportIngredient;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Product as ExportProduct;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\ExportData;
+use FactorioItemBrowser\ExportData\Storage\StorageInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
@@ -43,10 +41,16 @@ class RecipeImporterTest extends TestCase
     use ReflectionTrait;
 
     /**
-     * The mocked crafting category importer.
-     * @var CraftingCategoryImporter&MockObject
+     * The mocked data collector.
+     * @var DataCollector&MockObject
      */
-    protected $craftingCategoryImporter;
+    protected $dataCollector;
+
+    /**
+     * The mocked entity manager.
+     * @var EntityManagerInterface&MockObject
+     */
+    protected $entityManager;
 
     /**
      * The mocked id calculator.
@@ -55,16 +59,10 @@ class RecipeImporterTest extends TestCase
     protected $idCalculator;
 
     /**
-     * The mocked item importer.
-     * @var ItemImporter&MockObject
-     */
-    protected $itemImporter;
-
-    /**
-     * The mocked recipe repository.
+     * The mocked repository.
      * @var RecipeRepository&MockObject
      */
-    protected $recipeRepository;
+    protected $repository;
 
     /**
      * The mocked validator.
@@ -79,10 +77,10 @@ class RecipeImporterTest extends TestCase
     {
         parent::setUp();
 
-        $this->craftingCategoryImporter = $this->createMock(CraftingCategoryImporter::class);
+        $this->dataCollector = $this->createMock(DataCollector::class);
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
-        $this->itemImporter = $this->createMock(ItemImporter::class);
-        $this->recipeRepository = $this->createMock(RecipeRepository::class);
+        $this->repository = $this->createMock(RecipeRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
@@ -94,136 +92,148 @@ class RecipeImporterTest extends TestCase
     public function testConstruct(): void
     {
         $importer = new RecipeImporter(
-            $this->craftingCategoryImporter,
+            $this->dataCollector,
+            $this->entityManager,
             $this->idCalculator,
-            $this->itemImporter,
-            $this->recipeRepository,
-            $this->validator
+            $this->repository,
+            $this->validator,
         );
 
-        $this->assertSame(
-            $this->craftingCategoryImporter,
-            $this->extractProperty($importer, 'craftingCategoryImporter')
-        );
+        $this->assertSame($this->dataCollector, $this->extractProperty($importer, 'dataCollector'));
         $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
-        $this->assertSame($this->itemImporter, $this->extractProperty($importer, 'itemImporter'));
-        $this->assertSame($this->recipeRepository, $this->extractProperty($importer, 'recipeRepository'));
         $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
     }
 
     /**
-     * Tests the prepare method.
+     * Tests the getCollectionFromCombination method.
      * @throws ReflectionException
-     * @covers ::prepare
+     * @covers ::getCollectionFromCombination
      */
-    public function testPrepare(): void
+    public function testGetCollectionFromCombination(): void
     {
-        /* @var ExportData&MockObject $exportData */
-        $exportData = $this->createMock(ExportData::class);
+        $recipes = $this->createMock(Collection::class);
+
+        $combination = $this->createMock(DatabaseCombination::class);
+        $combination->expects($this->once())
+                    ->method('getRecipes')
+                    ->willReturn($recipes);
 
         $importer = new RecipeImporter(
-            $this->craftingCategoryImporter,
+            $this->dataCollector,
+            $this->entityManager,
             $this->idCalculator,
-            $this->itemImporter,
-            $this->recipeRepository,
-            $this->validator
+            $this->repository,
+            $this->validator,
         );
-        $importer->prepare($exportData);
+        $result = $this->invokeMethod($importer, 'getCollectionFromCombination', $combination);
 
-        $this->assertSame([], $this->extractProperty($importer, 'recipes'));
+        $this->assertSame($recipes, $result);
     }
 
     /**
-     * Tests the parse method.
-     * @throws ImportException
-     * @covers ::parse
+     * Tests the prepareImport method.
+     * @throws ReflectionException
+     * @covers ::prepareImport
      */
-    public function testParse(): void
+    public function testPrepareImport(): void
     {
-        /* @var UuidInterface&MockObject $recipeId1 */
-        $recipeId1 = $this->createMock(UuidInterface::class);
-        /* @var UuidInterface&MockObject $recipeId2 */
-        $recipeId2 = $this->createMock(UuidInterface::class);
+        $combination = $this->createMock(DatabaseCombination::class);
+        $exportData = $this->createMock(ExportData::class);
+        $offset = 1337;
+        $limit = 42;
 
-        /* @var ExportRecipe&MockObject $exportRecipe1 */
-        $exportRecipe1 = $this->createMock(ExportRecipe::class);
-        /* @var ExportRecipe&MockObject $exportRecipe2 */
-        $exportRecipe2 = $this->createMock(ExportRecipe::class);
+        $this->dataCollector->expects($this->once())
+                            ->method('setCombination')
+                            ->with($this->identicalTo($combination));
+
+        $importer = new RecipeImporter(
+            $this->dataCollector,
+            $this->entityManager,
+            $this->idCalculator,
+            $this->repository,
+            $this->validator,
+        );
+        $this->invokeMethod($importer, 'prepareImport', $combination, $exportData, $offset, $limit);
+    }
+
+    /**
+     * Tests the getExportEntities method.
+     * @throws ReflectionException
+     * @covers ::getExportEntities
+     */
+    public function testGetExportEntities(): void
+    {
+        $ingredient1 = new ExportIngredient();
+        $ingredient1->setType('ghi')
+                    ->setName('jkl');
+        $ingredient2 = new ExportIngredient();
+        $ingredient2->setType('mno')
+                    ->setName('pqr');
+        $product1 = new ExportProduct();
+        $product1->setType('stu')
+                 ->setName('vwx');
+        $product2 = new ExportProduct();
+        $product2->setType('yza')
+                 ->setName('bcd');
+
+        $recipe1 = new ExportRecipe();
+        $recipe1->setCraftingCategory('abc')
+                ->addIngredient($ingredient1)
+                ->addIngredient($ingredient2)
+                ->addProduct($product1);
+
+        $recipe2 = new ExportRecipe();
+        $recipe2->setCraftingCategory('def')
+                ->addProduct($product2);
+
+        $recipe3 = new ExportRecipe();
+        $recipe3->setCraftingCategory('abc')
+                ->addIngredient($ingredient1)
+                ->addProduct($product1);
 
         $combination = new ExportCombination();
-        $combination->setRecipes([$exportRecipe1, $exportRecipe2]);
+        $combination->setRecipes([$recipe1, $recipe2, $recipe3]);
 
-        /* @var ExportData&MockObject $exportData */
-        $exportData = $this->createMock(ExportData::class);
-        $exportData->expects($this->once())
-                   ->method('getCombination')
-                   ->willReturn($combination);
+        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
 
-        /* @var DatabaseRecipe&MockObject $databaseRecipe1 */
-        $databaseRecipe1 = $this->createMock(DatabaseRecipe::class);
-        $databaseRecipe1->expects($this->any())
-                      ->method('getId')
-                      ->willReturn($recipeId1);
+        $this->dataCollector->expects($this->exactly(3))
+                            ->method('addCraftingCategoryName')
+                            ->withConsecutive(
+                                [$this->identicalTo('abc')],
+                                [$this->identicalTo('def')],
+                                [$this->identicalTo('abc')],
+                            );
+        $this->dataCollector->expects($this->exactly(6))
+                            ->method('addItem')
+                            ->withConsecutive(
+                                [$this->identicalTo('ghi'), $this->identicalTo('jkl')],
+                                [$this->identicalTo('mno'), $this->identicalTo('pqr')],
+                                [$this->identicalTo('stu'), $this->identicalTo('vwx')],
+                                [$this->identicalTo('yza'), $this->identicalTo('bcd')],
+                                [$this->identicalTo('ghi'), $this->identicalTo('jkl')],
+                                [$this->identicalTo('stu'), $this->identicalTo('vwx')],
+                            );
 
-        /* @var DatabaseRecipe&MockObject $databaseRecipe2 */
-        $databaseRecipe2 = $this->createMock(DatabaseRecipe::class);
-        $databaseRecipe2->expects($this->any())
-                         ->method('getId')
-                         ->willReturn($recipeId2);
+        $importer = new RecipeImporter(
+            $this->dataCollector,
+            $this->entityManager,
+            $this->idCalculator,
+            $this->repository,
+            $this->validator,
+        );
+        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
 
-        /* @var DatabaseRecipe&MockObject $existingDatabaseRecipe1 */
-        $existingDatabaseRecipe1 = $this->createMock(DatabaseRecipe::class);
-        /* @var DatabaseRecipe&MockObject $existingDatabaseRecipe2 */
-        $existingDatabaseRecipe2 = $this->createMock(DatabaseRecipe::class);
-
-        $this->recipeRepository->expects($this->once())
-                                ->method('findByIds')
-                                ->with($this->identicalTo([$recipeId1, $recipeId2]))
-                                ->willReturn([$existingDatabaseRecipe1, $existingDatabaseRecipe2]);
-
-        /* @var RecipeImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(RecipeImporter::class)
-                         ->onlyMethods(['mapRecipe', 'add'])
-                         ->setConstructorArgs([
-                             $this->craftingCategoryImporter,
-                             $this->idCalculator,
-                             $this->itemImporter,
-                             $this->recipeRepository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->exactly(2))
-                 ->method('mapRecipe')
-                 ->withConsecutive(
-                     [$this->identicalTo($exportRecipe1)],
-                     [$this->identicalTo($exportRecipe2)]
-                 )
-                 ->willReturnOnConsecutiveCalls(
-                     $databaseRecipe1,
-                     $databaseRecipe2
-                 );
-        $importer->expects($this->exactly(4))
-                 ->method('add')
-                 ->withConsecutive(
-                     [$databaseRecipe1],
-                     [$databaseRecipe2],
-                     [$existingDatabaseRecipe1],
-                     [$existingDatabaseRecipe2]
-                 );
-
-        $importer->parse($exportData);
+        $this->assertEquals([$recipe1, $recipe2, $recipe3], iterator_to_array($result));
     }
 
     /**
-     * Tests the mapRecipe method.
+     * Tests the createDatabaseEntity method.
      * @throws ReflectionException
-     * @covers ::mapRecipe
+     * @covers ::createDatabaseEntity
      */
-    public function testMapRecipe(): void
+    public function testCreateDatabaseEntity(): void
     {
-        /* @var UuidInterface&MockObject $recipeId */
         $recipeId = $this->createMock(UuidInterface::class);
-        /* @var CraftingCategory&MockObject $craftingCategory */
         $craftingCategory = $this->createMock(CraftingCategory::class);
 
         $exportRecipe = new ExportRecipe();
@@ -245,10 +255,10 @@ class RecipeImporterTest extends TestCase
                        ->setCraftingCategory($craftingCategory)
                        ->setCraftingTime(13.37);
 
-        $this->craftingCategoryImporter->expects($this->once())
-                                       ->method('getByName')
-                                       ->with($this->identicalTo('ghi'))
-                                       ->willReturn($craftingCategory);
+        $this->dataCollector->expects($this->once())
+                            ->method('getCraftingCategory')
+                            ->with($this->identicalTo('ghi'))
+                            ->willReturn($craftingCategory);
 
         $this->idCalculator->expects($this->once())
                            ->method('calculateIdOfRecipe')
@@ -263,10 +273,10 @@ class RecipeImporterTest extends TestCase
         $importer = $this->getMockBuilder(RecipeImporter::class)
                          ->onlyMethods(['mapIngredients', 'mapProducts'])
                          ->setConstructorArgs([
-                             $this->craftingCategoryImporter,
+                             $this->dataCollector,
+                             $this->entityManager,
                              $this->idCalculator,
-                             $this->itemImporter,
-                             $this->recipeRepository,
+                             $this->repository,
                              $this->validator,
                          ])
                          ->getMock();
@@ -277,7 +287,7 @@ class RecipeImporterTest extends TestCase
                  ->method('mapProducts')
                  ->with($this->identicalTo($exportRecipe), $this->equalTo($expectedDatabaseRecipe));
 
-        $result = $this->invokeMethod($importer, 'mapRecipe', $exportRecipe);
+        $result = $this->invokeMethod($importer, 'createDatabaseEntity', $exportRecipe);
 
         $this->assertEquals($expectedResult, $result);
     }
@@ -289,18 +299,14 @@ class RecipeImporterTest extends TestCase
      */
     public function testMapIngredients(): void
     {
-        /* @var ExportIngredient&MockObject $exportIngredient1 */
         $exportIngredient1 = $this->createMock(ExportIngredient::class);
-        /* @var ExportIngredient&MockObject $exportIngredient2 */
         $exportIngredient2 = $this->createMock(ExportIngredient::class);
 
         $exportRecipe = new ExportRecipe();
         $exportRecipe->setIngredients([$exportIngredient1, $exportIngredient2]);
 
-        /* @var DatabaseRecipe&MockObject $databaseRecipe */
         $databaseRecipe = $this->createMock(DatabaseRecipe::class);
 
-        /* @var DatabaseIngredient&MockObject $databaseIngredient1 */
         $databaseIngredient1 = $this->createMock(DatabaseIngredient::class);
         $databaseIngredient1->expects($this->once())
                             ->method('setRecipe')
@@ -311,7 +317,6 @@ class RecipeImporterTest extends TestCase
                             ->with($this->identicalTo(0))
                             ->willReturnSelf();
 
-        /* @var DatabaseIngredient&MockObject $databaseIngredient2 */
         $databaseIngredient2 = $this->createMock(DatabaseIngredient::class);
         $databaseIngredient2->expects($this->once())
                             ->method('setRecipe')
@@ -322,7 +327,6 @@ class RecipeImporterTest extends TestCase
                             ->with($this->identicalTo(1))
                             ->willReturnSelf();
 
-        /* @var Collection&MockObject $ingredientCollection */
         $ingredientCollection = $this->createMock(Collection::class);
         $ingredientCollection->expects($this->exactly(2))
                              ->method('add')
@@ -335,14 +339,13 @@ class RecipeImporterTest extends TestCase
                        ->method('getIngredients')
                        ->willReturn($ingredientCollection);
 
-        /* @var RecipeImporter&MockObject $importer */
         $importer = $this->getMockBuilder(RecipeImporter::class)
                          ->onlyMethods(['mapIngredient'])
                          ->setConstructorArgs([
-                             $this->craftingCategoryImporter,
+                             $this->dataCollector,
+                             $this->entityManager,
                              $this->idCalculator,
-                             $this->itemImporter,
-                             $this->recipeRepository,
+                             $this->repository,
                              $this->validator,
                          ])
                          ->getMock();
@@ -367,7 +370,6 @@ class RecipeImporterTest extends TestCase
      */
     public function testMapIngredient(): void
     {
-        /* @var Item&MockObject $item */
         $item = $this->createMock(Item::class);
 
         $exportIngredient = new ExportIngredient();
@@ -379,17 +381,17 @@ class RecipeImporterTest extends TestCase
         $expectedResult->setItem($item)
                        ->setAmount(13.37);
 
-        $this->itemImporter->expects($this->once())
-                           ->method('getByTypeAndName')
-                           ->with($this->identicalTo('abc'), $this->identicalTo('def'))
-                           ->willReturn($item);
-        
+        $this->dataCollector->expects($this->once())
+                            ->method('getItem')
+                            ->with($this->identicalTo('abc'), $this->identicalTo('def'))
+                            ->willReturn($item);
+
         $importer = new RecipeImporter(
-            $this->craftingCategoryImporter,
+            $this->dataCollector,
+            $this->entityManager,
             $this->idCalculator,
-            $this->itemImporter,
-            $this->recipeRepository,
-            $this->validator
+            $this->repository,
+            $this->validator,
         );
         $result = $this->invokeMethod($importer, 'mapIngredient', $exportIngredient);
 
@@ -403,18 +405,14 @@ class RecipeImporterTest extends TestCase
      */
     public function testMapProducts(): void
     {
-        /* @var ExportProduct&MockObject $exportProduct1 */
         $exportProduct1 = $this->createMock(ExportProduct::class);
-        /* @var ExportProduct&MockObject $exportProduct2 */
         $exportProduct2 = $this->createMock(ExportProduct::class);
 
         $exportRecipe = new ExportRecipe();
         $exportRecipe->setProducts([$exportProduct1, $exportProduct2]);
 
-        /* @var DatabaseRecipe&MockObject $databaseRecipe */
         $databaseRecipe = $this->createMock(DatabaseRecipe::class);
 
-        /* @var DatabaseProduct&MockObject $databaseProduct1 */
         $databaseProduct1 = $this->createMock(DatabaseProduct::class);
         $databaseProduct1->expects($this->once())
                             ->method('setRecipe')
@@ -425,7 +423,6 @@ class RecipeImporterTest extends TestCase
                             ->with($this->identicalTo(0))
                             ->willReturnSelf();
 
-        /* @var DatabaseProduct&MockObject $databaseProduct2 */
         $databaseProduct2 = $this->createMock(DatabaseProduct::class);
         $databaseProduct2->expects($this->once())
                             ->method('setRecipe')
@@ -436,7 +433,6 @@ class RecipeImporterTest extends TestCase
                             ->with($this->identicalTo(1))
                             ->willReturnSelf();
 
-        /* @var Collection&MockObject $productCollection */
         $productCollection = $this->createMock(Collection::class);
         $productCollection->expects($this->exactly(2))
                              ->method('add')
@@ -449,14 +445,13 @@ class RecipeImporterTest extends TestCase
                        ->method('getProducts')
                        ->willReturn($productCollection);
 
-        /* @var RecipeImporter&MockObject $importer */
         $importer = $this->getMockBuilder(RecipeImporter::class)
                          ->onlyMethods(['mapProduct'])
                          ->setConstructorArgs([
-                             $this->craftingCategoryImporter,
+                             $this->dataCollector,
+                             $this->entityManager,
                              $this->idCalculator,
-                             $this->itemImporter,
-                             $this->recipeRepository,
+                             $this->repository,
                              $this->validator,
                          ])
                          ->getMock();
@@ -481,7 +476,6 @@ class RecipeImporterTest extends TestCase
      */
     public function testMapProduct(): void
     {
-        /* @var Item&MockObject $item */
         $item = $this->createMock(Item::class);
 
         $exportProduct = new ExportProduct();
@@ -497,125 +491,20 @@ class RecipeImporterTest extends TestCase
                        ->setAmountMax(34.56)
                        ->setProbability(56.78);
 
-        $this->itemImporter->expects($this->once())
-                           ->method('getByTypeAndName')
-                           ->with($this->identicalTo('abc'), $this->identicalTo('def'))
-                           ->willReturn($item);
-        
+        $this->dataCollector->expects($this->once())
+                            ->method('getItem')
+                            ->with($this->identicalTo('abc'), $this->identicalTo('def'))
+                            ->willReturn($item);
+
         $importer = new RecipeImporter(
-            $this->craftingCategoryImporter,
+            $this->dataCollector,
+            $this->entityManager,
             $this->idCalculator,
-            $this->itemImporter,
-            $this->recipeRepository,
-            $this->validator
+            $this->repository,
+            $this->validator,
         );
         $result = $this->invokeMethod($importer, 'mapProduct', $exportProduct);
 
         $this->assertEquals($expectedResult, $result);
-    }
-
-    /**
-     * Tests the add method.
-     * @throws ReflectionException
-     * @covers ::add
-     */
-    public function testAdd(): void
-    {
-        $recipeId = Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3');
-
-        $recipe = new DatabaseRecipe();
-        $recipe->setId($recipeId);
-
-        $expectedRecipes = [
-            '70acdb0f-36ca-4b30-9687-2baaade94cd3' => $recipe,
-        ];
-
-        $importer = new RecipeImporter(
-            $this->craftingCategoryImporter,
-            $this->idCalculator,
-            $this->itemImporter,
-            $this->recipeRepository,
-            $this->validator
-        );
-        $this->invokeMethod($importer, 'add', $recipe);
-
-        $this->assertSame($expectedRecipes, $this->extractProperty($importer, 'recipes'));
-    }
-    
-    /**
-     * Tests the persist method.
-     * @throws ReflectionException
-     * @covers ::persist
-     */
-    public function testPersist(): void
-    {
-        /* @var DatabaseRecipe&MockObject $recipe1 */
-        $recipe1 = $this->createMock(DatabaseRecipe::class);
-        /* @var DatabaseRecipe&MockObject $recipe2 */
-        $recipe2 = $this->createMock(DatabaseRecipe::class);
-        $recipes = [$recipe1, $recipe2];
-
-        /* @var Collection&MockObject $recipeCollection */
-        $recipeCollection = $this->createMock(Collection::class);
-        $recipeCollection->expects($this->once())
-                          ->method('clear');
-        $recipeCollection->expects($this->exactly(2))
-                          ->method('add')
-                          ->withConsecutive(
-                              [$this->identicalTo($recipe1)],
-                              [$this->identicalTo($recipe2)]
-                          );
-
-        /* @var DatabaseCombination&MockObject $combination */
-        $combination = $this->createMock(DatabaseCombination::class);
-        $combination->expects($this->any())
-                    ->method('getRecipes')
-                    ->willReturn($recipeCollection);
-
-        /* @var EntityManagerInterface&MockObject $entityManager */
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects($this->exactly(2))
-                      ->method('persist')
-                      ->withConsecutive(
-                          [$this->identicalTo($recipe1)],
-                          [$this->identicalTo($recipe2)]
-                      );
-
-        $importer = new RecipeImporter(
-            $this->craftingCategoryImporter,
-            $this->idCalculator,
-            $this->itemImporter,
-            $this->recipeRepository,
-            $this->validator
-        );
-        $this->injectProperty($importer, 'recipes', $recipes);
-
-        $importer->persist($entityManager, $combination);
-    }
-
-
-    /**
-     * Tests the cleanup method.
-     * @covers ::cleanup
-     */
-    public function testCleanup(): void
-    {
-        $this->recipeRepository->expects($this->once())
-                                ->method('removeOrphans');
-
-        $this->craftingCategoryImporter->expects($this->once())
-                                       ->method('cleanup');
-
-        $this->itemImporter->expects($this->once())
-                           ->method('cleanup');
-
-        $importer = new RecipeImporter(
-            $this->craftingCategoryImporter,
-            $this->idCalculator,
-            $this->itemImporter,
-            $this->recipeRepository,
-            $this->validator
-        );
-        $importer->cleanup();
     }
 }
