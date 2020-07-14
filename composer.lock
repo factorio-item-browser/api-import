@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "36a34309c3dc037629977c6b1d1730b3",
+    "content-hash": "661fb3ff877a6eb32a51f0ccb547bbe3",
     "packages": [
         {
             "name": "bluepsyduck/laminas-autowire-factory",
@@ -1270,16 +1270,16 @@
         },
         {
             "name": "factorio-item-browser/api-database",
-            "version": "dev-feature/chunked-import",
+            "version": "3.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/api-database.git",
-                "reference": "fe4d389f295bb9ae625171a3c2aa251ea91b0637"
+                "reference": "9fa8279e6ba7b4a9b27ac5812a5a0f24aaf1ebd8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/api-database/zipball/fe4d389f295bb9ae625171a3c2aa251ea91b0637",
-                "reference": "fe4d389f295bb9ae625171a3c2aa251ea91b0637",
+                "url": "https://api.github.com/repos/factorio-item-browser/api-database/zipball/9fa8279e6ba7b4a9b27ac5812a5a0f24aaf1ebd8",
+                "reference": "9fa8279e6ba7b4a9b27ac5812a5a0f24aaf1ebd8",
                 "shasum": ""
             },
             "require": {
@@ -1327,7 +1327,7 @@
                 "api",
                 "database"
             ],
-            "time": "2020-07-10T14:03:55+00:00"
+            "time": "2020-07-14T08:09:47+00:00"
         },
         {
             "name": "factorio-item-browser/common",
@@ -5661,18 +5661,9 @@
             "time": "2020-07-08T17:02:28+00:00"
         }
     ],
-    "aliases": [
-        {
-            "alias": "3.3.0",
-            "alias_normalized": "3.3.0.0",
-            "version": "dev-feature/chunked-import",
-            "package": "factorio-item-browser/api-database"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "factorio-item-browser/api-database": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
