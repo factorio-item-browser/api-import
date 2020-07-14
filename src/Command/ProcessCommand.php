@@ -122,7 +122,6 @@ class ProcessCommand extends Command
         $this->runImportCommand(CommandName::IMPORT, $combination);
 
         $this->updateJobStatus($job, JobStatus::DONE);
-        $this->console->writeStep('Done.');
     }
 
     /**

@@ -367,10 +367,6 @@ class ProcessCommandTest extends TestCase
         $job3 = $this->createMock(Job::class);
         $combination = $this->createMock(Combination::class);
 
-        $this->console->expects($this->once())
-                      ->method('writeStep')
-                      ->with($this->identicalTo('Done.'));
-
         $command = $this->getMockBuilder(ProcessCommand::class)
                         ->onlyMethods(['updateJobStatus', 'fetchCombination', 'runImportCommand'])
                         ->setConstructorArgs([
