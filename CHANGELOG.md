@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 - 2020-07-14
+
+### Changed
+
+- Importers to process the data in chunks to avoid running out of memory.
+
 ## 1.0.3 - 2020-06-03
 
 ### Changed
