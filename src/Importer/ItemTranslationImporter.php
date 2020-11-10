@@ -79,7 +79,7 @@ class ItemTranslationImporter extends AbstractTranslationImporter
             }
         }
     }
-    
+
     protected function findMachine(ExportData $exportData, string $name): ?Machine
     {
         foreach ($exportData->getCombination()->getMachines() as $machine) {
