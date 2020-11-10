@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import;
 
-use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
+use Doctrine\DBAL\Driver\PDO\MySql\Driver as PDOMySqlDriver;
 use PDO;
 
 return [
@@ -22,9 +22,9 @@ return [
                 'params' => [
                     'host'     => 'fib-ai-mysql', // Change to 'fib-as-mysql' to share with the local API server.
                     'port'     => '3306',
-                    'user'     => 'docker',
-                    'password' => 'docker',
-                    'dbname'   => 'docker',
+                    'user'     => 'api',
+                    'password' => 'api',
+                    'dbname'   => 'api',
                     'driverOptions' => [
                         PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
                     ],

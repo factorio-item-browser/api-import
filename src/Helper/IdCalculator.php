@@ -129,7 +129,7 @@ class IdCalculator
             $translation->getIsDuplicatedByRecipe(),
         ]);
     }
-    
+
     /**
      * Calculates the id for the specified data.
      * @param array<mixed> $data
