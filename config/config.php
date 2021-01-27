@@ -23,7 +23,7 @@ $aggregator = new ConfigAggregator([
     // Include cache configuration
     new ArrayProvider($cacheConfig),
 
-    \FactorioItemBrowser\ExportQueue\Client\ConfigProvider::class,
+    \FactorioItemBrowser\CombinationApi\Client\ConfigProvider::class,
     \FactorioItemBrowser\Api\Database\ConfigProvider::class,
     \FactorioItemBrowser\ExportData\ConfigProvider::class,
 
@@ -32,7 +32,7 @@ $aggregator = new ConfigAggregator([
     //   - `*.global.php`
     //   - `[FIB_ENV]/*.local.php`
     new PhpFileProvider(
-        realpath(__DIR__) . sprintf('/autoload/{*.global.php,%s/*.local.php}', getenv('FIB_ENV') ?: 'production')
+        realpath(__DIR__) . sprintf('/autoload/{*.global.php,%s/*.local.php}', getenv('FIB_ENV') ?? 'production'),
     ),
 ], $cacheConfig['config_cache_path']);
 

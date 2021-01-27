@@ -14,13 +14,14 @@ use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\Api\Import\Exception\CommandFailureException;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
-use FactorioItemBrowser\ExportQueue\Client\Client\Facade;
-use FactorioItemBrowser\ExportQueue\Client\Constant\JobStatus;
-use FactorioItemBrowser\ExportQueue\Client\Constant\ListOrder;
-use FactorioItemBrowser\ExportQueue\Client\Entity\Job;
-use FactorioItemBrowser\ExportQueue\Client\Exception\ClientException;
-use FactorioItemBrowser\ExportQueue\Client\Request\Job\ListRequest;
-use FactorioItemBrowser\ExportQueue\Client\Request\Job\UpdateRequest;
+use FactorioItemBrowser\CombinationApi\Client\ClientInterface;
+use FactorioItemBrowser\CombinationApi\Client\Constant\JobStatus;
+use FactorioItemBrowser\CombinationApi\Client\Constant\ListOrder;
+use FactorioItemBrowser\CombinationApi\Client\Exception\ClientException;
+use FactorioItemBrowser\CombinationApi\Client\Request\Job\ListRequest;
+use FactorioItemBrowser\CombinationApi\Client\Request\Job\UpdateRequest;
+use FactorioItemBrowser\CombinationApi\Client\Response\Job\ListResponse;
+use FactorioItemBrowser\CombinationApi\Client\Transfer\Job;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,23 +36,23 @@ use Symfony\Component\Process\Process;
  */
 class ProcessCommand extends Command
 {
-    protected Console $console;
+    protected ClientInterface $combinationApiClient;
     protected CombinationRepository $combinationRepository;
+    protected Console $console;
     protected EntityManagerInterface $entityManager;
-    protected Facade $exportQueueFacade;
 
     public function __construct(
+        ClientInterface $combinationApiClient,
         CombinationRepository $combinationRepository,
         Console $console,
-        EntityManagerInterface $entityManager,
-        Facade $exportQueueFacade
+        EntityManagerInterface $entityManager
     ) {
         parent::__construct();
 
+        $this->combinationApiClient = $combinationApiClient;
         $this->combinationRepository = $combinationRepository;
         $this->console = $console;
         $this->entityManager = $entityManager;
-        $this->exportQueueFacade = $exportQueueFacade;
     }
 
     protected function configure(): void
@@ -100,12 +101,13 @@ class ProcessCommand extends Command
     protected function fetchNextJob(): ?Job
     {
         $request = new ListRequest();
-        $request->setStatus(JobStatus::UPLOADED)
-                ->setOrder(ListOrder::PRIORITY)
-                ->setLimit(1);
+        $request->status = JobStatus::UPLOADED;
+        $request->order = ListOrder::PRIORITY;
+        $request->limit = 1;
 
-        $response = $this->exportQueueFacade->getJobList($request);
-        return $response->getJobs()[0] ?? null;
+        /** @var ListResponse $response */
+        $response = $this->combinationApiClient->sendRequest($request)->wait();
+        return $response->jobs[0] ?? null;
     }
 
     /**
@@ -135,11 +137,11 @@ class ProcessCommand extends Command
     protected function updateJobStatus(Job $job, string $status, string $errorMessage = ''): Job
     {
         $request = new UpdateRequest();
-        $request->setJobId($job->getId())
-                ->setStatus($status)
-                ->setErrorMessage($errorMessage);
+        $request->id = $job->id;
+        $request->status = $status;
+        $request->errorMessage = $errorMessage;
 
-        return $this->exportQueueFacade->updateJob($request);
+        return $this->combinationApiClient->sendRequest($request)->wait();
     }
 
     /**
@@ -150,7 +152,7 @@ class ProcessCommand extends Command
      */
     protected function fetchCombination(Job $job): Combination
     {
-        $combinationId = Uuid::fromString($job->getCombinationId());
+        $combinationId = Uuid::fromString($job->combinationId);
         $combination = $this->combinationRepository->findById($combinationId);
         if ($combination !== null) {
             return $combination;
