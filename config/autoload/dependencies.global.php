@@ -44,12 +44,12 @@ return [
             Importer\RecipeTranslationImporter::class => AutoWireFactory::class,
 
             // Auto-wire helpers
-            'array $importers' => injectAliasArray(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORTERS),
+            'array $importers' => injectAliasArray(ConfigKey::MAIN, ConfigKey::IMPORTERS),
 
             'bool $isDebug' => readConfig('debug'),
 
-            'int $importChunkSize' => readConfig(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORT_CHUNK_SIZE),
-            'int $numberOfParallelProcesses' => readConfig(ConfigKey::PROJECT, ConfigKey::API_IMPORT, ConfigKey::IMPORT_PARALLEL_PROCESSES),
+            'int $importChunkSize' => readConfig(ConfigKey::MAIN, ConfigKey::IMPORT_CHUNK_SIZE),
+            'int $numberOfParallelProcesses' => readConfig(ConfigKey::MAIN, ConfigKey::IMPORT_PARALLEL_PROCESSES),
         ],
     ],
 ];

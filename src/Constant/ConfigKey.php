@@ -13,14 +13,9 @@ namespace FactorioItemBrowser\Api\Import\Constant;
 interface ConfigKey
 {
     /**
-     * The key holding the name of the project.
+     * The main key for the config.
      */
-    public const PROJECT = 'factorio-item-browser';
-
-    /**
-     * The key holding the name of the API server itself.
-     */
-    public const API_IMPORT = 'api-import';
+    public const MAIN = 'api-import';
 
     /**
      * The chunk size to use for the imports.

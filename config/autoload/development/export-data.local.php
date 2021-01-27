@@ -14,9 +14,7 @@ namespace FactorioItemBrowser\Api\Import;
 use FactorioItemBrowser\ExportData\Constant\ConfigKey;
 
 return [
-    ConfigKey::PROJECT => [
-        ConfigKey::EXPORT_DATA => [
-            ConfigKey::WORKING_DIRECTORY => __DIR__ . '/../../../data/temp',
-        ],
+    ConfigKey::MAIN => [
+        ConfigKey::WORKING_DIRECTORY => __DIR__ . '/../../../data/temp',
     ],
 ];

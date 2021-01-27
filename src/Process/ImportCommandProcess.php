@@ -20,9 +20,9 @@ class ImportCommandProcess extends Process
     /**
      * @param string $commandName
      * @param Combination $combination
-     * @param array<string> $additionalAgruments
+     * @param array<string> $additionalArguments
      */
-    public function __construct(string $commandName, Combination $combination, array $additionalAgruments = [])
+    public function __construct(string $commandName, Combination $combination, array $additionalArguments = [])
     {
         $this->combination = $combination;
 
@@ -31,7 +31,7 @@ class ImportCommandProcess extends Process
             $_SERVER['SCRIPT_FILENAME'],
             $commandName,
             $combination->getId()->toString(),
-            ...$additionalAgruments,
+            ...$additionalArguments,
         ]);
 
         $this->setTimeout(null);
