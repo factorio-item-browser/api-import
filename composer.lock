@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "024de2e7e7c703a18d961510678d0f17",
+    "content-hash": "c8a4863a110006a5fce129191fc22e0f",
     "packages": [
         {
             "name": "bluepsyduck/jms-serializer-factory",
@@ -1691,34 +1691,34 @@
         },
         {
             "name": "factorio-item-browser/export-data",
-            "version": "3.0.0",
+            "version": "dev-feature/chunked-data",
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/export-data.git",
-                "reference": "3e0ab417fe48835439a203713ebaa30fd74e61e9"
+                "reference": "40187d8fd86f96ef147a4d05f819fccba863705b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/export-data/zipball/3e0ab417fe48835439a203713ebaa30fd74e61e9",
-                "reference": "3e0ab417fe48835439a203713ebaa30fd74e61e9",
+                "url": "https://api.github.com/repos/factorio-item-browser/export-data/zipball/40187d8fd86f96ef147a4d05f819fccba863705b",
+                "reference": "40187d8fd86f96ef147a4d05f819fccba863705b",
                 "shasum": ""
             },
             "require": {
                 "bluepsyduck/laminas-autowire-factory": "^1.0",
                 "ext-json": "*",
+                "ext-mbstring": "*",
                 "ext-zip": "*",
                 "jms/serializer": "^3.2",
                 "laminas/laminas-servicemanager": "^3.0",
-                "php": "^7.3",
+                "php": "^7.4",
                 "symfony/yaml": "^4.0 | ^5.0"
             },
             "require-dev": {
                 "bluepsyduck/test-helper": "^1.0",
-                "mikey179/vfsstream": "^1.6",
                 "phpstan/phpstan": "^0.12",
                 "phpstan/phpstan-phpunit": "^0.12",
                 "phpstan/phpstan-strict-rules": "^0.12",
-                "phpunit/phpunit": "^8.3",
+                "phpunit/phpunit": "^9.0",
                 "rregeer/phpunit-coverage-check": "^0.3",
                 "squizlabs/php_codesniffer": "^3.4"
             },
@@ -1747,10 +1747,9 @@
                 "export"
             ],
             "support": {
-                "issues": "https://github.com/factorio-item-browser/export-data/issues",
-                "source": "https://github.com/factorio-item-browser/export-data/tree/master"
+                "source": "https://github.com/factorio-item-browser/export-data/tree/feature/chunked-data"
             },
-            "time": "2020-04-15T18:46:51+00:00"
+            "time": "2020-11-20T11:15:52+00:00"
         },
         {
             "name": "friendsofphp/proxy-manager-lts",
@@ -6358,7 +6357,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "factorio-item-browser/combination-api-client": 20
+        "factorio-item-browser/combination-api-client": 20,
+        "factorio-item-browser/export-data": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

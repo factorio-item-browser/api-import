@@ -13,6 +13,7 @@ use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Helper\DataCollector;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
+use FactorioItemBrowser\ExportData\Entity\Machine;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
@@ -57,8 +58,9 @@ class MachineImporter extends AbstractEntityImporter
 
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        foreach ($exportData->getCombination()->getMachines() as $machine) {
-            foreach ($machine->getCraftingCategories() as $craftingCategory) {
+        foreach ($exportData->getMachines() as $machine) {
+            /* @var Machine $machine */
+            foreach ($machine->craftingCategories as $craftingCategory) {
                 $this->dataCollector->addCraftingCategoryName($craftingCategory);
             }
 
@@ -74,16 +76,16 @@ class MachineImporter extends AbstractEntityImporter
     protected function createDatabaseEntity($exportMachine): DatabaseMachine
     {
         $databaseMachine = new DatabaseMachine();
-        $databaseMachine->setName($exportMachine->getName())
-                        ->setCraftingSpeed($exportMachine->getCraftingSpeed())
-                        ->setNumberOfItemSlots($exportMachine->getNumberOfItemSlots())
-                        ->setNumberOfFluidInputSlots($exportMachine->getNumberOfFluidInputSlots())
-                        ->setNumberOfFluidOutputSlots($exportMachine->getNumberOfFluidOutputSlots())
-                        ->setNumberOfModuleSlots($exportMachine->getNumberOfModuleSlots())
-                        ->setEnergyUsage($exportMachine->getEnergyUsage())
-                        ->setEnergyUsageUnit($exportMachine->getEnergyUsageUnit());
+        $databaseMachine->setName($exportMachine->name)
+                        ->setCraftingSpeed($exportMachine->craftingSpeed)
+                        ->setNumberOfItemSlots($exportMachine->numberOfItemSlots)
+                        ->setNumberOfFluidInputSlots($exportMachine->numberOfFluidInputSlots)
+                        ->setNumberOfFluidOutputSlots($exportMachine->numberOfFluidOutputSlots)
+                        ->setNumberOfModuleSlots($exportMachine->numberOfModuleSlots)
+                        ->setEnergyUsage($exportMachine->energyUsage)
+                        ->setEnergyUsageUnit($exportMachine->energyUsageUnit);
 
-        foreach ($exportMachine->getCraftingCategories() as $craftingCategory) {
+        foreach ($exportMachine->craftingCategories as $craftingCategory) {
             $databaseMachine->getCraftingCategories()->add(
                 $this->dataCollector->getCraftingCategory($craftingCategory),
             );

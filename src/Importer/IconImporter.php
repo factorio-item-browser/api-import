@@ -13,6 +13,10 @@ use FactorioItemBrowser\Api\Import\Helper\DataCollector;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\Common\Constant\RecipeMode;
+use FactorioItemBrowser\ExportData\Entity\Item;
+use FactorioItemBrowser\ExportData\Entity\Machine;
+use FactorioItemBrowser\ExportData\Entity\Mod;
+use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
 
@@ -50,31 +54,35 @@ class IconImporter extends AbstractImporter
 
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        foreach ($exportData->getCombination()->getMods() as $mod) {
-            if ($mod->getThumbnailId() !== '') {
-                $this->dataCollector->addIconImageId($mod->getThumbnailId());
-                yield [EntityType::MOD, $mod->getName(), $mod->getThumbnailId()];
+        foreach ($exportData->getMods() as $mod) {
+            /* @var Mod $mod */
+            if ($mod->thumbnailId !== '') {
+                $this->dataCollector->addIconImageId($mod->thumbnailId);
+                yield [EntityType::MOD, $mod->name, $mod->thumbnailId];
             }
         }
 
-        foreach ($exportData->getCombination()->getItems() as $item) {
-            if ($item->getIconId() !== '') {
-                $this->dataCollector->addIconImageId($item->getIconId());
-                yield [$item->getType(), $item->getName(), $item->getIconId()];
+        foreach ($exportData->getItems() as $item) {
+            /* @var Item $item */
+            if ($item->iconId !== '') {
+                $this->dataCollector->addIconImageId($item->iconId);
+                yield [$item->type, $item->name, $item->iconId];
             }
         }
 
-        foreach ($exportData->getCombination()->getMachines() as $machine) {
-            if ($machine->getIconId() !== '') {
-                $this->dataCollector->addIconImageId($machine->getIconId());
-                yield [EntityType::MACHINE, $machine->getName(), $machine->getIconId()];
+        foreach ($exportData->getMachines() as $machine) {
+            /* @var Machine $machine */
+            if ($machine->iconId !== '') {
+                $this->dataCollector->addIconImageId($machine->iconId);
+                yield [EntityType::MACHINE, $machine->name, $machine->iconId];
             }
         }
 
-        foreach ($exportData->getCombination()->getRecipes() as $recipe) {
-            if ($recipe->getMode() === RecipeMode::NORMAL && $recipe->getIconId() !== '') {
-                $this->dataCollector->addIconImageId($recipe->getIconId());
-                yield [EntityType::RECIPE, $recipe->getName(), $recipe->getIconId()];
+        foreach ($exportData->getRecipes() as $recipe) {
+            /* @var Recipe $recipe */
+            if ($recipe->mode === RecipeMode::NORMAL && $recipe->iconId !== '') {
+                $this->dataCollector->addIconImageId($recipe->iconId);
+                yield [EntityType::RECIPE, $recipe->name, $recipe->iconId];
             }
         }
     }

@@ -18,12 +18,11 @@ use FactorioItemBrowser\Api\Import\Helper\DataCollector;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\RecipeImporter;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Ingredient as ExportIngredient;
 use FactorioItemBrowser\ExportData\Entity\Recipe\Product as ExportProduct;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\UuidInterface;
@@ -34,49 +33,25 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\RecipeImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\RecipeImporter
  */
 class RecipeImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked data collector.
-     * @var DataCollector&MockObject
-     */
-    protected $dataCollector;
+    /** @var DataCollector&MockObject */
+    private DataCollector $dataCollector;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IdCalculator&MockObject */
+    private IdCalculator $idCalculator;
+    /** @var RecipeRepository&MockObject */
+    private RecipeRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
-
-    /**
-     * The mocked id calculator.
-     * @var IdCalculator&MockObject
-     */
-    protected $idCalculator;
-
-    /**
-     * The mocked repository.
-     * @var RecipeRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->dataCollector = $this->createMock(DataCollector::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
@@ -85,29 +60,26 @@ class RecipeImporterTest extends TestCase
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return RecipeImporter&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): RecipeImporter
     {
-        $importer = new RecipeImporter(
-            $this->dataCollector,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-
-        $this->assertSame($this->dataCollector, $this->extractProperty($importer, 'dataCollector'));
-        $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
-        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
+        return $this->getMockBuilder(RecipeImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->dataCollector,
+                        $this->entityManager,
+                        $this->idCalculator,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the getCollectionFromCombination method.
      * @throws ReflectionException
-     * @covers ::getCollectionFromCombination
      */
     public function testGetCollectionFromCombination(): void
     {
@@ -118,22 +90,14 @@ class RecipeImporterTest extends TestCase
                     ->method('getRecipes')
                     ->willReturn($recipes);
 
-        $importer = new RecipeImporter(
-            $this->dataCollector,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'getCollectionFromCombination', $combination);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getCollectionFromCombination', $combination);
 
         $this->assertSame($recipes, $result);
     }
 
     /**
-     * Tests the prepareImport method.
      * @throws ReflectionException
-     * @covers ::prepareImport
      */
     public function testPrepareImport(): void
     {
@@ -146,55 +110,44 @@ class RecipeImporterTest extends TestCase
                             ->method('setCombination')
                             ->with($this->identicalTo($combination));
 
-        $importer = new RecipeImporter(
-            $this->dataCollector,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $this->invokeMethod($importer, 'prepareImport', $combination, $exportData, $offset, $limit);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'prepareImport', $combination, $exportData, $offset, $limit);
     }
 
     /**
-     * Tests the getExportEntities method.
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
         $ingredient1 = new ExportIngredient();
-        $ingredient1->setType('ghi')
-                    ->setName('jkl');
+        $ingredient1->type = 'ghi';
+        $ingredient1->name = 'jkl';
         $ingredient2 = new ExportIngredient();
-        $ingredient2->setType('mno')
-                    ->setName('pqr');
+        $ingredient2->type = 'mno';
+        $ingredient2->name = 'pqr';
         $product1 = new ExportProduct();
-        $product1->setType('stu')
-                 ->setName('vwx');
+        $product1->type = 'stu';
+        $product1->name = 'vwx';
         $product2 = new ExportProduct();
-        $product2->setType('yza')
-                 ->setName('bcd');
+        $product2->type = 'yza';
+        $product2->name = 'bcd';
 
         $recipe1 = new ExportRecipe();
-        $recipe1->setCraftingCategory('abc')
-                ->addIngredient($ingredient1)
-                ->addIngredient($ingredient2)
-                ->addProduct($product1);
-
+        $recipe1->craftingCategory = 'abc';
+        $recipe1->ingredients = [$ingredient1, $ingredient2];
+        $recipe1->products = [$product1];
         $recipe2 = new ExportRecipe();
-        $recipe2->setCraftingCategory('def')
-                ->addProduct($product2);
-
+        $recipe2->craftingCategory = 'def';
+        $recipe2->products = [$product2];
         $recipe3 = new ExportRecipe();
-        $recipe3->setCraftingCategory('abc')
-                ->addIngredient($ingredient1)
-                ->addProduct($product1);
+        $recipe3->craftingCategory = 'abc';
+        $recipe3->ingredients = [$ingredient1];
+        $recipe3->products = [$product1];
 
-        $combination = new ExportCombination();
-        $combination->setRecipes([$recipe1, $recipe2, $recipe3]);
-
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getRecipes()->add($recipe1)
+                                 ->add($recipe2)
+                                 ->add($recipe3);
 
         $this->dataCollector->expects($this->exactly(3))
                             ->method('addCraftingCategoryName')
@@ -214,22 +167,14 @@ class RecipeImporterTest extends TestCase
                                 [$this->identicalTo('stu'), $this->identicalTo('vwx')],
                             );
 
-        $importer = new RecipeImporter(
-            $this->dataCollector,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getExportEntities', $exportData);
 
         $this->assertEquals([$recipe1, $recipe2, $recipe3], iterator_to_array($result));
     }
 
     /**
-     * Tests the createDatabaseEntity method.
      * @throws ReflectionException
-     * @covers ::createDatabaseEntity
      */
     public function testCreateDatabaseEntity(): void
     {
@@ -237,10 +182,10 @@ class RecipeImporterTest extends TestCase
         $craftingCategory = $this->createMock(CraftingCategory::class);
 
         $exportRecipe = new ExportRecipe();
-        $exportRecipe->setName('abc')
-                     ->setMode('def')
-                     ->setCraftingCategory('ghi')
-                     ->setCraftingTime(13.37);
+        $exportRecipe->name = 'abc';
+        $exportRecipe->mode = 'def';
+        $exportRecipe->craftingCategory = 'ghi';
+        $exportRecipe->craftingTime = 13.37;
 
         $expectedDatabaseRecipe = new DatabaseRecipe();
         $expectedDatabaseRecipe->setName('abc')
@@ -269,33 +214,21 @@ class RecipeImporterTest extends TestCase
                         ->method('validateRecipe')
                         ->with($this->equalTo($expectedDatabaseRecipe));
 
-        /* @var RecipeImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(RecipeImporter::class)
-                         ->onlyMethods(['mapIngredients', 'mapProducts'])
-                         ->setConstructorArgs([
-                             $this->dataCollector,
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['mapIngredients', 'mapProducts']);
+        $instance->expects($this->once())
                  ->method('mapIngredients')
                  ->with($this->identicalTo($exportRecipe), $this->equalTo($expectedDatabaseRecipe));
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('mapProducts')
                  ->with($this->identicalTo($exportRecipe), $this->equalTo($expectedDatabaseRecipe));
 
-        $result = $this->invokeMethod($importer, 'createDatabaseEntity', $exportRecipe);
+        $result = $this->invokeMethod($instance, 'createDatabaseEntity', $exportRecipe);
 
         $this->assertEquals($expectedResult, $result);
     }
-    
+
     /**
-     * Tests the mapIngredients method.
      * @throws ReflectionException
-     * @covers ::mapIngredients
      */
     public function testMapIngredients(): void
     {
@@ -303,7 +236,7 @@ class RecipeImporterTest extends TestCase
         $exportIngredient2 = $this->createMock(ExportIngredient::class);
 
         $exportRecipe = new ExportRecipe();
-        $exportRecipe->setIngredients([$exportIngredient1, $exportIngredient2]);
+        $exportRecipe->ingredients = [$exportIngredient1, $exportIngredient2];
 
         $databaseRecipe = $this->createMock(DatabaseRecipe::class);
 
@@ -339,17 +272,8 @@ class RecipeImporterTest extends TestCase
                        ->method('getIngredients')
                        ->willReturn($ingredientCollection);
 
-        $importer = $this->getMockBuilder(RecipeImporter::class)
-                         ->onlyMethods(['mapIngredient'])
-                         ->setConstructorArgs([
-                             $this->dataCollector,
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->exactly(2))
+        $instance = $this->createInstance(['mapIngredient']);
+        $instance->expects($this->exactly(2))
                  ->method('mapIngredient')
                  ->withConsecutive(
                      [$this->identicalTo($exportIngredient1)],
@@ -360,22 +284,20 @@ class RecipeImporterTest extends TestCase
                      $databaseIngredient2
                  );
 
-        $this->invokeMethod($importer, 'mapIngredients', $exportRecipe, $databaseRecipe);
+        $this->invokeMethod($instance, 'mapIngredients', $exportRecipe, $databaseRecipe);
     }
 
     /**
-     * Tests the mapIngredient method.
      * @throws ReflectionException
-     * @covers ::mapIngredient
      */
     public function testMapIngredient(): void
     {
         $item = $this->createMock(Item::class);
 
         $exportIngredient = new ExportIngredient();
-        $exportIngredient->setType('abc')
-                         ->setName('def')
-                         ->setAmount(13.37);
+        $exportIngredient->type = 'abc';
+        $exportIngredient->name = 'def';
+        $exportIngredient->amount = 13.37;
 
         $expectedResult = new DatabaseIngredient();
         $expectedResult->setItem($item)
@@ -386,22 +308,14 @@ class RecipeImporterTest extends TestCase
                             ->with($this->identicalTo('abc'), $this->identicalTo('def'))
                             ->willReturn($item);
 
-        $importer = new RecipeImporter(
-            $this->dataCollector,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'mapIngredient', $exportIngredient);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'mapIngredient', $exportIngredient);
 
         $this->assertEquals($expectedResult, $result);
     }
-    
+
     /**
-     * Tests the mapProducts method.
      * @throws ReflectionException
-     * @covers ::mapProducts
      */
     public function testMapProducts(): void
     {
@@ -409,7 +323,7 @@ class RecipeImporterTest extends TestCase
         $exportProduct2 = $this->createMock(ExportProduct::class);
 
         $exportRecipe = new ExportRecipe();
-        $exportRecipe->setProducts([$exportProduct1, $exportProduct2]);
+        $exportRecipe->products = [$exportProduct1, $exportProduct2];
 
         $databaseRecipe = $this->createMock(DatabaseRecipe::class);
 
@@ -445,17 +359,8 @@ class RecipeImporterTest extends TestCase
                        ->method('getProducts')
                        ->willReturn($productCollection);
 
-        $importer = $this->getMockBuilder(RecipeImporter::class)
-                         ->onlyMethods(['mapProduct'])
-                         ->setConstructorArgs([
-                             $this->dataCollector,
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->exactly(2))
+        $instance = $this->createInstance(['mapProduct']);
+        $instance->expects($this->exactly(2))
                  ->method('mapProduct')
                  ->withConsecutive(
                      [$this->identicalTo($exportProduct1)],
@@ -466,24 +371,22 @@ class RecipeImporterTest extends TestCase
                      $databaseProduct2
                  );
 
-        $this->invokeMethod($importer, 'mapProducts', $exportRecipe, $databaseRecipe);
+        $this->invokeMethod($instance, 'mapProducts', $exportRecipe, $databaseRecipe);
     }
-    
+
     /**
-     * Tests the mapProduct method.
      * @throws ReflectionException
-     * @covers ::mapProduct
      */
     public function testMapProduct(): void
     {
         $item = $this->createMock(Item::class);
 
         $exportProduct = new ExportProduct();
-        $exportProduct->setType('abc')
-                      ->setName('def')
-                      ->setAmountMin(12.34)
-                      ->setAmountMax(34.56)
-                      ->setProbability(56.78);
+        $exportProduct->type = 'abc';
+        $exportProduct->name = 'def';
+        $exportProduct->amountMin = 12.34;
+        $exportProduct->amountMax = 34.56;
+        $exportProduct->probability = 56.78;
 
         $expectedResult = new DatabaseProduct();
         $expectedResult->setItem($item)
@@ -496,14 +399,8 @@ class RecipeImporterTest extends TestCase
                             ->with($this->identicalTo('abc'), $this->identicalTo('def'))
                             ->willReturn($item);
 
-        $importer = new RecipeImporter(
-            $this->dataCollector,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'mapProduct', $exportProduct);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'mapProduct', $exportProduct);
 
         $this->assertEquals($expectedResult, $result);
     }

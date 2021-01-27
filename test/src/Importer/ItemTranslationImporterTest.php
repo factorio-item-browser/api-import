@@ -12,12 +12,11 @@ use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\ItemTranslationImporter;
 use FactorioItemBrowser\Common\Constant\RecipeMode;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Item as ExportItem;
 use FactorioItemBrowser\ExportData\Entity\Machine;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -27,43 +26,23 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\ItemTranslationImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\ItemTranslationImporter
  */
 class ItemTranslationImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IdCalculator&MockObject */
+    private IdCalculator $idCalculator;
+    /** @var TranslationRepository&MockObject */
+    private TranslationRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked id calculator.
-     * @var IdCalculator&MockObject
-     */
-    protected $idCalculator;
-
-    /**
-     * The mocked repository.
-     * @var TranslationRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->repository = $this->createMock(TranslationRepository::class);
@@ -71,9 +50,25 @@ class ItemTranslationImporterTest extends TestCase
     }
 
     /**
-     * Tests the getExportEntities method.
+     * @param array<string> $mockedMethods
+     * @return ItemTranslationImporter&MockObject
+     */
+    private function createInstance(array $mockedMethods = []): ItemTranslationImporter
+    {
+        return $this->getMockBuilder(ItemTranslationImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->idCalculator,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
+    }
+
+    /**
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
@@ -81,160 +76,127 @@ class ItemTranslationImporterTest extends TestCase
         $item2 = $this->createMock(ExportItem::class);
         $item3 = $this->createMock(ExportItem::class);
 
-        $combination = new ExportCombination();
-        $combination->setItems([$item1, $item2, $item3]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getItems()->add($item1)
+                               ->add($item2)
+                               ->add($item3);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
-
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getExportEntities', $exportData);
 
         $this->assertEquals([$item1, $item2, $item3], iterator_to_array($result));
-    }  
-    
+    }
+
     /**
-     * Tests the createTranslationsForEntity method.
      * @throws ReflectionException
-     * @covers ::createTranslationsForEntity
      */
     public function testCreateTranslationsForEntity(): void
     {
         $exportData = $this->createMock(ExportData::class);
-        
+
         $item = new ExportItem();
-        $item->setType('abc')
-             ->setName('def');
+        $item->type = 'abc';
+        $item->name = 'def';
 
         $recipe = $this->createMock(Recipe::class);
         $machine = $this->createMock(Machine::class);
-        
+
         $translations = [
             $this->createMock(Translation::class),
             $this->createMock(Translation::class),
         ];
-        
-        /* @var ItemTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(ItemTranslationImporter::class)
-                         ->onlyMethods([
+
+        $instance = $this->createInstance([
                              'createTranslationsFromLocalisedStrings',
                              'findRecipe',
                              'checkRecipeDuplication',
                              'findMachine',
                              'checkMachineDuplication',
-                         ])
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->once())
+                         ]);
+        $instance->expects($this->once())
                  ->method('createTranslationsFromLocalisedStrings')
                  ->with(
                      $this->identicalTo('abc'),
                      $this->identicalTo('def'),
-                     $this->identicalTo($item->getLabels()),
-                     $this->identicalTo($item->getDescriptions()),
+                     $this->identicalTo($item->labels),
+                     $this->identicalTo($item->descriptions),
                  )
                  ->willReturn($translations);
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('findRecipe')
                  ->with($this->identicalTo($exportData), $this->identicalTo('def'))
                  ->willReturn($recipe);
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('checkRecipeDuplication')
                  ->with($this->identicalTo($translations), $this->identicalTo($recipe));
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('findMachine')
                  ->with($this->identicalTo($exportData), $this->identicalTo('def'))
                  ->willReturn($machine);
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('checkMachineDuplication')
                  ->with($this->identicalTo($translations), $this->identicalTo($machine));
 
-        $result = $this->invokeMethod($importer, 'createTranslationsForEntity', $exportData, $item);
+        $result = $this->invokeMethod($instance, 'createTranslationsForEntity', $exportData, $item);
 
         $this->assertSame($translations, $result);
     }
 
     /**
-     * Tests the findRecipe method.
      * @throws ReflectionException
-     * @covers ::findRecipe
      */
     public function testFindRecipe(): void
     {
         $name = 'def';
 
         $recipe1 = new Recipe();
-        $recipe1->setName('abc')
-                ->setMode(RecipeMode::NORMAL);
+        $recipe1->name = 'abc';
+        $recipe1->mode = RecipeMode::NORMAL;
 
         $recipe2 = new Recipe();
-        $recipe2->setName('def')
-                ->setMode(RecipeMode::EXPENSIVE);
+        $recipe2->name = 'def';
+        $recipe2->mode = RecipeMode::EXPENSIVE;
 
         $recipe3 = new Recipe();
-        $recipe3->setName('def')
-                ->setMode(RecipeMode::NORMAL);
+        $recipe3->name = 'def';
+        $recipe3->mode = RecipeMode::NORMAL;
 
-        $combination = new ExportCombination();
-        $combination->setRecipes([$recipe1, $recipe2, $recipe3]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getRecipes()->add($recipe1)
+                                 ->add($recipe2)
+                                 ->add($recipe3);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'findRecipe', $exportData, $name);
 
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'findRecipe', $exportData, $name);
-        
         $this->assertSame($recipe3, $result);
     }
-    
+
     /**
-     * Tests the findRecipe method.
      * @throws ReflectionException
-     * @covers ::findRecipe
      */
     public function testFindRecipeWithoutMatch(): void
     {
         $name = 'foo';
 
         $recipe1 = new Recipe();
-        $recipe1->setName('abc');
+        $recipe1->name = 'abc';
 
         $recipe2 = new Recipe();
-        $recipe2->setName('def');
+        $recipe2->name = 'def';
 
-        $combination = new ExportCombination();
-        $combination->setRecipes([$recipe1, $recipe2]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getRecipes()->add($recipe1)
+                                 ->add($recipe2);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'findRecipe', $exportData, $name);
 
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'findRecipe', $exportData, $name);
-        
         $this->assertNull($result);
     }
 
     /**
-     * Tests the checkRecipeDuplication method.
      * @throws ReflectionException
-     * @covers ::checkRecipeDuplication
      */
     public function testCheckRecipeDuplication(): void
     {
@@ -256,18 +218,13 @@ class ItemTranslationImporterTest extends TestCase
         $translations = [$translation1, $translation2, $translation3];
 
         $recipe = new Recipe();
-        $recipe->getLabels()->addTranslation('abc', 'def')
-                            ->addTranslation('jkl', 'mno');
-        $recipe->getDescriptions()->addTranslation('abc', 'ghi')
-                                  ->addTranslation('jkl', 'foo');
+        $recipe->labels->set('abc', 'def');
+        $recipe->labels->set('jkl', 'mno');
+        $recipe->descriptions->set('abc', 'ghi');
+        $recipe->descriptions->set('jkl', 'foo');
 
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $this->invokeMethod($importer, 'checkRecipeDuplication', $translations, $recipe);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'checkRecipeDuplication', $translations, $recipe);
 
         $this->assertTrue($translation1->getIsDuplicatedByRecipe());
         $this->assertFalse($translation2->getIsDuplicatedByRecipe());
@@ -275,9 +232,7 @@ class ItemTranslationImporterTest extends TestCase
     }
 
     /**
-     * Tests the checkRecipeDuplication method.
      * @throws ReflectionException
-     * @covers ::checkRecipeDuplication
      */
     public function testCheckRecipeDuplicationWithoutRecipe(): void
     {
@@ -298,13 +253,8 @@ class ItemTranslationImporterTest extends TestCase
 
         $translations = [$translation1, $translation2, $translation3];
 
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $this->invokeMethod($importer, 'checkRecipeDuplication', $translations, null);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'checkRecipeDuplication', $translations, null);
 
         $this->assertFalse($translation1->getIsDuplicatedByRecipe());
         $this->assertFalse($translation2->getIsDuplicatedByRecipe());
@@ -312,71 +262,53 @@ class ItemTranslationImporterTest extends TestCase
     }
 
     /**
-     * Tests the findMachine method.
      * @throws ReflectionException
-     * @covers ::findMachine
      */
     public function testFindMachine(): void
     {
         $name = 'def';
 
         $machine1 = new Machine();
-        $machine1->setName('abc');
+        $machine1->name = 'abc';
 
         $machine2 = new Machine();
-        $machine2->setName('def');
+        $machine2->name = 'def';
 
-        $combination = new ExportCombination();
-        $combination->setMachines([$machine1, $machine2]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getMachines()->add($machine1)
+                                  ->add($machine2);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'findMachine', $exportData, $name);
 
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'findMachine', $exportData, $name);
-        
         $this->assertSame($machine2, $result);
     }
-    
+
     /**
-     * Tests the findMachine method.
      * @throws ReflectionException
-     * @covers ::findMachine
      */
     public function testFindMachineWithoutMatch(): void
     {
         $name = 'foo';
 
         $machine1 = new Machine();
-        $machine1->setName('abc');
+        $machine1->name = 'abc';
 
         $machine2 = new Machine();
-        $machine2->setName('def');
+        $machine2->name = 'def';
 
-        $combination = new ExportCombination();
-        $combination->setMachines([$machine1, $machine2]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getMachines()->add($machine1)
+                                  ->add($machine2);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'findMachine', $exportData, $name);
 
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'findMachine', $exportData, $name);
-        
         $this->assertNull($result);
     }
 
     /**
-     * Tests the checkMachineDuplication method.
      * @throws ReflectionException
-     * @covers ::checkMachineDuplication
      */
     public function testCheckMachineDuplication(): void
     {
@@ -398,18 +330,13 @@ class ItemTranslationImporterTest extends TestCase
         $translations = [$translation1, $translation2, $translation3];
 
         $machine = new Machine();
-        $machine->getLabels()->addTranslation('abc', 'def')
-                             ->addTranslation('jkl', 'mno');
-        $machine->getDescriptions()->addTranslation('abc', 'ghi')
-                                   ->addTranslation('jkl', 'foo');
+        $machine->labels->set('abc', 'def');
+        $machine->labels->set('jkl', 'mno');
+        $machine->descriptions->set('abc', 'ghi');
+        $machine->descriptions->set('jkl', 'foo');
 
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $this->invokeMethod($importer, 'checkMachineDuplication', $translations, $machine);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'checkMachineDuplication', $translations, $machine);
 
         $this->assertTrue($translation1->getIsDuplicatedByMachine());
         $this->assertFalse($translation2->getIsDuplicatedByMachine());
@@ -417,9 +344,7 @@ class ItemTranslationImporterTest extends TestCase
     }
 
     /**
-     * Tests the checkMachineDuplication method.
      * @throws ReflectionException
-     * @covers ::checkMachineDuplication
      */
     public function testCheckMachineDuplicationWithoutMachine(): void
     {
@@ -440,13 +365,8 @@ class ItemTranslationImporterTest extends TestCase
 
         $translations = [$translation1, $translation2, $translation3];
 
-        $importer = new ItemTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $this->invokeMethod($importer, 'checkMachineDuplication', $translations, null);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'checkMachineDuplication', $translations, null);
 
         $this->assertFalse($translation1->getIsDuplicatedByMachine());
         $this->assertFalse($translation2->getIsDuplicatedByMachine());

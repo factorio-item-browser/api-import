@@ -20,7 +20,7 @@ return [
             'orm_default' => [
                 'driverClass' => PDOMySqlDriver::class,
                 'params' => [
-                    'host'     => 'fib-ai-mysql', // Change to 'fib-as-mysql' to share with the local API server.
+                    'host'     => 'fib-mysql',
                     'port'     => '3306',
                     'user'     => 'api',
                     'password' => 'api',

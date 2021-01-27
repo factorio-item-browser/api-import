@@ -24,55 +24,39 @@ use stdClass;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\AbstractEntityImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\AbstractEntityImporter
  */
 class AbstractEntityImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var AbstractIdRepository<stdClass>&MockObject */
+    private AbstractIdRepository $repository;
 
-    /**
-     * The mocked repository.
-     * @var AbstractIdRepository<stdClass>&MockObject
-     */
-    protected $repository;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->repository = $this->createMock(AbstractIdRepository::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return AbstractEntityImporter<mixed, EntityWithId>&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): AbstractEntityImporter
     {
-        /* @var AbstractEntityImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractEntityImporter::class)
-                         ->setConstructorArgs([$this->entityManager, $this->repository])
-                         ->getMockForAbstractClass();
-
-        $this->assertSame($this->entityManager, $this->extractProperty($importer, 'entityManager'));
-        $this->assertSame($this->repository, $this->extractProperty($importer, 'repository'));
+        return $this->getMockBuilder(AbstractEntityImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->repository,
+                    ])
+                    ->getMockForAbstractClass();
     }
 
-    /**
-     * Tests the prepare method.
-     * @covers ::prepare
-     */
     public function testPrepare(): void
     {
         $combination = $this->createMock(DatabaseCombination::class);
@@ -84,23 +68,15 @@ class AbstractEntityImporterTest extends TestCase
         $this->entityManager->expects($this->once())
                             ->method('flush');
 
-        /* @var AbstractEntityImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractEntityImporter::class)
-                         ->onlyMethods(['getCollectionFromCombination'])
-                         ->setConstructorArgs([$this->entityManager, $this->repository])
-                         ->getMockForAbstractClass();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['getCollectionFromCombination']);
+        $instance->expects($this->once())
                  ->method('getCollectionFromCombination')
                  ->with($this->identicalTo($combination))
                  ->willReturn($collection);
 
-        $importer->prepare($combination);
+        $instance->prepare($combination);
     }
 
-    /**
-     * Tests the import method.
-     * @covers ::import
-     */
     public function testImport(): void
     {
         $combination = $this->createMock(DatabaseCombination::class);
@@ -138,17 +114,13 @@ class AbstractEntityImporterTest extends TestCase
         $this->entityManager->expects($this->once())
                             ->method('flush');
 
-        /* @var AbstractEntityImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractEntityImporter::class)
-                         ->onlyMethods([
+        $instance = $this->createInstance([
                              'prepareImport',
                              'getDatabaseEntities',
                              'fetchExistingEntities',
                              'getCollectionFromCombination',
-                         ])
-                         ->setConstructorArgs([$this->entityManager, $this->repository])
-                         ->getMockForAbstractClass();
-        $importer->expects($this->once())
+                         ]);
+        $instance->expects($this->once())
                  ->method('prepareImport')
                  ->with(
                      $this->identicalTo($combination),
@@ -156,26 +128,24 @@ class AbstractEntityImporterTest extends TestCase
                      $this->identicalTo($offset),
                      $this->identicalTo($limit)
                  );
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('getDatabaseEntities')
                  ->with($exportData, $offset, $limit)
                  ->willReturn($databaseEntities);
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('fetchExistingEntities')
                  ->with($this->identicalTo($databaseEntities))
                  ->willReturn($fetchedEntities);
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('getCollectionFromCombination')
                  ->with($this->identicalTo($combination))
                  ->willReturn($collection);
 
-        $importer->import($combination, $exportData, $offset, $limit);
+        $instance->import($combination, $exportData, $offset, $limit);
     }
 
     /**
-     * Tests the prepareImport method.
      * @throws ReflectionException
-     * @covers ::prepareImport
      */
     public function testPrepareImport(): void
     {
@@ -184,20 +154,14 @@ class AbstractEntityImporterTest extends TestCase
         $offset = 1337;
         $limit = 42;
 
-        /* @var AbstractEntityImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractEntityImporter::class)
-                         ->setConstructorArgs([$this->entityManager, $this->repository])
-                         ->getMockForAbstractClass();
-
-        $this->invokeMethod($importer, 'prepareImport', $combination, $exportData, $offset, $limit);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'prepareImport', $combination, $exportData, $offset, $limit);
 
         $this->addToAssertionCount(1);
     }
 
     /**
-     * Tests the getDatabaseEntities method.
      * @throws ReflectionException
-     * @covers ::getDatabaseEntities
      */
     public function testGetDatabaseEntities(): void
     {
@@ -213,16 +177,12 @@ class AbstractEntityImporterTest extends TestCase
         $databaseEntity2 = $this->createMock(EntityWithId::class);
         $expectedResult = [$databaseEntity1, $databaseEntity2];
 
-        /* @var AbstractEntityImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractEntityImporter::class)
-                         ->onlyMethods(['getChunkedExportEntities', 'createDatabaseEntity'])
-                         ->setConstructorArgs([$this->entityManager, $this->repository])
-                         ->getMockForAbstractClass();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['getChunkedExportEntities', 'createDatabaseEntity']);
+        $instance->expects($this->once())
                  ->method('getChunkedExportEntities')
                  ->with($this->identicalTo($exportData), $this->identicalTo($offset), $this->identicalTo($limit))
                  ->willReturn($exportEntities);
-        $importer->expects($this->exactly(2))
+        $instance->expects($this->exactly(2))
                  ->method('createDatabaseEntity')
                  ->withConsecutive(
                      [$this->identicalTo($exportEntity1)],
@@ -233,15 +193,13 @@ class AbstractEntityImporterTest extends TestCase
                      $databaseEntity2,
                  );
 
-        $result = $this->invokeMethod($importer, 'getDatabaseEntities', $exportData, $offset, $limit);
+        $result = $this->invokeMethod($instance, 'getDatabaseEntities', $exportData, $offset, $limit);
 
         $this->assertEquals($expectedResult, $result);
     }
 
     /**
-     * Tests the fetchExistingEntities method.
      * @throws ReflectionException
-     * @covers ::fetchExistingEntities
      */
     public function testFetchExistingEntities(): void
     {
@@ -289,31 +247,19 @@ class AbstractEntityImporterTest extends TestCase
                          ->with($this->equalTo($expectedIds))
                          ->willReturn($existingEntities);
 
-        /* @var AbstractEntityImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractEntityImporter::class)
-                         ->setConstructorArgs([$this->entityManager, $this->repository])
-                         ->getMockForAbstractClass();
-
-        $result = $this->invokeMethod($importer, 'fetchExistingEntities', $entities);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'fetchExistingEntities', $entities);
 
         $this->assertEquals($expectedResult, $result);
     }
 
-    /**
-     * Tests the cleanup method.
-     * @covers ::cleanup
-     */
     public function testCleanup(): void
     {
-        $repository = $this->createMock(AbstractIdRepositoryWithOrphans::class);
-        $repository->expects($this->once())
-                   ->method('removeOrphans');
+        $this->repository = $this->createMock(AbstractIdRepositoryWithOrphans::class);
+        $this->repository->expects($this->once())
+                         ->method('removeOrphans');
 
-        /* @var AbstractEntityImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractEntityImporter::class)
-                         ->setConstructorArgs([$this->entityManager, $repository])
-                         ->getMockForAbstractClass();
-
-        $importer->cleanup();
+        $instance = $this->createInstance();
+        $instance->cleanup();
     }
 }

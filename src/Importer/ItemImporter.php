@@ -47,7 +47,7 @@ class ItemImporter extends AbstractEntityImporter
 
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        yield from $exportData->getCombination()->getItems();
+        yield from $exportData->getItems();
     }
 
     /**
@@ -57,8 +57,8 @@ class ItemImporter extends AbstractEntityImporter
     protected function createDatabaseEntity($entity): DatabaseItem
     {
         $databaseItem = new DatabaseItem();
-        $databaseItem->setType($entity->getType())
-                     ->setName($entity->getName());
+        $databaseItem->setType($entity->type)
+                     ->setName($entity->name);
 
         $this->validator->validateItem($databaseItem);
         $databaseItem->setId($this->idCalculator->calculateIdOfItem($databaseItem));

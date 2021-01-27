@@ -23,8 +23,9 @@ class RecipeTranslationImporter extends AbstractTranslationImporter
 {
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        foreach ($exportData->getCombination()->getRecipes() as $recipe) {
-            if ($recipe->getMode() === RecipeMode::NORMAL) {
+        foreach ($exportData->getRecipes() as $recipe) {
+            /* @var Recipe $recipe */
+            if ($recipe->mode === RecipeMode::NORMAL) {
                 yield $recipe;
             }
         }
@@ -33,20 +34,20 @@ class RecipeTranslationImporter extends AbstractTranslationImporter
     /**
      * @param ExportData $exportData
      * @param Recipe $recipe
-     * @return array<Translation>|Translation[]
+     * @return array<Translation>
      */
     protected function createTranslationsForEntity(ExportData $exportData, $recipe): array
     {
         $translations = $this->createTranslationsFromLocalisedStrings(
             EntityType::RECIPE,
-            $recipe->getName(),
-            $recipe->getLabels(),
-            $recipe->getDescriptions(),
+            $recipe->name,
+            $recipe->labels,
+            $recipe->descriptions,
         );
 
         $translations = $this->filterDuplicatesToItems($translations, array_values(array_filter([
-            $this->findItem($exportData, EntityType::ITEM, $recipe->getName()),
-            $this->findItem($exportData, EntityType::FLUID, $recipe->getName()),
+            $this->findItem($exportData, EntityType::ITEM, $recipe->name),
+            $this->findItem($exportData, EntityType::FLUID, $recipe->name),
         ])));
 
         return $translations;

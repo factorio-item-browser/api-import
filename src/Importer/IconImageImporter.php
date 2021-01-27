@@ -40,7 +40,7 @@ class IconImageImporter extends AbstractImporter
 
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        yield from $exportData->getCombination()->getIcons();
+        yield from $exportData->getIcons();
     }
 
     public function prepare(Combination $combination): void
@@ -59,16 +59,16 @@ class IconImageImporter extends AbstractImporter
     protected function createIconImage(ExportIcon $exportIcon, ExportData $exportData): IconImage
     {
         $iconImage = new IconImage();
-        $iconImage->setId(Uuid::fromString($exportIcon->getId()))
-                  ->setSize($exportIcon->getSize())
-                  ->setContents($exportData->getRenderedIcon($exportIcon));
+        $iconImage->setId(Uuid::fromString($exportIcon->id))
+                  ->setSize($exportIcon->size)
+                  ->setContents($exportData->getRenderedIcons()->get($exportIcon->id));
 
         $this->validator->validateIconImage($iconImage);
         return $iconImage;
     }
 
     /**
-     * @param array<IconImage>|IconImage[] $entities
+     * @param array<IconImage> $entities
      */
     protected function persistIconImages(array $entities): void
     {

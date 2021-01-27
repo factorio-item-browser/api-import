@@ -22,25 +22,25 @@ class MachineTranslationImporter extends AbstractTranslationImporter
 {
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        yield from $exportData->getCombination()->getMachines();
+        yield from $exportData->getMachines();
     }
 
     /**
      * @param ExportData $exportData
      * @param Machine $machine
-     * @return array<Translation>|Translation[]
+     * @return array<Translation>
      */
     protected function createTranslationsForEntity(ExportData $exportData, $machine): array
     {
         $translations = $this->createTranslationsFromLocalisedStrings(
             EntityType::MACHINE,
-            $machine->getName(),
-            $machine->getLabels(),
-            $machine->getDescriptions(),
+            $machine->name,
+            $machine->labels,
+            $machine->descriptions,
         );
 
         $translations = $this->filterDuplicatesToItems($translations, array_values(array_filter([
-            $this->findItem($exportData, EntityType::ITEM, $machine->getName()),
+            $this->findItem($exportData, EntityType::ITEM, $machine->name),
         ])));
 
         return $translations;

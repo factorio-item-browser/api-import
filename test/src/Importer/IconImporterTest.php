@@ -18,13 +18,12 @@ use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\IconImporter;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\Common\Constant\RecipeMode;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine;
 use FactorioItemBrowser\ExportData\Entity\Mod;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\UuidInterface;
@@ -35,43 +34,23 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\IconImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\IconImporter
  */
 class IconImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked data collector.
-     * @var DataCollector&MockObject
-     */
-    protected $dataCollector;
+    /** @var DataCollector&MockObject */
+    private DataCollector $dataCollector;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IconRepository&MockObject */
+    private IconRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
-
-    /**
-     * The mocked repository.
-     * @var IconRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->dataCollector = $this->createMock(DataCollector::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->repository = $this->createMock(IconRepository::class);
@@ -79,24 +58,23 @@ class IconImporterTest extends TestCase
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return IconImporter&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): IconImporter
     {
-        $importer = new IconImporter($this->dataCollector, $this->entityManager, $this->repository, $this->validator);
-
-        $this->assertSame($this->dataCollector, $this->extractProperty($importer, 'dataCollector'));
-        $this->assertSame($this->entityManager, $this->extractProperty($importer, 'entityManager'));
-        $this->assertSame($this->repository, $this->extractProperty($importer, 'repository'));
-        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
+        return $this->getMockBuilder(IconImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->dataCollector,
+                        $this->entityManager,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
     }
 
-    /**
-     * Tests the prepare method.
-     * @covers ::prepare
-     */
     public function testPrepare(): void
     {
         $combinationId = $this->createMock(UuidInterface::class);
@@ -108,72 +86,60 @@ class IconImporterTest extends TestCase
                          ->method('clearCombination')
                          ->with($this->identicalTo($combinationId));
 
-        $importer = new IconImporter($this->dataCollector, $this->entityManager, $this->repository, $this->validator);
-        $importer->prepare($combination);
+        $instance = $this->createInstance();
+        $instance->prepare($combination);
     }
 
     /**
-     * Tests the getExportEntities method.
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
         $mod1 = new Mod();
-        $mod1->setName('abc')
-             ->setThumbnailId('def');
-
+        $mod1->name = 'abc';
+        $mod1->thumbnailId = 'def';
         $mod2 = new Mod();
-        $mod2->setName('ghi');
-
+        $mod2->name = 'ghi';
         $mod3 = new Mod();
-        $mod3->setName('jkl')
-             ->setThumbnailId('mno');
+        $mod3->name = 'jkl';
+        $mod3->thumbnailId = 'mno';
 
         $item1 = new Item();
-        $item1->setType('pqr')
-              ->setName('stu')
-              ->setIconId('vwx');
-
+        $item1->type = 'pqr';
+        $item1->name = 'stu';
+        $item1->iconId = 'vwx';
         $item2 = new Item();
-        $item2->setType('yza')
-              ->setName('bcd');
-
+        $item2->type = 'yza';
+        $item2->name = 'bcd';
         $item3 = new Item();
-        $item3->setType('efg')
-              ->setName('hij')
-              ->setIconId('klm');
+        $item3->type = 'efg';
+        $item3->name = 'hij';
+        $item3->iconId = 'klm';
 
         $machine1 = new Machine();
-        $machine1->setName('nop')
-                 ->setIconId('qrs');
-
+        $machine1->name = 'nop';
+        $machine1->iconId = 'qrs';
         $machine2 = new Machine();
-        $machine2->setName('tuv');
-
+        $machine2->name = 'tuv';
         $machine3 = new Machine();
-        $machine3->setName('wxy')
-                 ->setIconId('zab');
+        $machine3->name = 'wxy';
+        $machine3->iconId = 'zab';
 
         $recipe1 = new Recipe();
-        $recipe1->setName('cde')
-                ->setMode(RecipeMode::NORMAL)
-                ->setIconId('fgh');
-
+        $recipe1->name = 'cde';
+        $recipe1->mode = RecipeMode::NORMAL;
+        $recipe1->iconId = 'fgh';
         $recipe2 = new Recipe();
-        $recipe2->setName('ijk')
-                ->setMode(RecipeMode::NORMAL);
-
+        $recipe2->name = 'ijk';
+        $recipe2->mode = RecipeMode::NORMAL;
         $recipe3 = new Recipe();
-        $recipe3->setName('lmn')
-                ->setMode(RecipeMode::NORMAL)
-                ->setIconId('opq');
-
+        $recipe3->name = 'lmn';
+        $recipe3->mode = RecipeMode::NORMAL;
+        $recipe3->iconId = 'opq';
         $recipe4 = new Recipe();
-        $recipe4->setName('rst')
-                ->setMode(RecipeMode::EXPENSIVE)
-                ->setIconId('uvw');
-
+        $recipe4->name = 'rst';
+        $recipe4->mode = RecipeMode::EXPENSIVE;
+        $recipe4->iconId = 'uvw';
 
         $expectedResult = [
             [EntityType::MOD, 'abc', 'def'],
@@ -186,24 +152,29 @@ class IconImporterTest extends TestCase
             [EntityType::RECIPE, 'lmn', 'opq'],
         ];
 
-        $combination = new ExportCombination();
-        $combination->setMods([$mod1, $mod2, $mod3])
-                    ->setItems([$item1, $item2, $item3])
-                    ->setMachines([$machine1, $machine2, $machine3])
-                    ->setRecipes([$recipe1, $recipe2, $recipe3, $recipe4]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getMods()->add($mod1)
+                              ->add($mod2)
+                              ->add($mod3);
+        $exportData->getItems()->add($item1)
+                               ->add($item2)
+                               ->add($item3);
+        $exportData->getMachines()->add($machine1)
+                                  ->add($machine2)
+                                  ->add($machine3);
+        $exportData->getRecipes()->add($recipe1)
+                                 ->add($recipe2)
+                                 ->add($recipe3)
+                                 ->add($recipe4);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
-
-        $importer = new IconImporter($this->dataCollector, $this->entityManager, $this->repository, $this->validator);
-        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getExportEntities', $exportData);
 
         $this->assertEquals($expectedResult, iterator_to_array($result));
     }
 
     /**
-     * Tests the import method.
      * @throws ImportException
-     * @covers ::import
      */
     public function testImport(): void
     {
@@ -239,20 +210,12 @@ class IconImporterTest extends TestCase
         $this->entityManager->expects($this->once())
                             ->method('flush');
 
-        $importer = $this->getMockBuilder(IconImporter::class)
-                         ->onlyMethods(['getChunkedExportEntities', 'createIcon'])
-                         ->setConstructorArgs([
-                             $this->dataCollector,
-                             $this->entityManager,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['getChunkedExportEntities', 'createIcon']);
+        $instance->expects($this->once())
                  ->method('getChunkedExportEntities')
                  ->with($this->identicalTo($exportData), $this->identicalTo($offset), $this->identicalTo($limit))
                  ->willReturn([$data1, $data2]);
-        $importer->expects($this->exactly(2))
+        $instance->expects($this->exactly(2))
                  ->method('createIcon')
                  ->withConsecutive(
                      [$this->identicalTo($data1), $this->identicalTo($combination)],
@@ -263,13 +226,11 @@ class IconImporterTest extends TestCase
                      $icon2,
                  );
 
-        $importer->import($combination, $exportData, $offset, $limit);
+        $instance->import($combination, $exportData, $offset, $limit);
     }
-    
+
     /**
-     * Tests the createIcon method.
      * @throws ReflectionException
-     * @covers ::createIcon
      */
     public function testCreateIcon(): void
     {
@@ -296,20 +257,16 @@ class IconImporterTest extends TestCase
                         ->method('validateIcon')
                         ->with($this->equalTo($expectedResult));
 
-        $importer = new IconImporter($this->dataCollector, $this->entityManager, $this->repository, $this->validator);
-        $result = $this->invokeMethod($importer, 'createIcon', $data, $combination);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'createIcon', $data, $combination);
 
         $this->assertEquals($expectedResult, $result);
     }
 
-    /**
-     * Tests the cleanup method.
-     * @covers ::cleanup
-     */
     public function testCleanup(): void
     {
-        $importer = new IconImporter($this->dataCollector, $this->entityManager, $this->repository, $this->validator);
-        $importer->cleanup();
+        $instance = $this->createInstance();
+        $instance->cleanup();
 
         $this->addToAssertionCount(1);
     }
