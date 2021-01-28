@@ -14,47 +14,25 @@ use Throwable;
  */
 class CommandFailureException extends ImportException
 {
-    /**
-     * The prefix of the actual error message.
-     */
-    protected const PREFIX = "\e[31;1m! ";
+    private const START_LINE = "\e[37;41;1m";
+    private const END_LINE = "\e[39;49;22m";
 
-    /**
-     * The suffix of the actual error message.
-     */
-    protected const SUFFIX = "\e[39;22m";
-
-    /**
-     * Initializes the exception.
-     * @param string $commandOutput
-     * @param Throwable|null $previous
-     */
     public function __construct(string $commandOutput, ?Throwable $previous = null)
     {
         parent::__construct($this->extractExceptionMessage($commandOutput), 0, $previous);
     }
 
-    /**
-     * Extracts the actual exception message from the command output.
-     * @param string $commandOutput
-     * @return string
-     */
     protected function extractExceptionMessage(string $commandOutput): string
     {
         $catchingMessage = false;
         $lines = [];
         foreach (explode(PHP_EOL, $commandOutput) as $line) {
-            if (substr($line, 0, strlen(self::PREFIX)) === self::PREFIX) {
-                $line = substr($line, strlen(self::PREFIX));
+            $line = trim($line);
+            if ($line === self::START_LINE) {
                 $catchingMessage = true;
-            }
-
-            if ($catchingMessage) {
-                if (substr($line, -strlen(self::SUFFIX)) === self::SUFFIX) {
-                    $line = substr($line, 0, -strlen(self::SUFFIX));
-                    $lines[] = $line;
-                    break;
-                }
+            } elseif ($line === self::END_LINE) {
+                break;
+            } elseif ($catchingMessage) {
                 $lines[] = $line;
             }
         }
