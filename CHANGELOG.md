@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 - 2021-02-18
+
+## Changed
+
+- Updated `factorio-item-browser/export-data` to its latest version.
+- Replaced deprecated Export-Queue with the new Combination API.
+
 ## 1.1.0 - 2020-07-14
 
 ### Changed
