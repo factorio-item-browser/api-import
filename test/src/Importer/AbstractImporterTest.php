@@ -17,16 +17,24 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\AbstractImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\AbstractImporter
  */
 class AbstractImporterTest extends TestCase
 {
     use ReflectionTrait;
 
     /**
-     * Tests the count method.
-     * @covers ::count
+     * @param array<string> $mockedMethods
+     * @return AbstractImporter<mixed>&MockObject
      */
+    private function createInstance(array $mockedMethods = []): AbstractImporter
+    {
+        return $this->getMockBuilder(AbstractImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->getMockForAbstractClass();
+    }
+
     public function testCount(): void
     {
         $entities = [
@@ -38,25 +46,20 @@ class AbstractImporterTest extends TestCase
 
         $exportData = $this->createMock(ExportData::class);
 
-        /* @var AbstractImporter<string>&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractImporter::class)
-                         ->onlyMethods(['getExportEntities'])
-                         ->getMockForAbstractClass();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['getExportEntities']);
+        $instance->expects($this->once())
                  ->method('getExportEntities')
-                 ->willReturnCallback(function() use ($entities): Generator {
+                 ->willReturnCallback(function () use ($entities): Generator {
                      yield from $entities;
                  });
 
-        $result = $importer->count($exportData);
+        $result = $instance->count($exportData);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the getChunkedExportEntities method.
      * @throws ReflectionException
-     * @covers ::getChunkedExportEntities
      */
     public function testGetChunkedExportEntities(): void
     {
@@ -76,17 +79,14 @@ class AbstractImporterTest extends TestCase
 
         $exportData = $this->createMock(ExportData::class);
 
-        /* @var AbstractImporter<string>&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractImporter::class)
-                         ->onlyMethods(['getExportEntities'])
-                         ->getMockForAbstractClass();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['getExportEntities']);
+        $instance->expects($this->once())
                  ->method('getExportEntities')
-                 ->willReturnCallback(function() use ($entities): Generator {
+                 ->willReturnCallback(function () use ($entities): Generator {
                      yield from $entities;
                  });
 
-        $result = $this->invokeMethod($importer, 'getChunkedExportEntities', $exportData, $offset, $limit);
+        $result = $this->invokeMethod($instance, 'getChunkedExportEntities', $exportData, $offset, $limit);
 
         $this->assertEquals($expectedResult, $result);
     }

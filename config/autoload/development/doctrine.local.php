@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * The configuration file for doctrine.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
+
+declare(strict_types=1);
 
 namespace FactorioItemBrowser\Api\Import;
 
@@ -20,7 +20,7 @@ return [
             'orm_default' => [
                 'driverClass' => PDOMySqlDriver::class,
                 'params' => [
-                    'host'     => 'fib-ai-mysql', // Change to 'fib-as-mysql' to share with the local API server.
+                    'host'     => 'fib-mysql',
                     'port'     => '3306',
                     'user'     => 'api',
                     'password' => 'api',

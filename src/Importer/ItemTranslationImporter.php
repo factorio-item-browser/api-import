@@ -24,33 +24,34 @@ class ItemTranslationImporter extends AbstractTranslationImporter
 {
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        yield from $exportData->getCombination()->getItems();
+        yield from $exportData->getItems();
     }
 
     /**
      * @param ExportData $exportData
      * @param Item $item
-     * @return array<Translation>|Translation[]
+     * @return array<Translation>
      */
     protected function createTranslationsForEntity(ExportData $exportData, $item): array
     {
         $translations = $this->createTranslationsFromLocalisedStrings(
-            $item->getType(),
-            $item->getName(),
-            $item->getLabels(),
-            $item->getDescriptions(),
+            $item->type,
+            $item->name,
+            $item->labels,
+            $item->descriptions,
         );
 
-        $this->checkRecipeDuplication($translations, $this->findRecipe($exportData, $item->getName()));
-        $this->checkMachineDuplication($translations, $this->findMachine($exportData, $item->getName()));
+        $this->checkRecipeDuplication($translations, $this->findRecipe($exportData, $item->name));
+        $this->checkMachineDuplication($translations, $this->findMachine($exportData, $item->name));
 
         return $translations;
     }
 
     protected function findRecipe(ExportData $exportData, string $name): ?Recipe
     {
-        foreach ($exportData->getCombination()->getRecipes() as $recipe) {
-            if ($recipe->getName() === $name && $recipe->getMode() === RecipeMode::NORMAL) {
+        foreach ($exportData->getRecipes() as $recipe) {
+            /* @var Recipe $recipe */
+            if ($recipe->name === $name && $recipe->mode === RecipeMode::NORMAL) {
                 return $recipe;
             }
         }
@@ -58,7 +59,7 @@ class ItemTranslationImporter extends AbstractTranslationImporter
     }
 
     /**
-     * @param array<Translation>|Translation[] $translations
+     * @param array<Translation> $translations
      * @param Recipe|null $recipe
      */
     protected function checkRecipeDuplication(array $translations, ?Recipe $recipe): void
@@ -68,8 +69,8 @@ class ItemTranslationImporter extends AbstractTranslationImporter
         }
 
         foreach ($translations as $translation) {
-            $label = $recipe->getLabels()->getTranslations()[$translation->getLocale()] ?? '';
-            $description = $recipe->getDescriptions()->getTranslations()[$translation->getLocale()] ?? '';
+            $label = $recipe->labels->get($translation->getLocale());
+            $description = $recipe->descriptions->get($translation->getLocale());
 
             if (
                 ($label === $translation->getValue())
@@ -82,8 +83,9 @@ class ItemTranslationImporter extends AbstractTranslationImporter
 
     protected function findMachine(ExportData $exportData, string $name): ?Machine
     {
-        foreach ($exportData->getCombination()->getMachines() as $machine) {
-            if ($machine->getName() === $name) {
+        foreach ($exportData->getMachines() as $machine) {
+            /* @var Machine $machine */
+            if ($machine->name === $name) {
                 return $machine;
             }
         }
@@ -91,7 +93,7 @@ class ItemTranslationImporter extends AbstractTranslationImporter
     }
 
     /**
-     * @param array<Translation>|Translation[] $translations
+     * @param array<Translation> $translations
      * @param Machine|null $machine
      */
     protected function checkMachineDuplication(array $translations, ?Machine $machine): void
@@ -101,9 +103,8 @@ class ItemTranslationImporter extends AbstractTranslationImporter
         }
 
         foreach ($translations as $translation) {
-            $locale = $translation->getLocale();
-            $label = $machine->getLabels()->getTranslations()[$locale] ?? '';
-            $description = $machine->getDescriptions()->getTranslations()[$locale] ?? '';
+            $label = $machine->labels->get($translation->getLocale());
+            $description = $machine->descriptions->get($translation->getLocale());
 
             if (
                 ($label === $translation->getValue())

@@ -13,10 +13,9 @@ use FactorioItemBrowser\Api\Database\Repository\ModRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\ModImporter;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Mod as ExportMod;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\UuidInterface;
@@ -27,43 +26,23 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\ModImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\ModImporter
  */
 class ModImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IdCalculator&MockObject */
+    private IdCalculator $idCalculator;
+    /** @var ModRepository&MockObject */
+    private ModRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked id calculator.
-     * @var IdCalculator&MockObject
-     */
-    protected $idCalculator;
-
-    /**
-     * The mocked repository.
-     * @var ModRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->repository = $this->createMock(ModRepository::class);
@@ -71,22 +50,25 @@ class ModImporterTest extends TestCase
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return ModImporter&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): ModImporter
     {
-        $importer = new ModImporter($this->entityManager, $this->idCalculator, $this->repository, $this->validator);
-
-        $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
-        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
+        return $this->getMockBuilder(ModImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->idCalculator,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the getCollectionFromCombination method.
      * @throws ReflectionException
-     * @covers ::getCollectionFromCombination
      */
     public function testGetCollectionFromCombination(): void
     {
@@ -97,16 +79,14 @@ class ModImporterTest extends TestCase
                     ->method('getMods')
                     ->willReturn($mods);
 
-        $importer = new ModImporter($this->entityManager, $this->idCalculator, $this->repository, $this->validator);
-        $result = $this->invokeMethod($importer, 'getCollectionFromCombination', $combination);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getCollectionFromCombination', $combination);
 
         $this->assertSame($mods, $result);
     }
 
     /**
-     * Tests the getExportEntities method.
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
@@ -114,31 +94,28 @@ class ModImporterTest extends TestCase
         $mod2 = $this->createMock(ExportMod::class);
         $mod3 = $this->createMock(ExportMod::class);
 
-        $combination = new ExportCombination();
-        $combination->setMods([$mod1, $mod2, $mod3]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getMods()->add($mod1)
+                              ->add($mod2)
+                              ->add($mod3);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
-
-        $importer = new ModImporter($this->entityManager, $this->idCalculator, $this->repository, $this->validator);
-        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getExportEntities', $exportData);
 
         $this->assertEquals([$mod1, $mod2, $mod3], iterator_to_array($result));
     }
 
     /**
-     * Tests the createDatabaseEntity method.
      * @throws ReflectionException
-     * @covers ::createDatabaseEntity
      */
     public function testCreateDatabaseEntity(): void
     {
-        /* @var UuidInterface&MockObject $modId */
         $modId = $this->createMock(UuidInterface::class);
 
         $exportMod = new ExportMod();
-        $exportMod->setName('abc')
-                  ->setVersion('1.2.3')
-                  ->setAuthor('def');
+        $exportMod->name = 'abc';
+        $exportMod->version = '1.2.3';
+        $exportMod->author = 'def';
 
         $expectedDatabaseMod = new DatabaseMod();
         $expectedDatabaseMod->setName('abc')
@@ -160,8 +137,8 @@ class ModImporterTest extends TestCase
                         ->method('validateMod')
                         ->with($this->equalTo($expectedDatabaseMod));
 
-        $importer = new ModImporter($this->entityManager, $this->idCalculator, $this->repository, $this->validator);
-        $result = $this->invokeMethod($importer, 'createDatabaseEntity', $exportMod);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'createDatabaseEntity', $exportMod);
 
         $this->assertEquals($expectedResult, $result);
     }

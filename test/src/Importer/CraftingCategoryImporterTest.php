@@ -13,11 +13,10 @@ use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Machine;
 use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\UuidInterface;
@@ -28,141 +27,107 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\CraftingCategoryImporter
  */
 class CraftingCategoryImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
-
-    /**
-     * The mocked repository.
-     * @var CraftingCategoryRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked id calculator.
-     * @var IdCalculator&MockObject
-     */
-    protected $idCalculator;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IdCalculator&MockObject */
+    private IdCalculator $idCalculator;
+    /** @var CraftingCategoryRepository&MockObject */
+    private CraftingCategoryRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
     /**
      * Sets up the test case.
      */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->repository = $this->createMock(CraftingCategoryRepository::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
+        $this->repository = $this->createMock(CraftingCategoryRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return CraftingCategoryImporter&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): CraftingCategoryImporter
     {
-        $importer = new CraftingCategoryImporter(
-            $this->repository,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->validator,
-        );
-
-        $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
-        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
+        return $this->getMockBuilder(CraftingCategoryImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->idCalculator,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the getCollectionFromCombination method.
      * @throws ReflectionException
-     * @covers ::getCollectionFromCombination
      */
     public function testGetCollectionFromCombination(): void
     {
         $emptyCollection = new ArrayCollection();
         $combination = $this->createMock(DatabaseCombination::class);
 
-        $importer = new CraftingCategoryImporter(
-            $this->repository,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'getCollectionFromCombination', $combination);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getCollectionFromCombination', $combination);
 
         $this->assertEquals($emptyCollection, $result);
     }
 
     /**
-     * Tests the getExportEntities method.
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
         $recipe1 = new Recipe();
-        $recipe1->setCraftingCategory('abc');
+        $recipe1->craftingCategory = 'abc';
         $recipe2 = new Recipe();
-        $recipe2->setCraftingCategory('def');
+        $recipe2->craftingCategory = 'def';
         $recipe3 = new Recipe();
-        $recipe3->setCraftingCategory('abc');
+        $recipe3->craftingCategory = 'abc';
 
         $machine1 = new Machine();
-        $machine1->setCraftingCategories(['ghi', 'abc', 'jkl']);
+        $machine1->craftingCategories = ['ghi', 'abc', 'jkl'];
         $machine2 = new Machine();
-        $machine2->setCraftingCategories(['jkl']);
+        $machine2->craftingCategories = ['jkl'];
 
         $expectedResult = ['abc', 'def', 'ghi', 'jkl'];
 
-        $combination = new ExportCombination();
-        $combination->setRecipes([$recipe1, $recipe2, $recipe3])
-                    ->setMachines([$machine1, $machine2]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getRecipes()->add($recipe1)
+                                 ->add($recipe2)
+                                 ->add($recipe3);
+        $exportData->getMachines()->add($machine1)
+                                  ->add($machine2);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
-
-        $importer = new CraftingCategoryImporter(
-            $this->repository,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getExportEntities', $exportData);
 
         $this->assertEquals($expectedResult, iterator_to_array($result));
     }
 
     /**
-     * Tests the createDatabaseEntity method.
      * @throws ReflectionException
-     * @covers ::createDatabaseEntity
      */
     public function testCreateDatabaseEntity(): void
     {
         $name = 'abc';
-        
-        /* @var UuidInterface&MockObject $id */
         $id = $this->createMock(UuidInterface::class);
-        
+
         $expectedCraftingCategory = new CraftingCategory();
         $expectedCraftingCategory->setName('abc');
-        
+
         $expectedResult = new CraftingCategory();
         $expectedResult->setId($id)
                        ->setName('abc');
@@ -176,13 +141,8 @@ class CraftingCategoryImporterTest extends TestCase
                         ->method('validateCraftingCategory')
                         ->with($this->equalTo($expectedCraftingCategory));
 
-        $importer = new CraftingCategoryImporter(
-            $this->repository,
-            $this->entityManager,
-            $this->idCalculator,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'createDatabaseEntity', $name);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'createDatabaseEntity', $name);
 
         $this->assertEquals($expectedResult, $result);
     }

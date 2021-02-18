@@ -15,14 +15,15 @@ use FactorioItemBrowser\Api\Import\Constant\CommandName;
 use FactorioItemBrowser\Api\Import\Exception\CommandFailureException;
 use FactorioItemBrowser\Api\Import\Exception\ImportException;
 use FactorioItemBrowser\Api\Import\Process\ImportCommandProcess;
-use FactorioItemBrowser\ExportQueue\Client\Client\Facade;
-use FactorioItemBrowser\ExportQueue\Client\Constant\JobStatus;
-use FactorioItemBrowser\ExportQueue\Client\Constant\ListOrder;
-use FactorioItemBrowser\ExportQueue\Client\Entity\Job;
-use FactorioItemBrowser\ExportQueue\Client\Request\Job\ListRequest;
-use FactorioItemBrowser\ExportQueue\Client\Request\Job\UpdateRequest;
-use FactorioItemBrowser\ExportQueue\Client\Response\Job\DetailsResponse;
-use FactorioItemBrowser\ExportQueue\Client\Response\Job\ListResponse;
+use FactorioItemBrowser\CombinationApi\Client\ClientInterface;
+use FactorioItemBrowser\CombinationApi\Client\Constant\JobStatus;
+use FactorioItemBrowser\CombinationApi\Client\Constant\ListOrder;
+use FactorioItemBrowser\CombinationApi\Client\Request\Job\ListRequest;
+use FactorioItemBrowser\CombinationApi\Client\Request\Job\UpdateRequest;
+use FactorioItemBrowser\CombinationApi\Client\Response\Job\DetailsResponse;
+use FactorioItemBrowser\CombinationApi\Client\Response\Job\ListResponse;
+use FactorioItemBrowser\CombinationApi\Client\Transfer\Job;
+use GuzzleHttp\Promise\FulfilledPromise;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -35,99 +36,65 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Command\ProcessCommand
+ * @covers \FactorioItemBrowser\Api\Import\Command\ProcessCommand
  */
 class ProcessCommandTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked combination repository.
-     * @var CombinationRepository&MockObject
-     */
-    protected $combinationRepository;
+    /** @var ClientInterface&MockObject */
+    private ClientInterface $combinationApiClient;
+    /** @var CombinationRepository&MockObject */
+    private CombinationRepository $combinationRepository;
+    /** @var Console&MockObject */
+    private Console $console;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
 
-    /**
-     * The mocked console.
-     * @var Console&MockObject
-     */
-    protected $console;
-
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
-
-    /**
-     * The mocked export queue facade.
-     * @var Facade&MockObject
-     */
-    protected $exportQueueFacade;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
+        $this->combinationApiClient = $this->createMock(ClientInterface::class);
         $this->combinationRepository = $this->createMock(CombinationRepository::class);
         $this->console = $this->createMock(Console::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->exportQueueFacade = $this->createMock(Facade::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return ProcessCommand&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): ProcessCommand
     {
-        $command = new ProcessCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->entityManager,
-            $this->exportQueueFacade
-        );
-
-        $this->assertSame($this->combinationRepository, $this->extractProperty($command, 'combinationRepository'));
-        $this->assertSame($this->console, $this->extractProperty($command, 'console'));
-        $this->assertSame($this->entityManager, $this->extractProperty($command, 'entityManager'));
-        $this->assertSame($this->exportQueueFacade, $this->extractProperty($command, 'exportQueueFacade'));
+        return $this->getMockBuilder(ProcessCommand::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->combinationApiClient,
+                        $this->combinationRepository,
+                        $this->console,
+                        $this->entityManager,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the configure method.
      * @throws ReflectionException
-     * @covers ::configure
      */
     public function testConfigure(): void
     {
-        $command = $this->getMockBuilder(ProcessCommand::class)
-                        ->onlyMethods(['setName', 'setDescription'])
-                        ->setConstructorArgs([
-                            $this->combinationRepository,
-                            $this->console,
-                            $this->entityManager,
-                            $this->exportQueueFacade,
-                        ])
-                        ->getMock();
-        $command->expects($this->once())
-                ->method('setName')
-                ->with($this->identicalTo(CommandName::PROCESS));
-        $command->expects($this->once())
-                ->method('setDescription')
-                ->with($this->isType('string'));
+        $instance = $this->createInstance(['setName', 'setDescription']);
+        $instance->expects($this->once())
+                 ->method('setName')
+                 ->with($this->identicalTo(CommandName::PROCESS));
+        $instance->expects($this->once())
+                 ->method('setDescription')
+                 ->with($this->isType('string'));
 
-        $this->invokeMethod($command, 'configure');
+        $this->invokeMethod($instance, 'configure');
     }
 
     /**
-     * Tests the execute method.
      * @throws Exception
-     * @covers ::execute
      */
     public function testExecute(): void
     {
@@ -142,33 +109,23 @@ class ProcessCommandTest extends TestCase
         $this->console->expects($this->never())
                       ->method('writeException');
 
-        $command = $this->getMockBuilder(ProcessCommand::class)
-                        ->onlyMethods(['fetchNextJob', 'processJob', 'updateJobStatus'])
-                        ->setConstructorArgs([
-                            $this->combinationRepository,
-                            $this->console,
-                            $this->entityManager,
-                            $this->exportQueueFacade,
-                        ])
-                        ->getMock();
-        $command->expects($this->once())
-                ->method('fetchNextJob')
-                ->willReturn($job);
-        $command->expects($this->once())
-                ->method('processJob')
-                ->with($this->identicalTo($job));
-        $command->expects($this->never())
-                ->method('updateJobStatus');
+        $instance = $this->createInstance(['fetchNextJob', 'processJob', 'updateJobStatus']);
+        $instance->expects($this->once())
+                 ->method('fetchNextJob')
+                 ->willReturn($job);
+        $instance->expects($this->once())
+                 ->method('processJob')
+                 ->with($this->identicalTo($job));
+        $instance->expects($this->never())
+                 ->method('updateJobStatus');
 
-        $result = $this->invokeMethod($command, 'execute', $input, $output);
+        $result = $this->invokeMethod($instance, 'execute', $input, $output);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the execute method.
      * @throws Exception
-     * @covers ::execute
      */
     public function testExecuteWithoutJob(): void
     {
@@ -183,32 +140,22 @@ class ProcessCommandTest extends TestCase
         $this->console->expects($this->never())
                       ->method('writeException');
 
-        $command = $this->getMockBuilder(ProcessCommand::class)
-                        ->onlyMethods(['fetchNextJob', 'processJob', 'updateJobStatus'])
-                        ->setConstructorArgs([
-                            $this->combinationRepository,
-                            $this->console,
-                            $this->entityManager,
-                            $this->exportQueueFacade,
-                        ])
-                        ->getMock();
-        $command->expects($this->once())
-                ->method('fetchNextJob')
-                ->willReturn(null);
-        $command->expects($this->never())
-                ->method('processJob');
-        $command->expects($this->never())
-                ->method('updateJobStatus');
+        $instance = $this->createInstance(['fetchNextJob', 'processJob', 'updateJobStatus']);
+        $instance->expects($this->once())
+                 ->method('fetchNextJob')
+                 ->willReturn(null);
+        $instance->expects($this->never())
+                 ->method('processJob');
+        $instance->expects($this->never())
+                 ->method('updateJobStatus');
 
-        $result = $this->invokeMethod($command, 'execute', $input, $output);
+        $result = $this->invokeMethod($instance, 'execute', $input, $output);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the execute method.
      * @throws Exception
-     * @covers ::execute
      */
     public function testExecuteWithImportException(): void
     {
@@ -223,35 +170,25 @@ class ProcessCommandTest extends TestCase
         $this->console->expects($this->never())
                       ->method('writeException');
 
-        $command = $this->getMockBuilder(ProcessCommand::class)
-                        ->onlyMethods(['fetchNextJob', 'processJob', 'updateJobStatus'])
-                        ->setConstructorArgs([
-                            $this->combinationRepository,
-                            $this->console,
-                            $this->entityManager,
-                            $this->exportQueueFacade,
-                        ])
-                        ->getMock();
-        $command->expects($this->once())
-                ->method('fetchNextJob')
-                ->willReturn($job);
-        $command->expects($this->once())
-                ->method('processJob')
-                ->with($this->identicalTo($job))
-                ->willThrowException(new ImportException('abc'));
-        $command->expects($this->once())
-                ->method('updateJobStatus')
-                ->with($this->identicalTo($job), $this->identicalTo(JobStatus::ERROR), $this->isType('string'));
+        $instance = $this->createInstance(['fetchNextJob', 'processJob', 'updateJobStatus']);
+        $instance->expects($this->once())
+                 ->method('fetchNextJob')
+                 ->willReturn($job);
+        $instance->expects($this->once())
+                 ->method('processJob')
+                 ->with($this->identicalTo($job))
+                 ->willThrowException(new ImportException('abc'));
+        $instance->expects($this->once())
+                 ->method('updateJobStatus')
+                 ->with($this->identicalTo($job), $this->identicalTo(JobStatus::ERROR), $this->isType('string'));
 
-        $result = $this->invokeMethod($command, 'execute', $input, $output);
+        $result = $this->invokeMethod($instance, 'execute', $input, $output);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the execute method.
      * @throws Exception
-     * @covers ::execute
      */
     public function testExecuteWithGenericException(): void
     {
@@ -268,97 +205,73 @@ class ProcessCommandTest extends TestCase
                       ->method('writeException')
                       ->with($this->identicalTo($exception));
 
-        $command = $this->getMockBuilder(ProcessCommand::class)
-                        ->onlyMethods(['fetchNextJob', 'processJob', 'updateJobStatus'])
-                        ->setConstructorArgs([
-                            $this->combinationRepository,
-                            $this->console,
-                            $this->entityManager,
-                            $this->exportQueueFacade,
-                        ])
-                        ->getMock();
-        $command->expects($this->once())
-                ->method('fetchNextJob')
-                ->willReturn($job);
-        $command->expects($this->once())
-                ->method('processJob')
-                ->with($this->identicalTo($job))
-                ->willThrowException($exception);
-        $command->expects($this->never())
-                ->method('updateJobStatus');
+        $instance = $this->createInstance(['fetchNextJob', 'processJob', 'updateJobStatus']);
+        $instance->expects($this->once())
+                 ->method('fetchNextJob')
+                 ->willReturn($job);
+        $instance->expects($this->once())
+                 ->method('processJob')
+                 ->with($this->identicalTo($job))
+                 ->willThrowException($exception);
+        $instance->expects($this->never())
+                 ->method('updateJobStatus');
 
-        $result = $this->invokeMethod($command, 'execute', $input, $output);
+        $result = $this->invokeMethod($instance, 'execute', $input, $output);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the fetchNextJob method.
      * @throws ReflectionException
-     * @covers ::fetchNextJob
      */
     public function testFetchNextJob(): void
     {
         $job = $this->createMock(Job::class);
 
         $expectedRequest = new ListRequest();
-        $expectedRequest->setStatus(JobStatus::UPLOADED)
-                        ->setOrder(ListOrder::PRIORITY)
-                        ->setLimit(1);
+        $expectedRequest->status = JobStatus::UPLOADED;
+        $expectedRequest->order = ListOrder::PRIORITY;
+        $expectedRequest->limit = 1;
 
         $response = new ListResponse();
-        $response->setJobs([$job]);
+        $response->jobs = [$job];
 
-        $this->exportQueueFacade->expects($this->once())
-                                ->method('getJobList')
-                                ->with($this->equalTo($expectedRequest))
-                                ->willReturn($response);
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedRequest))
+                                   ->willReturn(new FulfilledPromise($response));
 
-        $command = new ProcessCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->entityManager,
-            $this->exportQueueFacade
-        );
-        $result = $this->invokeMethod($command, 'fetchNextJob');
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'fetchNextJob');
 
         $this->assertSame($job, $result);
     }
 
     /**
-     * Tests the fetchNextJob method.
      * @throws ReflectionException
-     * @covers ::fetchNextJob
      */
     public function testFetchNextJobWithoutJob(): void
     {
         $expectedRequest = new ListRequest();
-        $expectedRequest->setStatus(JobStatus::UPLOADED)
-                        ->setOrder(ListOrder::PRIORITY)
-                        ->setLimit(1);
+        $expectedRequest->status = JobStatus::UPLOADED;
+        $expectedRequest->order = ListOrder::PRIORITY;
+        $expectedRequest->limit = 1;
 
         $response = new ListResponse();
 
-        $this->exportQueueFacade->expects($this->once())
-                                ->method('getJobList')
-                                ->with($this->equalTo($expectedRequest))
-                                ->willReturn($response);
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedRequest))
+                                   ->willReturn(new FulfilledPromise($response));
 
-        $command = new ProcessCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->entityManager,
-            $this->exportQueueFacade
-        );
-        $result = $this->invokeMethod($command, 'fetchNextJob');
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'fetchNextJob');
 
         $this->assertNull($result);
     }
 
     /**
-     * Tests the processJob method.
      * @throws ReflectionException
-     * @covers ::processJob
      */
     public function testProcessJob(): void
     {
@@ -367,40 +280,30 @@ class ProcessCommandTest extends TestCase
         $job3 = $this->createMock(Job::class);
         $combination = $this->createMock(Combination::class);
 
-        $command = $this->getMockBuilder(ProcessCommand::class)
-                        ->onlyMethods(['updateJobStatus', 'fetchCombination', 'runImportCommand'])
-                        ->setConstructorArgs([
-                            $this->combinationRepository,
-                            $this->console,
-                            $this->entityManager,
-                            $this->exportQueueFacade,
-                        ])
-                        ->getMock();
-        $command->expects($this->exactly(2))
-                ->method('updateJobStatus')
-                ->withConsecutive(
-                    [$this->identicalTo($job1), $this->identicalTo(JobStatus::IMPORTING)],
-                    [$this->identicalTo($job2), $this->identicalTo(JobStatus::DONE)]
-                )
-                ->willReturnOnConsecutiveCalls(
-                    $job2,
-                    $job3
-                );
-        $command->expects($this->once())
-                ->method('fetchCombination')
-                ->with($this->identicalTo($job2))
-                ->willReturn($combination);
-        $command->expects($this->once())
-                ->method('runImportCommand')
-                ->with($this->identicalTo(CommandName::IMPORT), $this->identicalTo($combination));
+        $instance = $this->createInstance(['updateJobStatus', 'fetchCombination', 'runImportCommand']);
+        $instance->expects($this->exactly(2))
+                 ->method('updateJobStatus')
+                 ->withConsecutive(
+                     [$this->identicalTo($job1), $this->identicalTo(JobStatus::IMPORTING)],
+                     [$this->identicalTo($job2), $this->identicalTo(JobStatus::DONE)]
+                 )
+                 ->willReturnOnConsecutiveCalls(
+                     $job2,
+                     $job3
+                 );
+        $instance->expects($this->once())
+                 ->method('fetchCombination')
+                 ->with($this->identicalTo($job2))
+                 ->willReturn($combination);
+        $instance->expects($this->once())
+                 ->method('runImportCommand')
+                 ->with($this->identicalTo(CommandName::IMPORT), $this->identicalTo($combination));
 
-        $this->invokeMethod($command, 'processJob', $job1);
+        $this->invokeMethod($instance, 'processJob', $job1);
     }
 
     /**
-     * Tests the updateJobStatus method.
      * @throws ReflectionException
-     * @covers ::updateJobStatus
      */
     public function testUpdateJobStatus(): void
     {
@@ -408,35 +311,28 @@ class ProcessCommandTest extends TestCase
         $errorMessage = 'ghi';
 
         $job = new Job();
-        $job->setId('abc');
+        $job->id = 'abc';
 
         $expectedRequest = new UpdateRequest();
-        $expectedRequest->setJobId('abc')
-                        ->setStatus('def')
-                        ->setErrorMessage('ghi');
+        $expectedRequest->id = 'abc';
+        $expectedRequest->status = 'def';
+        $expectedRequest->errorMessage = 'ghi';
 
         $response = $this->createMock(DetailsResponse::class);
 
-        $this->exportQueueFacade->expects($this->once())
-                                ->method('updateJob')
-                                ->with($this->equalTo($expectedRequest))
-                                ->willReturn($response);
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedRequest))
+                                   ->willReturn(new FulfilledPromise($response));
 
-        $command = new ProcessCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->entityManager,
-            $this->exportQueueFacade
-        );
-        $result = $this->invokeMethod($command, 'updateJobStatus', $job, $status, $errorMessage);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'updateJobStatus', $job, $status, $errorMessage);
 
         $this->assertSame($response, $result);
     }
 
     /**
-     * Tests the fetchCombination method.
      * @throws ReflectionException
-     * @covers ::fetchCombination
      */
     public function testFetchCombinationWithExistingCombination(): void
     {
@@ -446,7 +342,7 @@ class ProcessCommandTest extends TestCase
         $combination = $this->createMock(Combination::class);
 
         $job = new Job();
-        $job->setCombinationId($combinationIdString);
+        $job->combinationId = $combinationIdString;
 
         $this->combinationRepository->expects($this->once())
                                     ->method('findById')
@@ -458,21 +354,14 @@ class ProcessCommandTest extends TestCase
         $this->entityManager->expects($this->never())
                             ->method('flush');
 
-        $command = new ProcessCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->entityManager,
-            $this->exportQueueFacade
-        );
-        $result = $this->invokeMethod($command, 'fetchCombination', $job);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'fetchCombination', $job);
 
         $this->assertSame($combination, $result);
     }
 
     /**
-     * Tests the fetchCombination method.
      * @throws ReflectionException
-     * @covers ::fetchCombination
      */
     public function testFetchCombinationWithoutExistingCombination(): void
     {
@@ -480,7 +369,7 @@ class ProcessCommandTest extends TestCase
         $combinationId = Uuid::fromString($combinationIdString);
 
         $job = new Job();
-        $job->setCombinationId($combinationIdString);
+        $job->combinationId = $combinationIdString;
 
         $this->combinationRepository->expects($this->once())
                                     ->method('findById')
@@ -493,14 +382,9 @@ class ProcessCommandTest extends TestCase
         $this->entityManager->expects($this->once())
                             ->method('flush');
 
-        $command = new ProcessCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->entityManager,
-            $this->exportQueueFacade
-        );
+        $instance = $this->createInstance();
         /* @var Combination $result */
-        $result = $this->invokeMethod($command, 'fetchCombination', $job);
+        $result = $this->invokeMethod($instance, 'fetchCombination', $job);
 
         $this->assertEquals($combinationId, $result->getId());
         $this->assertNotNull($result->getImportTime());
@@ -508,13 +392,11 @@ class ProcessCommandTest extends TestCase
     }
 
     /**
-     * Tests the runImportCommand method.
      * @throws ReflectionException
-     * @covers ::runImportCommand
      */
     public function testRunImportCommand(): void
     {
-        $commandName = 'abc';
+        $instanceName = 'abc';
         $outputData = 'def';
 
         $combination = $this->createMock(Combination::class);
@@ -535,31 +417,21 @@ class ProcessCommandTest extends TestCase
                       ->method('writeData')
                       ->with($this->identicalTo($outputData));
 
-        $command = $this->getMockBuilder(ProcessCommand::class)
-                        ->onlyMethods(['createImportCommandProcess'])
-                        ->setConstructorArgs([
-                            $this->combinationRepository,
-                            $this->console,
-                            $this->entityManager,
-                            $this->exportQueueFacade,
-                        ])
-                        ->getMock();
-        $command->expects($this->once())
-                ->method('createImportCommandProcess')
-                ->with($this->identicalTo($commandName), $this->identicalTo($combination))
-                ->willReturn($process);
+        $instance = $this->createInstance(['createImportCommandProcess']);
+        $instance->expects($this->once())
+                 ->method('createImportCommandProcess')
+                 ->with($this->identicalTo($instanceName), $this->identicalTo($combination))
+                 ->willReturn($process);
 
-        $this->invokeMethod($command, 'runImportCommand', $commandName, $combination);
+        $this->invokeMethod($instance, 'runImportCommand', $instanceName, $combination);
     }
 
     /**
-     * Tests the runImportCommand method.
      * @throws ReflectionException
-     * @covers ::runImportCommand
      */
     public function testRunImportCommandWithFailure(): void
     {
-        $commandName = 'abc';
+        $instanceName = 'abc';
         $outputData = 'def';
 
         $combination = $this->createMock(Combination::class);
@@ -585,43 +457,28 @@ class ProcessCommandTest extends TestCase
 
         $this->expectException(CommandFailureException::class);
 
-        $command = $this->getMockBuilder(ProcessCommand::class)
-                        ->onlyMethods(['createImportCommandProcess'])
-                        ->setConstructorArgs([
-                            $this->combinationRepository,
-                            $this->console,
-                            $this->entityManager,
-                            $this->exportQueueFacade,
-                        ])
-                        ->getMock();
-        $command->expects($this->once())
-                ->method('createImportCommandProcess')
-                ->with($this->identicalTo($commandName), $this->identicalTo($combination))
-                ->willReturn($process);
+        $instance = $this->createInstance(['createImportCommandProcess']);
+        $instance->expects($this->once())
+                 ->method('createImportCommandProcess')
+                 ->with($this->identicalTo($instanceName), $this->identicalTo($combination))
+                 ->willReturn($process);
 
-        $this->invokeMethod($command, 'runImportCommand', $commandName, $combination);
+        $this->invokeMethod($instance, 'runImportCommand', $instanceName, $combination);
     }
 
     /**
-     * Tests the createImportCommandProcess method.
      * @throws ReflectionException
-     * @covers ::createImportCommandProcess
      */
     public function testCreateImportCommandProcess(): void
     {
-        $commandName = 'abc';
+        $instanceName = 'abc';
 
         $combination = $this->createMock(Combination::class);
 
-        $expectedResult = new ImportCommandProcess($commandName, $combination);
+        $expectedResult = new ImportCommandProcess($instanceName, $combination);
 
-        $command = new ProcessCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->entityManager,
-            $this->exportQueueFacade
-        );
-        $result = $this->invokeMethod($command, 'createImportCommandProcess', $commandName, $combination);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'createImportCommandProcess', $instanceName, $combination);
 
         $this->assertEquals($expectedResult, $result);
     }

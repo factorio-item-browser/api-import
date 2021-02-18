@@ -13,11 +13,10 @@ use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\AbstractTranslationImporter;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
+use FactorioItemBrowser\ExportData\Collection\TranslationDictionary;
 use FactorioItemBrowser\ExportData\Entity\Item;
-use FactorioItemBrowser\ExportData\Entity\LocalisedString;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\UuidInterface;
@@ -28,43 +27,23 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\AbstractTranslationImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\AbstractTranslationImporter
  */
 class AbstractTranslationImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IdCalculator&MockObject */
+    private IdCalculator $idCalculator;
+    /** @var TranslationRepository&MockObject */
+    private TranslationRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked id calculator.
-     * @var IdCalculator&MockObject
-     */
-    protected $idCalculator;
-
-    /**
-     * The mocked repository.
-     * @var TranslationRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->repository = $this->createMock(TranslationRepository::class);
@@ -72,55 +51,35 @@ class AbstractTranslationImporterTest extends TestCase
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return AbstractTranslationImporter<mixed>&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): AbstractTranslationImporter
     {
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-
-        $this->assertSame($this->entityManager, $this->extractProperty($importer, 'entityManager'));
-        $this->assertSame($this->idCalculator, $this->extractProperty($importer, 'idCalculator'));
-        $this->assertSame($this->repository, $this->extractProperty($importer, 'repository'));
-        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
+        return $this->getMockBuilder(AbstractTranslationImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->idCalculator,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMockForAbstractClass();
     }
 
-    /**
-     * Tests the prepare method.
-     * @covers ::prepare
-     */
     public function testPrepare(): void
     {
         $combination = $this->createMock(DatabaseCombination::class);
 
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-
-        $importer->prepare($combination);
+        $instance = $this->createInstance();
+        $instance->prepare($combination);
 
         $this->addToAssertionCount(1);
     }
 
     /**
-     * Tests the import method.
      * @throws DBALException
-     * @covers ::import
      */
     public function testImport(): void
     {
@@ -141,28 +100,17 @@ class AbstractTranslationImporterTest extends TestCase
                          ->method('persistTranslationsToCombination')
                          ->with($this->identicalTo($combinationId), $this->identicalTo($entities));
 
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->onlyMethods(['createTranslations'])
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['createTranslations']);
+        $instance->expects($this->once())
                  ->method('createTranslations')
                  ->with($this->identicalTo($exportData), $this->identicalTo($offset), $this->identicalTo($limit))
                  ->willReturn($entities);
 
-        $importer->import($combination, $exportData, $offset, $limit);
+        $instance->import($combination, $exportData, $offset, $limit);
     }
 
     /**
-     * Tests the createTranslations method.
      * @throws ReflectionException
-     * @covers ::createTranslations
      */
     public function testCreateTranslations(): void
     {
@@ -201,34 +149,6 @@ class AbstractTranslationImporterTest extends TestCase
 
         $expectedResult = [$translation1, $translation2, $translation3, $translation4];
 
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->onlyMethods([
-                             'getChunkedExportEntities',
-                             'createTranslationsForEntity',
-                         ])
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-        $importer->expects($this->once())
-                 ->method('getChunkedExportEntities')
-                 ->with($this->identicalTo($exportData), $this->identicalTo($offset), $this->identicalTo($limit))
-                 ->willReturn($entities);
-        $importer->expects($this->exactly(2))
-                 ->method('createTranslationsForEntity')
-                 ->withConsecutive(
-                     [$this->identicalTo($exportData), $this->identicalTo($entity1)],
-                     [$this->identicalTo($exportData), $this->identicalTo($entity2)],
-                 )
-                 ->willReturnOnConsecutiveCalls(
-                     [$translation1, $translation2],
-                     [$translation3, $translation4],
-                 );
-
         $this->validator->expects($this->exactly(4))
                         ->method('validateTranslation')
                         ->withConsecutive(
@@ -253,28 +173,42 @@ class AbstractTranslationImporterTest extends TestCase
                                $translationId4,
                            );
 
-        $result = $this->invokeMethod($importer, 'createTranslations', $exportData, $offset, $limit);
+        $instance = $this->createInstance(['getChunkedExportEntities', 'createTranslationsForEntity']);
+        $instance->expects($this->once())
+                 ->method('getChunkedExportEntities')
+                 ->with($this->identicalTo($exportData), $this->identicalTo($offset), $this->identicalTo($limit))
+                 ->willReturn($entities);
+        $instance->expects($this->exactly(2))
+                 ->method('createTranslationsForEntity')
+                 ->withConsecutive(
+                     [$this->identicalTo($exportData), $this->identicalTo($entity1)],
+                     [$this->identicalTo($exportData), $this->identicalTo($entity2)],
+                 )
+                 ->willReturnOnConsecutiveCalls(
+                     [$translation1, $translation2],
+                     [$translation3, $translation4],
+                 );
+
+        $result = $this->invokeMethod($instance, 'createTranslations', $exportData, $offset, $limit);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the createTranslationsFromLocalisedStrings method.
      * @throws ReflectionException
-     * @covers ::createTranslationsFromLocalisedStrings
      */
     public function testCreateTranslationsFromLocalisedStrings(): void
     {
         $type = 'abc';
         $name = 'def';
 
-        $values = new LocalisedString();
-        $values->addTranslation('ghi', 'jkl')
-               ->addTranslation('mno', 'pqr');
+        $values = new TranslationDictionary();
+        $values->set('ghi', 'jkl');
+        $values->set('mno', 'pqr');
 
-        $description = new LocalisedString();
-        $description->addTranslation('ghi', 'stu')
-                    ->addTranslation('vwx', 'yza');
+        $description = new TranslationDictionary();
+        $description->set('ghi', 'stu');
+        $description->set('vwx', 'yza');
 
         $translationId1 = $this->createMock(UuidInterface::class);
         $translationId2 = $this->createMock(UuidInterface::class);
@@ -330,19 +264,8 @@ class AbstractTranslationImporterTest extends TestCase
                                $translationId3,
                            );
 
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->onlyMethods([
-                             'createTranslationEntity',
-                         ])
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-        $importer->expects($this->exactly(3))
+        $instance = $this->createInstance(['createTranslationEntity']);
+        $instance->expects($this->exactly(3))
                  ->method('createTranslationEntity')
                  ->withConsecutive(
                      [$this->identicalTo('ghi'), $this->identicalTo($type), $this->identicalTo($name)],
@@ -356,7 +279,7 @@ class AbstractTranslationImporterTest extends TestCase
                  );
 
         $result = $this->invokeMethod(
-            $importer,
+            $instance,
             'createTranslationsFromLocalisedStrings',
             $type,
             $name,
@@ -368,9 +291,7 @@ class AbstractTranslationImporterTest extends TestCase
     }
 
     /**
-     * Tests the createTranslationEntity method.
      * @throws ReflectionException
-     * @covers ::createTranslationEntity
      */
     public function testCreateTranslationEntity(): void
     {
@@ -383,24 +304,14 @@ class AbstractTranslationImporterTest extends TestCase
                        ->setType($type)
                        ->setName($name);
 
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-        $result = $this->invokeMethod($importer, 'createTranslationEntity', $locale, $type, $name);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'createTranslationEntity', $locale, $type, $name);
 
         $this->assertEquals($expectedResult, $result);
     }
-    
+
     /**
-     * Tests the findItem method.
      * @throws ReflectionException
-     * @covers ::findItem
      */
     public function testFindItem(): void
     {
@@ -408,40 +319,28 @@ class AbstractTranslationImporterTest extends TestCase
         $name = 'def';
 
         $item1 = new Item();
-        $item1->setType('foo')
-              ->setName('def');
-
+        $item1->type = 'foo';
+        $item1->name = 'def';
         $item2 = new Item();
-        $item2->setType('abc')
-              ->setName('bar');
-        
+        $item2->type = 'abc';
+        $item2->name = 'bar';
         $item3 = new Item();
-        $item3->setType('abc')
-              ->setName('def');
+        $item3->type = 'abc';
+        $item3->name = 'def';
 
-        $combination = new ExportCombination();
-        $combination->setItems([$item1, $item2, $item3]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getItems()->add($item1)
+                               ->add($item2)
+                               ->add($item3);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'findItem', $exportData, $type, $name);
 
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-        $result = $this->invokeMethod($importer, 'findItem', $exportData, $type, $name);
-        
         $this->assertSame($item3, $result);
     }
 
     /**
-     * Tests the findItem method.
      * @throws ReflectionException
-     * @covers ::findItem
      */
     public function testFindItemWithoutMatch(): void
     {
@@ -449,40 +348,28 @@ class AbstractTranslationImporterTest extends TestCase
         $name = 'bar';
 
         $item1 = new Item();
-        $item1->setType('foo')
-              ->setName('def');
-
+        $item1->type = 'foo';
+        $item1->name = 'def';
         $item2 = new Item();
-        $item2->setType('abc')
-              ->setName('bar');
-
+        $item2->type = 'abc';
+        $item2->name = 'bar';
         $item3 = new Item();
-        $item3->setType('abc')
-              ->setName('def');
+        $item3->type = 'abc';
+        $item3->name = 'def';
 
-        $combination = new ExportCombination();
-        $combination->setItems([$item1, $item2, $item3]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getItems()->add($item1)
+                               ->add($item2)
+                               ->add($item3);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
-
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-        $result = $this->invokeMethod($importer, 'findItem', $exportData, $type, $name);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'findItem', $exportData, $type, $name);
 
         $this->assertNull($result);
     }
 
     /**
-     * Tests the filterDuplicatesToItems method.
      * @throws ReflectionException
-     * @covers ::filterDuplicatesToItems
      */
     public function testFilterDuplicatesToItems(): void
     {
@@ -509,50 +396,29 @@ class AbstractTranslationImporterTest extends TestCase
         $expectedResult = [$translation1, $translation4];
 
         $item1 = new Item();
-        $item1->getLabels()->addTranslation('abc', 'def')
-                           ->addTranslation('jkl', 'mno');
-        $item1->getDescriptions()->addTranslation('abc', 'foo')
-                                 ->addTranslation('jkl', 'pqr');
+        $item1->labels->set('abc', 'def');
+        $item1->labels->set('jkl', 'mno');
+        $item1->descriptions->set('abc', 'foo');
+        $item1->descriptions->set('jkl', 'pqr');
 
         $item2 = new Item();
-        $item2->getLabels()->addTranslation('abc', 'def')
-                           ->addTranslation('stu', 'vwx');
-        $item2->getDescriptions()->addTranslation('abc', 'bar')
-                                 ->addTranslation('stu', 'baz');
+        $item2->labels->set('abc', 'def');
+        $item2->labels->set('stu', 'vwx');
+        $item2->descriptions->set('abc', 'bar');
+        $item2->descriptions->set('stu', 'baz');
 
         $items = [$item1, $item2];
 
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-        $result = $this->invokeMethod($importer, 'filterDuplicatesToItems', $translations, $items);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'filterDuplicatesToItems', $translations, $items);
 
         $this->assertSame($expectedResult, $result);
     }
 
-    /**
-     * Tests the cleanup method.
-     * @covers ::cleanup
-     */
     public function testCleanup(): void
     {
-        /* @var AbstractTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(AbstractTranslationImporter::class)
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMockForAbstractClass();
-
-        $importer->cleanup();
+        $instance = $this->createInstance();
+        $instance->cleanup();
 
         $this->addToAssertionCount(1);
     }

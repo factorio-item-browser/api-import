@@ -12,11 +12,10 @@ use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\MachineTranslationImporter;
 use FactorioItemBrowser\Common\Constant\EntityType;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Machine as ExportMachine;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -26,43 +25,23 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\MachineTranslationImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\MachineTranslationImporter
  */
 class MachineTranslationImporterTest extends TestCase
 {
-use ReflectionTrait;
+    use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IdCalculator&MockObject */
+    private IdCalculator $idCalculator;
+    /** @var TranslationRepository&MockObject */
+    private TranslationRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked id calculator.
-     * @var IdCalculator&MockObject
-     */
-    protected $idCalculator;
-
-    /**
-     * The mocked repository.
-     * @var TranslationRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->repository = $this->createMock(TranslationRepository::class);
@@ -70,9 +49,25 @@ use ReflectionTrait;
     }
 
     /**
-     * Tests the getExportEntities method.
+     * @param array<string> $mockedMethods
+     * @return MachineTranslationImporter&MockObject
+     */
+    private function createInstance(array $mockedMethods = []): MachineTranslationImporter
+    {
+        return $this->getMockBuilder(MachineTranslationImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->idCalculator,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
+    }
+
+    /**
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
@@ -80,34 +75,27 @@ use ReflectionTrait;
         $machine2 = $this->createMock(ExportMachine::class);
         $machine3 = $this->createMock(ExportMachine::class);
 
-        $combination = new ExportCombination();
-        $combination->setMachines([$machine1, $machine2, $machine3]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getMachines()->add($machine1)
+                                  ->add($machine2)
+                                  ->add($machine3);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
-
-        $importer = new MachineTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getExportEntities', $exportData);
 
         $this->assertEquals([$machine1, $machine2, $machine3], iterator_to_array($result));
     }
-    
+
     /**
-     * Tests the createTranslationsForEntity method.
      * @throws ReflectionException
-     * @covers ::createTranslationsForEntity
      */
     public function testCreateTranslationsForEntity(): void
     {
         $name = 'abc';
         $exportData = $this->createMock(ExportData::class);
-        
+
         $machine = new ExportMachine();
-        $machine->setName($name);
+        $machine->name = $name;
 
         $translations = [
             $this->createMock(Translation::class),
@@ -122,29 +110,21 @@ use ReflectionTrait;
         $item = $this->createMock(Item::class);
         $expectedItems = [$item];
 
-        $importer = $this->getMockBuilder(MachineTranslationImporter::class)
-                         ->onlyMethods([
+        $instance = $this->createInstance([
                              'createTranslationsFromLocalisedStrings',
                              'findItem',
                              'filterDuplicatesToItems',
-                         ])
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->once())
+                         ]);
+        $instance->expects($this->once())
                  ->method('createTranslationsFromLocalisedStrings')
                  ->with(
                      $this->identicalTo(EntityType::MACHINE),
-                     $this->identicalTo('abc'),
-                     $this->identicalTo($machine->getLabels()),
-                     $this->identicalTo($machine->getDescriptions()),
+                     $this->identicalTo($name),
+                     $this->identicalTo($machine->labels),
+                     $this->identicalTo($machine->descriptions),
                  )
                  ->willReturn($translations);
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('findItem')
                  ->with(
                      $this->identicalTo($exportData),
@@ -152,12 +132,12 @@ use ReflectionTrait;
                      $this->identicalTo($name),
                  )
                  ->willReturn($item);
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('filterDuplicatesToItems')
                  ->with($this->identicalTo($translations), $this->identicalTo($expectedItems))
                  ->willReturn($filteredTranslations);
 
-        $result = $this->invokeMethod($importer, 'createTranslationsForEntity', $exportData, $machine);
+        $result = $this->invokeMethod($instance, 'createTranslationsForEntity', $exportData, $machine);
 
         $this->assertSame($filteredTranslations, $result);
     }

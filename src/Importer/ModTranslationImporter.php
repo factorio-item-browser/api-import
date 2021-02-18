@@ -33,7 +33,7 @@ class ModTranslationImporter extends AbstractTranslationImporter
 
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        yield from $exportData->getCombination()->getMods();
+        yield from $exportData->getMods();
     }
 
     /**
@@ -45,9 +45,9 @@ class ModTranslationImporter extends AbstractTranslationImporter
     {
         return $this->createTranslationsFromLocalisedStrings(
             EntityType::MOD,
-            $mod->getName(),
-            $mod->getTitles(),
-            $mod->getDescriptions(),
+            $mod->name,
+            $mod->titles,
+            $mod->descriptions,
         );
     }
 

@@ -47,7 +47,7 @@ class ModImporter extends AbstractEntityImporter
 
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        yield from $exportData->getCombination()->getMods();
+        yield from $exportData->getMods();
     }
 
     /**
@@ -57,9 +57,9 @@ class ModImporter extends AbstractEntityImporter
     protected function createDatabaseEntity($exportMod): object
     {
         $databaseMod = new DatabaseMod();
-        $databaseMod->setName($exportMod->getName())
-                    ->setVersion($exportMod->getVersion())
-                    ->setAuthor($exportMod->getAuthor());
+        $databaseMod->setName($exportMod->name)
+                    ->setVersion($exportMod->version)
+                    ->setAuthor($exportMod->author);
 
         $this->validator->validateMod($databaseMod);
         $databaseMod->setId($this->idCalculator->calculateIdOfMod($databaseMod));

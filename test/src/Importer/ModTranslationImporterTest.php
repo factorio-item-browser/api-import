@@ -14,10 +14,9 @@ use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\ModTranslationImporter;
 use FactorioItemBrowser\Common\Constant\EntityType;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Mod as ExportMod;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -28,43 +27,23 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\ModTranslationImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\ModTranslationImporter
  */
 class ModTranslationImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IdCalculator&MockObject */
+    private IdCalculator $idCalculator;
+    /** @var TranslationRepository&MockObject */
+    private TranslationRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked id calculator.
-     * @var IdCalculator&MockObject
-     */
-    protected $idCalculator;
-
-    /**
-     * The mocked repository.
-     * @var TranslationRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->repository = $this->createMock(TranslationRepository::class);
@@ -72,9 +51,25 @@ class ModTranslationImporterTest extends TestCase
     }
 
     /**
-     * Tests the prepare method.
+     * @param array<string> $mockedMethods
+     * @return ModTranslationImporter&MockObject
+     */
+    private function createInstance(array $mockedMethods = []): ModTranslationImporter
+    {
+        return $this->getMockBuilder(ModTranslationImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->idCalculator,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
+    }
+
+    /**
      * @throws DBALException
-     * @covers ::prepare
      */
     public function testPrepare(): void
     {
@@ -87,20 +82,13 @@ class ModTranslationImporterTest extends TestCase
                          ->method('clearCrossTable')
                          ->with($this->identicalTo($combinationId));
 
-        $importer = new ModTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $importer->prepare($combination);
+        $instance = $this->createInstance();
+        $instance->prepare($combination);
     }
 
 
     /**
-     * Tests the getExportEntities method.
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
@@ -108,79 +96,54 @@ class ModTranslationImporterTest extends TestCase
         $mod2 = $this->createMock(ExportMod::class);
         $mod3 = $this->createMock(ExportMod::class);
 
-        $combination = new ExportCombination();
-        $combination->setMods([$mod1, $mod2, $mod3]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getMods()->add($mod1)
+                              ->add($mod2)
+                              ->add($mod3);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
-
-        $importer = new ModTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getExportEntities', $exportData);
 
         $this->assertEquals([$mod1, $mod2, $mod3], iterator_to_array($result));
     }
     
     /**
-     * Tests the createTranslationsForEntity method.
      * @throws ReflectionException
-     * @covers ::createTranslationsForEntity
      */
     public function testCreateTranslationsForEntity(): void
     {
         $exportData = $this->createMock(ExportData::class);
         
         $mod = new ExportMod();
-        $mod->setName('abc');
+        $mod->name = 'abc';
 
         $translations = [
             $this->createMock(Translation::class),
             $this->createMock(Translation::class),
         ];
         
-        /* @var ModTranslationImporter&MockObject $importer */
-        $importer = $this->getMockBuilder(ModTranslationImporter::class)
-                         ->onlyMethods(['createTranslationsFromLocalisedStrings'])
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMock();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['createTranslationsFromLocalisedStrings']);
+        $instance->expects($this->once())
                  ->method('createTranslationsFromLocalisedStrings')
                  ->with(
                      $this->identicalTo(EntityType::MOD),
                      $this->identicalTo('abc'),
-                     $this->identicalTo($mod->getTitles()),
-                     $this->identicalTo($mod->getDescriptions()),
+                     $this->identicalTo($mod->titles),
+                     $this->identicalTo($mod->descriptions),
                  )
                  ->willReturn($translations);
 
-        $result = $this->invokeMethod($importer, 'createTranslationsForEntity', $exportData, $mod);
+        $result = $this->invokeMethod($instance, 'createTranslationsForEntity', $exportData, $mod);
 
         $this->assertSame($translations, $result);
     }
 
-    /**
-     * Tests the cleanup method.
-     * @covers ::cleanup
-     */
     public function testCleanup(): void
     {
         $this->repository->expects($this->once())
                          ->method('removeOrphans');
 
-        $importer = new ModTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
-        $importer->cleanup();
+        $instance = $this->createInstance();
+        $instance->cleanup();
     }
 }

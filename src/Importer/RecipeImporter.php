@@ -61,13 +61,14 @@ class RecipeImporter extends AbstractEntityImporter
 
     protected function getExportEntities(ExportData $exportData): Generator
     {
-        foreach ($exportData->getCombination()->getRecipes() as $recipe) {
-            $this->dataCollector->addCraftingCategoryName($recipe->getCraftingCategory());
-            foreach ($recipe->getIngredients() as $ingredient) {
-                $this->dataCollector->addItem($ingredient->getType(), $ingredient->getName());
+        foreach ($exportData->getRecipes() as $recipe) {
+            /* @var ExportRecipe $recipe */
+            $this->dataCollector->addCraftingCategoryName($recipe->craftingCategory);
+            foreach ($recipe->ingredients as $ingredient) {
+                $this->dataCollector->addItem($ingredient->type, $ingredient->name);
             }
-            foreach ($recipe->getProducts() as $product) {
-                $this->dataCollector->addItem($product->getType(), $product->getName());
+            foreach ($recipe->products as $product) {
+                $this->dataCollector->addItem($product->type, $product->name);
             }
 
             yield $recipe;
@@ -83,12 +84,12 @@ class RecipeImporter extends AbstractEntityImporter
     {
         $databaseRecipe = new DatabaseRecipe();
 
-        $databaseRecipe->setName($exportRecipe->getName())
-                       ->setMode($exportRecipe->getMode())
+        $databaseRecipe->setName($exportRecipe->name)
+                       ->setMode($exportRecipe->mode)
                        ->setCraftingCategory(
-                           $this->dataCollector->getCraftingCategory($exportRecipe->getCraftingCategory()),
+                           $this->dataCollector->getCraftingCategory($exportRecipe->craftingCategory),
                        )
-                       ->setCraftingTime($exportRecipe->getCraftingTime());
+                       ->setCraftingTime($exportRecipe->craftingTime);
 
         $this->mapIngredients($exportRecipe, $databaseRecipe);
         $this->mapProducts($exportRecipe, $databaseRecipe);
@@ -105,7 +106,7 @@ class RecipeImporter extends AbstractEntityImporter
      */
     protected function mapIngredients(ExportRecipe $exportRecipe, DatabaseRecipe $databaseRecipe): void
     {
-        foreach ($exportRecipe->getIngredients() as $index => $exportIngredient) {
+        foreach ($exportRecipe->ingredients as $index => $exportIngredient) {
             $databaseIngredient = $this->mapIngredient($exportIngredient);
             $databaseIngredient->setRecipe($databaseRecipe)
                                ->setOrder($index);
@@ -120,11 +121,11 @@ class RecipeImporter extends AbstractEntityImporter
      */
     protected function mapIngredient(ExportIngredient $exportIngredient): DatabaseIngredient
     {
-        $item = $this->dataCollector->getItem($exportIngredient->getType(), $exportIngredient->getName());
+        $item = $this->dataCollector->getItem($exportIngredient->type, $exportIngredient->name);
 
         $databaseIngredient = new DatabaseIngredient();
         $databaseIngredient->setItem($item)
-                           ->setAmount($exportIngredient->getAmount());
+                           ->setAmount($exportIngredient->amount);
         return $databaseIngredient;
     }
 
@@ -135,7 +136,7 @@ class RecipeImporter extends AbstractEntityImporter
      */
     protected function mapProducts(ExportRecipe $exportRecipe, DatabaseRecipe $databaseRecipe): void
     {
-        foreach ($exportRecipe->getProducts() as $index => $exportProduct) {
+        foreach ($exportRecipe->products as $index => $exportProduct) {
             $databaseProduct = $this->mapProduct($exportProduct);
             $databaseProduct->setRecipe($databaseRecipe)
                             ->setOrder($index);
@@ -150,13 +151,13 @@ class RecipeImporter extends AbstractEntityImporter
      */
     protected function mapProduct(ExportProduct $exportProduct): DatabaseProduct
     {
-        $item = $this->dataCollector->getItem($exportProduct->getType(), $exportProduct->getName());
+        $item = $this->dataCollector->getItem($exportProduct->type, $exportProduct->name);
 
         $databaseProduct = new DatabaseProduct();
         $databaseProduct->setItem($item)
-                        ->setAmountMin($exportProduct->getAmountMin())
-                        ->setAmountMax($exportProduct->getAmountMax())
-                        ->setProbability($exportProduct->getProbability());
+                        ->setAmountMin($exportProduct->amountMin)
+                        ->setAmountMax($exportProduct->amountMax)
+                        ->setProbability($exportProduct->probability);
         return $databaseProduct;
     }
 }

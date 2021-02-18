@@ -11,10 +11,10 @@ use FactorioItemBrowser\Api\Database\Entity\IconImage;
 use FactorioItemBrowser\Api\Database\Repository\IconImageRepository;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\IconImageImporter;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
+use FactorioItemBrowser\ExportData\Collection\DictionaryInterface;
 use FactorioItemBrowser\ExportData\Entity\Icon;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -25,60 +25,45 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\IconImageImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\IconImageImporter
  */
 class IconImageImporterTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IconImageRepository&MockObject */
+    private IconImageRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked icon image repository.
-     * @var IconImageRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->repository = $this->createMock(IconImageRepository::class);
         $this->validator = $this->createMock(Validator::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return IconImageImporter&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): IconImageImporter
     {
-        $importer = new IconImageImporter($this->entityManager, $this->repository, $this->validator);
-
-        $this->assertSame($this->entityManager, $this->extractProperty($importer, 'entityManager'));
-        $this->assertSame($this->repository, $this->extractProperty($importer, 'repository'));
-        $this->assertSame($this->validator, $this->extractProperty($importer, 'validator'));
+        return $this->getMockBuilder(IconImageImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the getExportEntities method.
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
@@ -86,37 +71,27 @@ class IconImageImporterTest extends TestCase
         $icon2 = $this->createMock(Icon::class);
         $icon3 = $this->createMock(Icon::class);
 
-        $combination = new ExportCombination();
-        $combination->setIcons([$icon1, $icon2, $icon3]);
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getIcons()->add($icon1)
+                               ->add($icon2)
+                               ->add($icon3);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
-
-        $importer = new IconImageImporter($this->entityManager, $this->repository, $this->validator);
-        $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'getExportEntities', $exportData);
 
         $this->assertEquals([$icon1, $icon2, $icon3], iterator_to_array($result));
     }
-    
-    
-    /**
-     * Tests the prepare method.
-     * @covers ::prepare
-     */
+
     public function testPrepare(): void
     {
-        /* @var DatabaseCombination&MockObject $combination */
         $combination = $this->createMock(DatabaseCombination::class);
 
-        $importer = new IconImageImporter($this->entityManager, $this->repository, $this->validator);
-        $importer->prepare($combination);
+        $instance = $this->createInstance();
+        $instance->prepare($combination);
 
         $this->addToAssertionCount(1);
     }
 
-    /**
-     * Tests the import method.
-     * @covers ::import
-     */
     public function testImport(): void
     {
         $exportData = $this->createMock(ExportData::class);
@@ -133,15 +108,12 @@ class IconImageImporterTest extends TestCase
 
         $combination = $this->createMock(DatabaseCombination::class);
 
-        $importer = $this->getMockBuilder(IconImageImporter::class)
-                         ->onlyMethods(['getChunkedExportEntities', 'createIconImage', 'persistIconImages'])
-                         ->setConstructorArgs([$this->entityManager, $this->repository, $this->validator])
-                         ->getMock();
-        $importer->expects($this->once())
+        $instance = $this->createInstance(['getChunkedExportEntities', 'createIconImage', 'persistIconImages']);
+        $instance->expects($this->once())
                  ->method('getChunkedExportEntities')
                  ->with($this->identicalTo($exportData), $this->identicalTo($offset), $this->identicalTo($limit))
                  ->willReturn($exportIcons);
-        $importer->expects($this->exactly(2))
+        $instance->expects($this->exactly(2))
                  ->method('createIconImage')
                  ->withConsecutive(
                      [$this->identicalTo($exportIcon1)],
@@ -151,51 +123,53 @@ class IconImageImporterTest extends TestCase
                      $iconImage1,
                      $iconImage2,
                  );
-        $importer->expects($this->once())
+        $instance->expects($this->once())
                  ->method('persistIconImages')
                  ->with($this->identicalTo($iconImages));
 
-        $importer->import($combination, $exportData, $offset, $limit);
+        $instance->import($combination, $exportData, $offset, $limit);
     }
 
     /**
-     * Tests the createIconImage method.
      * @throws ReflectionException
-     * @covers ::createIconImage
      */
     public function testCreateIconImage(): void
     {
         $contents = 'abc';
 
         $exportIcon = new Icon();
-        $exportIcon->setId('70acdb0f-36ca-4b30-9687-2baaade94cd3')
-                   ->setSize(42);
+        $exportIcon->id = '70acdb0f-36ca-4b30-9687-2baaade94cd3';
+        $exportIcon->size = 42;
 
         $expectedResult = new IconImage();
         $expectedResult->setId(Uuid::fromString('70acdb0f-36ca-4b30-9687-2baaade94cd3'))
                        ->setSize(42)
                        ->setContents($contents);
 
+        $renderedIcons = $this->createMock(DictionaryInterface::class);
+        $renderedIcons->expects($this->once())
+                      ->method('get')
+                      ->with($this->identicalTo('70acdb0f-36ca-4b30-9687-2baaade94cd3'))
+                      ->willReturn($contents);
+
+
         $exportData = $this->createMock(ExportData::class);
-        $exportData->expects($this->once())
-                   ->method('getRenderedIcon')
-                   ->with($this->identicalTo($exportIcon))
-                   ->willReturn($contents);
+        $exportData->expects($this->any())
+                   ->method('getRenderedIcons')
+                   ->willReturn($renderedIcons);
 
         $this->validator->expects($this->once())
                         ->method('validateIconImage')
                         ->with($this->equalTo($expectedResult));
 
-        $importer = new IconImageImporter($this->entityManager, $this->repository, $this->validator);
-        $result = $this->invokeMethod($importer, 'createIconImage', $exportIcon, $exportData);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'createIconImage', $exportIcon, $exportData);
 
         $this->assertEquals($expectedResult, $result);
     }
 
     /**
-     * Tests the persistIconImages method.
      * @throws ReflectionException
-     * @covers ::persistIconImages
      */
     public function testPersistIconImages(): void
     {
@@ -252,24 +226,19 @@ class IconImageImporterTest extends TestCase
         $this->entityManager->expects($this->once())
                             ->method('flush');
 
-        $importer = $this->getMockBuilder(IconImageImporter::class)
-                         ->onlyMethods(['updateIconImage'])
-                         ->setConstructorArgs([$this->entityManager, $this->repository, $this->validator])
-                         ->getMock();
-        $importer->expects($this->exactly(2))
+        $instance = $this->createInstance(['updateIconImage']);
+        $instance->expects($this->exactly(2))
                  ->method('updateIconImage')
                  ->withConsecutive(
                      [$this->identicalTo($iconImage1), $this->identicalTo($existingIconImage1)],
                      [$this->identicalTo($iconImage3), $this->identicalTo($existingIconImage2)],
                  );
 
-        $this->invokeMethod($importer, 'persistIconImages', $iconImages);
+        $this->invokeMethod($instance, 'persistIconImages', $iconImages);
     }
 
     /**
-     * Tests the updateIconImage method.
      * @throws ReflectionException
-     * @covers ::updateIconImage
      */
     public function testUpdateIconImage(): void
     {
@@ -287,20 +256,16 @@ class IconImageImporterTest extends TestCase
                     ->with($this->identicalTo('abc'))
                     ->willReturnSelf();
 
-        $importer = new IconImageImporter($this->entityManager, $this->repository, $this->validator);
-        $this->invokeMethod($importer, 'updateIconImage', $source, $destination);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'updateIconImage', $source, $destination);
     }
 
-    /**
-     * Tests the cleanup method.
-     * @covers ::cleanup
-     */
     public function testCleanup(): void
     {
         $this->repository->expects($this->once())
                          ->method('removeOrphans');
 
-        $importer = new IconImageImporter($this->entityManager, $this->repository, $this->validator);
-        $importer->cleanup();
+        $instance = $this->createInstance();
+        $instance->cleanup();
     }
 }

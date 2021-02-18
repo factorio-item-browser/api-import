@@ -13,11 +13,10 @@ use FactorioItemBrowser\Api\Import\Helper\Validator;
 use FactorioItemBrowser\Api\Import\Importer\RecipeTranslationImporter;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\Common\Constant\RecipeMode;
-use FactorioItemBrowser\ExportData\Entity\Combination as ExportCombination;
 use FactorioItemBrowser\ExportData\Entity\Item;
 use FactorioItemBrowser\ExportData\Entity\Recipe as ExportRecipe;
 use FactorioItemBrowser\ExportData\ExportData;
-use FactorioItemBrowser\ExportData\Storage\StorageInterface;
+use FactorioItemBrowser\ExportData\Storage\Storage;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -27,43 +26,23 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\Api\Import\Importer\RecipeTranslationImporter
+ * @covers \FactorioItemBrowser\Api\Import\Importer\RecipeTranslationImporter
  */
 class RecipeTranslationImporterTest extends TestCase
 {
-   use ReflectionTrait;
+    use ReflectionTrait;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
+    /** @var IdCalculator&MockObject */
+    private IdCalculator $idCalculator;
+    /** @var TranslationRepository&MockObject */
+    private TranslationRepository $repository;
+    /** @var Validator&MockObject */
+    private Validator $validator;
 
-    /**
-     * The mocked id calculator.
-     * @var IdCalculator&MockObject
-     */
-    protected $idCalculator;
-
-    /**
-     * The mocked repository.
-     * @var TranslationRepository&MockObject
-     */
-    protected $repository;
-
-    /**
-     * The mocked validator.
-     * @var Validator&MockObject
-     */
-    protected $validator;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->idCalculator = $this->createMock(IdCalculator::class);
         $this->repository = $this->createMock(TranslationRepository::class);
@@ -71,49 +50,59 @@ class RecipeTranslationImporterTest extends TestCase
     }
 
     /**
-     * Tests the getExportEntities method.
+     * @param array<string> $mockedMethods
+     * @return RecipeTranslationImporter&MockObject
+     */
+    private function createInstance(array $mockedMethods = []): RecipeTranslationImporter
+    {
+        return $this->getMockBuilder(RecipeTranslationImporter::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->entityManager,
+                        $this->idCalculator,
+                        $this->repository,
+                        $this->validator,
+                    ])
+                    ->getMock();
+    }
+
+    /**
      * @throws ReflectionException
-     * @covers ::getExportEntities
      */
     public function testGetExportEntities(): void
     {
         $recipe1 = new ExportRecipe();
-        $recipe1->setMode(RecipeMode::NORMAL);
+        $recipe1->mode = RecipeMode::NORMAL;
 
         $recipe2 = new ExportRecipe();
-        $recipe2->setMode(RecipeMode::EXPENSIVE);
+        $recipe2->mode = RecipeMode::EXPENSIVE;
 
         $recipe3 = new ExportRecipe();
-        $recipe3->setMode(RecipeMode::NORMAL);
+        $recipe3->mode = RecipeMode::NORMAL;
 
-        $combination = new ExportCombination();
-        $combination->setRecipes([$recipe1, $recipe2, $recipe3]);
 
-        $exportData = new ExportData($combination, $this->createMock(StorageInterface::class));
+        $exportData = new ExportData($this->createMock(Storage::class), 'foo');
+        $exportData->getRecipes()->add($recipe1)
+                                 ->add($recipe2)
+                                 ->add($recipe3);
 
-        $importer = new RecipeTranslationImporter(
-            $this->entityManager,
-            $this->idCalculator,
-            $this->repository,
-            $this->validator,
-        );
+        $importer = $this->createInstance();
         $result = $this->invokeMethod($importer, 'getExportEntities', $exportData);
 
         $this->assertEquals([$recipe1, $recipe3], iterator_to_array($result));
     }
-    
+
     /**
-     * Tests the createTranslationsForEntity method.
      * @throws ReflectionException
-     * @covers ::createTranslationsForEntity
      */
     public function testCreateTranslationsForEntity(): void
     {
         $name = 'abc';
         $exportData = $this->createMock(ExportData::class);
-        
+
         $recipe = new ExportRecipe();
-        $recipe->setName($name);
+        $recipe->name = $name;
 
         $translations = [
             $this->createMock(Translation::class),
@@ -128,26 +117,18 @@ class RecipeTranslationImporterTest extends TestCase
         $item = $this->createMock(Item::class);
         $expectedItems = [$item];
 
-        $importer = $this->getMockBuilder(RecipeTranslationImporter::class)
-                         ->onlyMethods([
+        $importer = $this->createInstance([
                              'createTranslationsFromLocalisedStrings',
                              'findItem',
                              'filterDuplicatesToItems',
-                         ])
-                         ->setConstructorArgs([
-                             $this->entityManager,
-                             $this->idCalculator,
-                             $this->repository,
-                             $this->validator,
-                         ])
-                         ->getMock();
+                         ]);
         $importer->expects($this->once())
                  ->method('createTranslationsFromLocalisedStrings')
                  ->with(
                      $this->identicalTo(EntityType::RECIPE),
                      $this->identicalTo('abc'),
-                     $this->identicalTo($recipe->getLabels()),
-                     $this->identicalTo($recipe->getDescriptions()),
+                     $this->identicalTo($recipe->labels),
+                     $this->identicalTo($recipe->descriptions),
                  )
                  ->willReturn($translations);
         $importer->expects($this->exactly(2))
@@ -172,7 +153,6 @@ class RecipeTranslationImporterTest extends TestCase
                  ->method('filterDuplicatesToItems')
                  ->with($this->identicalTo($translations), $this->identicalTo($expectedItems))
                  ->willReturn($filteredTranslations);
-
 
         $result = $this->invokeMethod($importer, 'createTranslationsForEntity', $exportData, $recipe);
 

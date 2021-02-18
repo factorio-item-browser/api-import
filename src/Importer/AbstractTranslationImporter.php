@@ -11,8 +11,8 @@ use FactorioItemBrowser\Api\Database\Entity\Translation;
 use FactorioItemBrowser\Api\Database\Repository\TranslationRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
+use FactorioItemBrowser\ExportData\Collection\DictionaryInterface;
 use FactorioItemBrowser\ExportData\Entity\Item;
-use FactorioItemBrowser\ExportData\Entity\LocalisedString;
 use FactorioItemBrowser\ExportData\ExportData;
 
 /**
@@ -64,7 +64,7 @@ abstract class AbstractTranslationImporter extends AbstractImporter
      * @param ExportData $exportData
      * @param int $offset
      * @param int $limit
-     * @return array<Translation>|Translation[]
+     * @return array<Translation>
      */
     protected function createTranslations(ExportData $exportData, int $offset, int $limit): array
     {
@@ -84,7 +84,7 @@ abstract class AbstractTranslationImporter extends AbstractImporter
      * Creates the translations for the specified entity.
      * @param ExportData $exportData
      * @param TExport $entity
-     * @return array<Translation>|Translation[]
+     * @return array<Translation>
      */
     abstract protected function createTranslationsForEntity(ExportData $exportData, $entity): array;
 
@@ -92,18 +92,18 @@ abstract class AbstractTranslationImporter extends AbstractImporter
      * Creates the translations from the localised strings.
      * @param string $type
      * @param string $name
-     * @param LocalisedString $values
-     * @param LocalisedString $descriptions
-     * @return array<Translation>|Translation[]
+     * @param DictionaryInterface $values
+     * @param DictionaryInterface $descriptions
+     * @return array<Translation>
      */
     protected function createTranslationsFromLocalisedStrings(
         string $type,
         string $name,
-        LocalisedString $values,
-        LocalisedString $descriptions
+        DictionaryInterface $values,
+        DictionaryInterface $descriptions
     ): array {
         $translations = [];
-        foreach ($values->getTranslations() as $locale => $value) {
+        foreach ($values as $locale => $value) {
             if ($value !== '') {
                 $translation = $this->createTranslationEntity($locale, $type, $name);
                 $translation->setValue($value);
@@ -111,7 +111,7 @@ abstract class AbstractTranslationImporter extends AbstractImporter
             }
         }
 
-        foreach ($descriptions->getTranslations() as $locale => $description) {
+        foreach ($descriptions as $locale => $description) {
             if ($description !== '') {
                 if (!isset($translations[$locale])) {
                     $translations[$locale] = $this->createTranslationEntity($locale, $type, $name);
@@ -149,8 +149,9 @@ abstract class AbstractTranslationImporter extends AbstractImporter
      */
     protected function findItem(ExportData $exportData, string $type, string $name): ?Item
     {
-        foreach ($exportData->getCombination()->getItems() as $item) {
-            if ($item->getType() === $type && $item->getName() === $name) {
+        foreach ($exportData->getItems() as $item) {
+            /* @var Item $item */
+            if ($item->type === $type && $item->name === $name) {
                 return $item;
             }
         }
@@ -159,16 +160,16 @@ abstract class AbstractTranslationImporter extends AbstractImporter
 
     /**
      * Filters the translation which duplicate one of the items.
-     * @param array<Translation>|Translation[] $translations
-     * @param array<Item>|Item[] $items
-     * @return array<Translation>|Translation[]
+     * @param array<Translation> $translations
+     * @param array<Item> $items
+     * @return array<Translation>
      */
     protected function filterDuplicatesToItems(array $translations, array $items): array
     {
         foreach ($translations as $key => $translation) {
             foreach ($items as $item) {
-                $label = $item->getLabels()->getTranslations()[$translation->getLocale()] ?? '';
-                $description = $item->getDescriptions()->getTranslations()[$translation->getLocale()] ?? '';
+                $label = $item->labels->get($translation->getLocale());
+                $description = $item->descriptions->get($translation->getLocale());
 
                 if (
                     ($translation->getValue() === $label)

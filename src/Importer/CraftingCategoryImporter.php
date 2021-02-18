@@ -12,6 +12,8 @@ use FactorioItemBrowser\Api\Database\Entity\CraftingCategory;
 use FactorioItemBrowser\Api\Database\Repository\CraftingCategoryRepository;
 use FactorioItemBrowser\Api\Import\Helper\IdCalculator;
 use FactorioItemBrowser\Api\Import\Helper\Validator;
+use FactorioItemBrowser\ExportData\Entity\Machine;
+use FactorioItemBrowser\ExportData\Entity\Recipe;
 use FactorioItemBrowser\ExportData\ExportData;
 use Generator;
 
@@ -29,9 +31,9 @@ class CraftingCategoryImporter extends AbstractEntityImporter
     protected Validator $validator;
 
     public function __construct(
-        CraftingCategoryRepository $repository,
         EntityManagerInterface $entityManager,
         IdCalculator $idCalculator,
+        CraftingCategoryRepository $repository,
         Validator $validator
     ) {
         parent::__construct($entityManager, $repository);
@@ -50,16 +52,18 @@ class CraftingCategoryImporter extends AbstractEntityImporter
     {
         $seenCraftingCategories = [];
 
-        foreach ($exportData->getCombination()->getRecipes() as $recipe) {
-            $craftingCategory = $recipe->getCraftingCategory();
+        foreach ($exportData->getRecipes() as $recipe) {
+            /* @var Recipe $recipe */
+            $craftingCategory = $recipe->craftingCategory;
             if (!isset($seenCraftingCategories[$craftingCategory])) {
                 $seenCraftingCategories[$craftingCategory] = true;
                 yield $craftingCategory;
             }
         }
 
-        foreach ($exportData->getCombination()->getMachines() as $machine) {
-            foreach ($machine->getCraftingCategories() as $craftingCategory) {
+        foreach ($exportData->getMachines() as $machine) {
+            /* @var Machine $machine */
+            foreach ($machine->craftingCategories as $craftingCategory) {
                 if (!isset($seenCraftingCategories[$craftingCategory])) {
                     $seenCraftingCategories[$craftingCategory] = true;
                     yield $craftingCategory;
