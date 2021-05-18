@@ -24,7 +24,7 @@
     "factorio-item-browser/export-data": "^4.0",
     "laminas/laminas-config-aggregator": "^1.0",
     "laminas/laminas-servicemanager": "^3.3",
-    "ramsey/uuid": "^3.8",
+    "ramsey/uuid": "^4.0",
     "symfony/console": "^5.0",
     "symfony/process": "^5.0"
   },
@@ -33,7 +33,7 @@
     "phpstan/phpstan": "^0.12",
     "phpstan/phpstan-phpunit": "^0.12",
     "phpstan/phpstan-strict-rules": "^0.12",
-    "phpunit/phpunit": "^8.0",
+    "phpunit/phpunit": "^9.0",
     "rregeer/phpunit-coverage-check": "^0.3",
     "squizlabs/php_codesniffer": "^3.3"
   },
