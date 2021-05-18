@@ -286,11 +286,12 @@ class IdCalculatorTest extends TestCase
     public function testCalculateId(): void
     {
         $data = ['abc', 'def'];
-        $expectedResult = Uuid::fromString('9e86daa1-e1bd-94ed-176d-afd437e13d58');
+        $expectedUuid = '9e86daa1-e1bd-94ed-176d-afd437e13d58';
 
         $helper = new IdCalculator();
+        /* @var UuidInterface $result */
         $result = $this->invokeMethod($helper, 'calculateId', $data);
 
-        $this->assertEquals($expectedResult, $result);
+        $this->assertEquals($expectedUuid, $result->toString());
     }
 }
