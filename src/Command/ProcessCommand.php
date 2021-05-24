@@ -83,9 +83,7 @@ class ProcessCommand extends Command
             $this->processJob($job);
             return 0;
         } catch (ImportException $e) {
-            if ($job instanceof Job) {
-                $this->updateJobStatus($job, JobStatus::ERROR, $e->getMessage());
-            }
+            $this->updateJobStatus($job, JobStatus::ERROR, $e->getMessage());
             return 1;
         } catch (Exception $e) {
             $this->console->writeException($e);
