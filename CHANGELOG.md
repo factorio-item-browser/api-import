@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1 - 2021-05-24
+
+### Changed
+
+- PHP version from 7.4 to 8.0.
+
 ## 1.2.0 - 2021-02-18
 
 ## Changed
