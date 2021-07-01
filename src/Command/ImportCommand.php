@@ -75,7 +75,6 @@ class ImportCommand extends AbstractImportCommand
         foreach ($this->importers as $name => $importer) {
             $this->executeImporter($name, $importer, $exportData, $combination);
         }
-        $this->cleanup();
 
         $this->console->writeStep('Done.');
     }
@@ -148,14 +147,5 @@ class ImportCommand extends AbstractImportCommand
             (string) ($chunk * $this->chunkSize),
             (string) $this->chunkSize,
         ]);
-    }
-
-    protected function cleanup(): void
-    {
-        $this->console->writeStep('Cleaning up');
-        foreach (array_reverse($this->importers) as $name => $importer) {
-            $this->console->writeAction("Importer: {$name}");
-            $importer->cleanup();
-        }
     }
 }

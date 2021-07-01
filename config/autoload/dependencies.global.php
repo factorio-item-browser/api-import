@@ -21,6 +21,7 @@ use function BluePsyduck\LaminasAutoWireFactory\readConfig;
 return [
     'dependencies' => [
         'factories'  => [
+            Command\CleanCommand::class => AutoWireFactory::class,
             Command\ImportCommand::class => AutoWireFactory::class,
             Command\ImportPartCommand::class => AutoWireFactory::class,
             Command\ProcessCommand::class => AutoWireFactory::class,

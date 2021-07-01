@@ -12,6 +12,8 @@ namespace FactorioItemBrowser\Api\Import\Constant;
  */
 interface CommandName
 {
+    public const CLEAN = 'clean';
+
     public const IMPORT = 'import';
     public const IMPORT_PART = 'import-part';
 

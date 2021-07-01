@@ -149,7 +149,7 @@ class ImportCommandTest extends TestCase
         ];
 
         $command = $this->getMockBuilder(ImportCommand::class)
-                        ->onlyMethods(['executeImporter', 'cleanup'])
+                        ->onlyMethods(['executeImporter'])
                         ->setConstructorArgs([
                             $this->combinationRepository,
                             $this->console,
@@ -388,36 +388,5 @@ class ImportCommandTest extends TestCase
         $result = $this->invokeMethod($command, 'createSubProcess', $combination, $part, $chunk);
 
         $this->assertEquals($expectedResult, $result);
-    }
-
-    /**
-     * Tests the cleanup method.
-     * @throws ReflectionException
-     * @covers ::cleanup
-     */
-    public function testCleanup(): void
-    {
-        $importer1 = $this->createMock(ImporterInterface::class);
-        $importer1->expects($this->once())
-                  ->method('cleanup');
-        $importer2 = $this->createMock(ImporterInterface::class);
-        $importer2->expects($this->once())
-                  ->method('cleanup');
-
-        $importers = [
-            'abc' => $importer1,
-            'def' => $importer2,
-        ];
-
-        $command = new ImportCommand(
-            $this->combinationRepository,
-            $this->console,
-            $this->exportDataService,
-            $importers,
-            42,
-            21,
-        );
-
-        $this->invokeMethod($command, 'cleanup');
     }
 }
