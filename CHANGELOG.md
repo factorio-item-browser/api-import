@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2 - 2021-07-02
+
+### Changed
+
+- Imports of existing combinations now update the `importTime` column after completing the import process.
+- Cleaning up the database tables have been moved to a separate `clean` command instead of doing it with each import.
+
 ## 1.2.1 - 2021-05-24
 
 ### Changed
