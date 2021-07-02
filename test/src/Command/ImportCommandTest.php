@@ -141,7 +141,7 @@ class ImportCommandTest extends TestCase
             'def' => $importer2,
         ];
 
-        $instance = $this->createInstance(['executeImporter', 'cleanup', 'updateImportTime']);
+        $instance = $this->createInstance(['executeImporter', 'updateImportTime']);
         $instance->expects($this->exactly(2))
                  ->method('executeImporter')
                  ->withConsecutive(
@@ -158,8 +158,6 @@ class ImportCommandTest extends TestCase
                          $this->identicalTo($combination),
                      ],
                  );
-        $instance->expects($this->once())
-                 ->method('cleanup');
         $instance->expects($this->once())
                  ->method('updateImportTime')
                  ->with($this->identicalTo($combination));
@@ -323,27 +321,6 @@ class ImportCommandTest extends TestCase
         $result = $this->invokeMethod($instance, 'createSubProcess', $combination, $part, $chunk);
 
         $this->assertEquals($expectedResult, $result);
-    }
-
-    /**
-     * @throws ReflectionException
-     */
-    public function testCleanup(): void
-    {
-        $importer1 = $this->createMock(ImporterInterface::class);
-        $importer1->expects($this->once())
-                  ->method('cleanup');
-        $importer2 = $this->createMock(ImporterInterface::class);
-        $importer2->expects($this->once())
-                  ->method('cleanup');
-
-        $this->importers = [
-            'abc' => $importer1,
-            'def' => $importer2,
-        ];
-
-        $instance = $this->createInstance();
-        $this->invokeMethod($instance, 'cleanup');
     }
 
     /**

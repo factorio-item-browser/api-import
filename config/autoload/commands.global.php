@@ -15,6 +15,7 @@ use FactorioItemBrowser\Api\Import\Constant\CommandName;
 
 return [
     'commands' => [
+        CommandName::CLEAN => Command\CleanCommand::class,
         CommandName::IMPORT => Command\ImportCommand::class,
         CommandName::IMPORT_PART => Command\ImportPartCommand::class,
         CommandName::PROCESS => Command\ProcessCommand::class,
