@@ -6,6 +6,8 @@ namespace FactorioItemBrowser\Api\Import\Command;
 
 use BluePsyduck\SymfonyProcessManager\ProcessManager;
 use BluePsyduck\SymfonyProcessManager\ProcessManagerInterface;
+use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FactorioItemBrowser\Api\Database\Entity\Combination;
 use FactorioItemBrowser\Api\Database\Repository\CombinationRepository;
@@ -25,6 +27,7 @@ use FactorioItemBrowser\ExportData\ExportDataService;
  */
 class ImportCommand extends AbstractImportCommand
 {
+    protected EntityManagerInterface $entityManager;
     /**
      * @var array<string, ImporterInterface>|ImporterInterface[]
      */
@@ -35,6 +38,7 @@ class ImportCommand extends AbstractImportCommand
     /**
      * @param CombinationRepository $combinationRepository
      * @param Console $console
+     * @param EntityManagerInterface $entityManager
      * @param ExportDataService $exportDataService
      * @param array<string, ImporterInterface> $importers
      * @param int $importChunkSize
@@ -43,6 +47,7 @@ class ImportCommand extends AbstractImportCommand
     public function __construct(
         CombinationRepository $combinationRepository,
         Console $console,
+        EntityManagerInterface $entityManager,
         ExportDataService $exportDataService,
         array $importers,
         int $importChunkSize,
@@ -50,6 +55,7 @@ class ImportCommand extends AbstractImportCommand
     ) {
         parent::__construct($combinationRepository, $console, $exportDataService);
 
+        $this->entityManager = $entityManager;
         $this->importers = $importers;
         $this->chunkSize = $importChunkSize;
         $this->numberOfParallelProcesses = $numberOfParallelProcesses;
@@ -76,6 +82,7 @@ class ImportCommand extends AbstractImportCommand
             $this->executeImporter($name, $importer, $exportData, $combination);
         }
         $this->cleanup();
+        $this->updateImportTime($combination);
 
         $this->console->writeStep('Done.');
     }
@@ -157,5 +164,12 @@ class ImportCommand extends AbstractImportCommand
             $this->console->writeAction("Importer: {$name}");
             $importer->cleanup();
         }
+    }
+
+    protected function updateImportTime(Combination $combination): void
+    {
+        $combination->setImportTime(new DateTime('now'));
+        $this->entityManager->persist($combination);
+        $this->entityManager->flush();
     }
 }
